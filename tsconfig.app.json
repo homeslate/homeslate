@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@homeslate/schema": ["packages/schema/src/index.ts"],
+      "@homeslate/google": ["packages/google/src/index.ts"],
+      "@homeslate/widgets": ["packages/widgets/src/index.ts"],
+      "@homeslate/widgets/schemas": ["packages/widgets/src/schemas.ts"],
+      "@homeslate/widgets/server": ["packages/widgets/src/server.ts"],
+      "@homeslate/display/canvas": ["packages/display/src/canvas/index.ts"],
+      "@homeslate/display": ["packages/display/src/index.ts"],
+      "@homeslate/editor": ["packages/editor/src/index.ts"],
+      "@homeslate/adapters": ["packages/adapters/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/schema/src",
+    "packages/google/src",
+    "packages/widgets/src",
+    "packages/display/src",
+    "packages/editor/src",
+    "packages/adapters/src"
+  ]
+}
