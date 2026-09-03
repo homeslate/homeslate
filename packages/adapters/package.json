@@ -1,6 +1,6 @@
 {
   "name": "@homeslate/adapters",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "type": "module",
   "engines": { "node": ">=22.13" },
@@ -21,9 +21,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@homeslate/google": "0.1.0",
-    "@homeslate/schema": "0.1.0",
-    "@homeslate/widgets": "0.1.0",
+    "@homeslate/google": "0.1.1",
+    "@homeslate/schema": "0.1.1",
+    "@homeslate/widgets": "0.1.1",
     "uuid": "^13.0.0"
   }
 }
