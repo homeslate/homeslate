@@ -1,6 +1,6 @@
 {
   "name": "@homeslate/display",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "type": "module",
   "publishConfig": { "access": "public" },
@@ -20,12 +20,12 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/canvas/index.ts --format esm --dts --clean --tsconfig ../../tsconfig.app.json",
+    "build": "tsup src/index.ts src/canvas/index.ts --format esm --dts --clean --tsconfig ../../tsconfig.app.json --config ../../tsup.config.ts",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@homeslate/schema": "0.1.1",
-    "@homeslate/widgets": "0.1.1",
+    "@homeslate/widgets": "0.1.2",
     "@mantine/core": "^8.3.10",
     "@mantine/hooks": "^8.3.10",
     "@tabler/icons-react": "^3.35.0",
