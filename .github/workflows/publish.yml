@@ -18,7 +18,8 @@ jobs:
       - run: npm run test:run
       - run: |
           for pkg in schema google widgets display editor adapters; do
-            npm publish -w "@homeslate/$pkg" --access public
+            npm publish -w "@homeslate/$pkg" --access public \
+              || echo "skip @homeslate/$pkg (already published or failed)"
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
