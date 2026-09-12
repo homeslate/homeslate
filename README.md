@@ -2,6 +2,8 @@
 
 Public MIT packages and reference self-host app for Homeslate.
 
+Documentation: run `vp run docs:dev` (or `pnpm docs:dev`) and open the URL Astro prints.
+
 ## Clone
 
 ```bash

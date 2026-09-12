@@ -7,6 +7,8 @@
     "test": "vp test",
     "test:run": "vp test run",
     "dev:reference": "pnpm --filter homeslate-reference dev",
+    "docs:dev": "pnpm --filter docs dev",
+    "docs:build": "pnpm --filter docs build",
     "check": "vp check",
     "lint": "vp lint",
     "fmt": "vp fmt",
