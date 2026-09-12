@@ -32,7 +32,7 @@ export const docsSearchItems: DocsSearchItem[] = [
     id: 'reference',
     title: 'Reference app',
     meta: 'Guides',
-    keywords: ['self-host', 'kiosk', 'sqlite', 'google', 'commute'],
+    keywords: ['self-host', 'kiosk', 'sqlite', 'google'],
     group: 'Guides',
   },
   {
