@@ -1,0 +1,116 @@
+.container {
+  height: 100%;
+  background: var(--token-widget-background, var(--token-surface-card));
+  border: var(--token-widget-border-width, 1px) solid
+    var(--token-widget-border-color, var(--token-border-default));
+  border-radius: var(--token-widget-radius, var(--token-radius-md));
+  padding: var(--token-widget-padding, var(--token-spacing-3));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-spacing-2);
+}
+
+.transparent {
+  background: transparent;
+  border-color: transparent;
+}
+
+.empty,
+.loading,
+.error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-spacing-2);
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--token-text-secondary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-spacing-2);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--token-spacing-2);
+  color: var(--token-text-primary);
+  font-weight: 600;
+}
+
+.quiet {
+  color: var(--token-text-muted);
+}
+
+.list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-spacing-2);
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-spacing-1);
+  background: var(--token-surface-subtle);
+}
+
+.event {
+  font-weight: 600;
+}
+
+.headline {
+  color: var(--token-text-secondary);
+}
+
+.until {
+  color: var(--token-text-muted);
+}
+
+.severityDanger {
+  color: var(--token-status-danger-fg);
+}
+
+.severityWarning {
+  color: var(--token-status-warning-fg);
+}
+
+.severityInfo {
+  color: var(--token-status-info-fg);
+}
+
+.severityUnknown {
+  color: var(--token-text-muted);
+}
+
+.searchResults {
+  background: var(--token-surface-overlay, var(--token-surface-card));
+  border: 1px solid var(--token-border-default);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.searchResult {
+  color: var(--token-text-muted);
+  font-weight: normal;
+}
+
+.searchResult:hover {
+  color: var(--token-text-primary);
+  background: color-mix(in srgb, var(--token-color-brand-500) 12%, transparent);
+}
+
+.currentLocation {
+  background: var(--token-status-warning-bg);
+  border: 1px solid var(--token-status-warning-border);
+}

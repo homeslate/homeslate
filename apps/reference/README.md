@@ -36,3 +36,13 @@ GOOGLE_CLIENT_SECRET=...
 ```
 
 The OAuth callback is `http://127.0.0.1:5174/api/google/callback` (Vite proxies `/api` to the Hono server). Without these variables the editor and kiosk still run; calendar widgets stay empty.
+
+## Optional commute
+
+Set `OPENROUTESERVICE_API_KEY` on the API process to enable commute estimates:
+
+```bash
+OPENROUTESERVICE_API_KEY=...
+```
+
+Without it, the commute route returns 501 and the widget stays designable.

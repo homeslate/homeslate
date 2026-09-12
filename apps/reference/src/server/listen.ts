@@ -9,6 +9,7 @@ const app = createReferenceApp({
   dataDir,
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
   publicBaseUrl: "http://127.0.0.1:5174",
 });
 

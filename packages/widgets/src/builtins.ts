@@ -21,6 +21,9 @@ import type { ChoresConfig } from "./widgets/ChoresWidget";
 import type { GroceryConfig } from "./widgets/GroceryWidget";
 import type { CountdownConfig } from "./widgets/CountdownWidget";
 import type { AnnouncementConfig } from "./widgets/AnnouncementWidget";
+import type { CommuteConfig } from "./widgets/CommuteWidget";
+import type { WeatherAlertsConfig } from "./widgets/WeatherAlertsWidget";
+import type { EmbedConfig } from "./widgets/EmbedWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -28,7 +31,10 @@ import {
   calendarConfigSchema,
   choresConfigSchema,
   clockConfigSchema,
+  commuteConfigSchema,
   countdownConfigSchema,
+  embedConfigSchema,
+  weatherAlertsConfigSchema,
   dailyRoutineConfigSchema,
   groceryConfigSchema,
   googleCalendarConfigSchema,
@@ -65,6 +71,9 @@ import {
   IconHourglassLow,
   IconSpeakerphone,
   IconChecklist,
+  IconCar,
+  IconAlertTriangle,
+  IconAppWindow,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -219,6 +228,29 @@ const AnnouncementWidget = lazy(() =>
 );
 const AnnouncementWidgetSettings = lazy(() =>
   import("./widgets/AnnouncementWidget").then((m) => ({ default: m.AnnouncementWidgetSettings })),
+);
+
+const CommuteWidget = lazy(() =>
+  import("./widgets/CommuteWidget").then((m) => ({ default: m.CommuteWidget })),
+);
+const CommuteWidgetSettings = lazy(() =>
+  import("./widgets/CommuteWidget").then((m) => ({ default: m.CommuteWidgetSettings })),
+);
+
+const WeatherAlertsWidget = lazy(() =>
+  import("./widgets/WeatherAlertsWidget").then((m) => ({ default: m.WeatherAlertsWidget })),
+);
+const WeatherAlertsWidgetSettings = lazy(() =>
+  import("./widgets/WeatherAlertsWidget").then((m) => ({
+    default: m.WeatherAlertsWidgetSettings,
+  })),
+);
+
+const EmbedWidget = lazy(() =>
+  import("./widgets/EmbedWidget").then((m) => ({ default: m.EmbedWidget })),
+);
+const EmbedWidgetSettings = lazy(() =>
+  import("./widgets/EmbedWidget").then((m) => ({ default: m.EmbedWidgetSettings })),
 );
 
 // Clock Widget
@@ -685,3 +717,57 @@ const announcementEntry: WidgetRegistryEntry<AnnouncementConfig> = {
   defaultLayout: { w: 4, h: 2, minW: 2, minH: 1 },
 };
 registerWidget(announcementEntry);
+
+const commuteEntry: WidgetRegistryEntry<CommuteConfig> = {
+  type: "commute",
+  name: "Commute",
+  description: "Travel times for frequent driving routes",
+  configSchema: commuteConfigSchema,
+  icon: IconCar,
+  component: CommuteWidget,
+  settingsComponent: CommuteWidgetSettings,
+  defaultConfig: {
+    routes: [],
+    units: "imperial",
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(commuteEntry);
+
+const weatherAlertsEntry: WidgetRegistryEntry<WeatherAlertsConfig> = {
+  type: "weather-alerts",
+  name: "Weather Alerts",
+  description: "Official US weather watches and warnings",
+  configSchema: weatherAlertsConfigSchema,
+  icon: IconAlertTriangle,
+  component: WeatherAlertsWidget,
+  settingsComponent: WeatherAlertsWidgetSettings,
+  defaultConfig: {
+    location: "",
+    latitude: null,
+    longitude: null,
+    maxAlerts: 5,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(weatherAlertsEntry);
+
+const embedEntry: WidgetRegistryEntry<EmbedConfig> = {
+  type: "embed",
+  name: "Embed",
+  description: "Show a page or Home Assistant dashboard in a sandboxed frame",
+  configSchema: embedConfigSchema,
+  icon: IconAppWindow,
+  component: EmbedWidget,
+  settingsComponent: EmbedWidgetSettings,
+  defaultConfig: {
+    url: "",
+    refreshSeconds: 0,
+    allowInteraction: false,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 4, h: 4, minW: 2, minH: 2 },
+};
+registerWidget(embedEntry);

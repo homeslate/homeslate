@@ -1,0 +1,30 @@
+{
+  "features": [
+    {
+      "properties": {
+        "id": "https://api.weather.gov/alerts/urn:NWS:moderate",
+        "event": "Wind Advisory",
+        "headline": "Wind Advisory until this evening",
+        "severity": "Moderate",
+        "ends": "2026-09-11T23:00:00-07:00"
+      }
+    },
+    {
+      "properties": {
+        "id": "https://api.weather.gov/alerts/urn:NWS:extreme",
+        "event": "Excessive Heat Warning",
+        "headline": "Dangerous heat",
+        "severity": "Extreme",
+        "expires": "2026-09-11T20:00:00-07:00"
+      }
+    },
+    {
+      "properties": {
+        "id": "https://api.weather.gov/alerts/urn:NWS:unknown",
+        "event": "Special Weather Statement",
+        "headline": "Statement",
+        "severity": "Who Knows"
+      }
+    }
+  ]
+}
