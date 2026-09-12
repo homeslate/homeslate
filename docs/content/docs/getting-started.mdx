@@ -1,0 +1,19 @@
+---
+title: Getting started
+description: Clone the repo, install, and run the reference app.
+---
+
+# Getting started
+
+Requires **Node 22.13+**.
+
+```bash
+git clone https://github.com/homeslate/homeslate.git
+cd homeslate
+vp install
+vp run dev:reference
+```
+
+Open [http://127.0.0.1:5174](http://127.0.0.1:5174). That command starts the Hono API and the Vite UI (Vite proxies `/api` to port 8787).
+
+See [Reference app](/docs/reference) for ports, persistence, and optional API keys.

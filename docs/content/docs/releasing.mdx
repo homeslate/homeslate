@@ -1,0 +1,14 @@
+---
+title: Releasing
+description: Independent package versions with Changesets.
+---
+
+# Releasing
+
+Packages version independently with [Changesets](https://changesets.dev). On a PR that should publish `@homeslate/*`:
+
+```bash
+pnpm changeset
+```
+
+Merging to `main` opens a **Version Packages** PR. Merging that PR publishes to npm (`NPM_TOKEN` secret). In the repo settings under Actions → General, enable **Allow GitHub Actions to create and approve pull requests**.
