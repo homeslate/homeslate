@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - apps/reference
+  - docs
 
 onlyBuiltDependencies:
   - esbuild
@@ -9,6 +10,9 @@ catalog:
   vite-plus: 0.2.6
 overrides:
   vite: "catalog:"
+  docs>vite: "npm:vite@^6.4.1"
+  astro>vite: "npm:vite@^6.4.1"
+  "@typestyles/vite>vite": "npm:vite@^6.4.1"
 peerDependencyRules:
   allowAny:
     - vite

@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Homeslate" showToc={false}>
+  <article class="home">
+    <h1>Homeslate</h1>
+    <p>
+      Public MIT packages and a reference self-host app for a household command
+      center.
+    </p>
+    <p>
+      <a href="/docs">Open the documentation →</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .home {
+    max-width: 40rem;
+    padding: 2rem 0;
+  }
+
+  .home h1 {
+    margin-block: 0 0.75rem;
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .home p {
+    margin-block: 0.75rem;
+    line-height: 1.6;
+  }
+</style>
