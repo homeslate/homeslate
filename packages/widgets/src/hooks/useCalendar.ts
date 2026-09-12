@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { fetchCalendarEventsCached, type CalendarEvent } from '../services/calendar';
-import { getNextPollDelay } from './polling';
+import { useState, useEffect, useCallback } from "react";
+import { fetchCalendarEventsCached, type CalendarEvent } from "../services/calendar";
+import { getNextPollDelay } from "./polling";
 
 interface UseCalendarOptions {
   icalUrl: string;
@@ -45,7 +45,7 @@ export function useCalendar({
       setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch calendar');
+      setError(err instanceof Error ? err.message : "Failed to fetch calendar");
       setConsecutiveFailures((prev) => prev + 1);
     } finally {
       setIsLoading(false);
@@ -59,10 +59,7 @@ export function useCalendar({
   useEffect(() => {
     if (!icalUrl) return;
 
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(refreshInterval, consecutiveFailures)
-    );
+    const timeout = setTimeout(fetchData, getNextPollDelay(refreshInterval, consecutiveFailures));
     return () => clearTimeout(timeout);
   }, [fetchData, refreshInterval, icalUrl, consecutiveFailures]);
 
@@ -74,4 +71,3 @@ export function useCalendar({
     refresh: fetchData,
   };
 }
-

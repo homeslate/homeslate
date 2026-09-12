@@ -1,9 +1,10 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vite-plus/test";
 
-const HOST_IMPORT_RE = /AuthContext|apiClient|dashboardStore|from ['"]@?neon|from ['"]drizzle-orm|from ['"][^'"]*netlify/;
+const HOST_IMPORT_RE =
+  /AuthContext|apiClient|dashboardStore|from ['"]@?neon|from ['"]drizzle-orm|from ['"][^'"]*netlify/;
 
 function walkSourceFiles(dir: string): string[] {
   const out: string[] = [];
@@ -20,8 +21,8 @@ function walkSourceFiles(dir: string): string[] {
   return out;
 }
 
-describe('@homeslate/editor host imports', () => {
-  it('matches neon and drizzle import specifiers, not canvas ids', () => {
+describe("@homeslate/editor host imports", () => {
+  it("matches neon and drizzle import specifiers, not canvas ids", () => {
     expect("import { neon } from '@neondatabase/serverless'").toMatch(HOST_IMPORT_RE);
     expect("import { neon } from 'drizzle-orm/neon-http'").toMatch(HOST_IMPORT_RE);
     expect("import { schedule } from '@netlify/functions'").toMatch(HOST_IMPORT_RE);
@@ -29,12 +30,12 @@ describe('@homeslate/editor host imports', () => {
     expect("const neon = 'ok'").not.toMatch(HOST_IMPORT_RE);
   });
 
-  it('does not import hosted auth, api, store, neon, or netlify', () => {
+  it("does not import hosted auth, api, store, neon, or netlify", () => {
     const root = dirname(fileURLToPath(import.meta.url));
     const files = walkSourceFiles(root);
     expect(files.length).toBeGreaterThan(0);
     for (const file of files) {
-      const source = readFileSync(file, 'utf8');
+      const source = readFileSync(file, "utf8");
       expect(source, file).not.toMatch(HOST_IMPORT_RE);
     }
   });

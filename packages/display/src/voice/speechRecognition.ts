@@ -26,7 +26,7 @@ interface SpeechRecognitionLike {
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
-export type SpeechUnavailableReason = 'unsupported' | 'denied' | 'error';
+export type SpeechUnavailableReason = "unsupported" | "denied" | "error";
 
 export interface SpeechRecognitionSessionHandlers {
   onResult: (transcript: string, isFinal: boolean) => void;
@@ -53,7 +53,7 @@ export class SpeechRecognitionSession {
   start(handlers: SpeechRecognitionSessionHandlers): boolean {
     const Ctor = getSpeechRecognitionConstructor();
     if (!Ctor) {
-      handlers.onError('unsupported');
+      handlers.onError("unsupported");
       return false;
     }
 
@@ -63,25 +63,25 @@ export class SpeechRecognitionSession {
     const recognition = new Ctor();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
       const result = event.results[event.results.length - 1];
       if (!result) return;
-      const transcript = result[0]?.transcript ?? '';
+      const transcript = result[0]?.transcript ?? "";
       if (!transcript.trim()) return;
       handlers.onResult(transcript, result.isFinal);
     };
 
     recognition.onerror = (event) => {
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
         this.wanted = false;
-        handlers.onError('denied');
+        handlers.onError("denied");
         return;
       }
-      if (event.error === 'audio-capture') {
+      if (event.error === "audio-capture") {
         this.wanted = false;
-        handlers.onError('error');
+        handlers.onError("error");
         return;
       }
       // aborted, no-speech, network, etc. — onend restarts while still wanted
@@ -105,7 +105,7 @@ export class SpeechRecognitionSession {
     } catch {
       this.wanted = false;
       this.recognition = null;
-      handlers.onError('error');
+      handlers.onError("error");
       return false;
     }
   }

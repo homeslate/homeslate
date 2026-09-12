@@ -4,22 +4,22 @@
 //   https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/scoreboard
 
 export interface League {
-  id: string;       // key used in the URL, e.g. "nhl"
-  sport: string;    // e.g. "hockey"
-  name: string;     // display name
+  id: string; // key used in the URL, e.g. "nhl"
+  sport: string; // e.g. "hockey"
+  name: string; // display name
 }
 
 export const LEAGUES: League[] = [
-  { id: 'nhl',                          sport: 'hockey',     name: 'NHL' },
-  { id: 'nfl',                          sport: 'football',   name: 'NFL' },
-  { id: 'nba',                          sport: 'basketball', name: 'NBA' },
-  { id: 'wnba',                         sport: 'basketball', name: 'WNBA' },
-  { id: 'mlb',                          sport: 'baseball',   name: 'MLB' },
-  { id: 'mls',                          sport: 'soccer',     name: 'MLS' },
-  { id: 'f1',                           sport: 'racing',    name: 'Formula 1' },
-  { id: 'mens-college-basketball',      sport: 'basketball', name: 'NCAA Basketball (M)' },
-  { id: 'womens-college-basketball',    sport: 'basketball', name: 'NCAA Basketball (W)' },
-  { id: 'college-football',             sport: 'football',   name: 'NCAA Football' },
+  { id: "nhl", sport: "hockey", name: "NHL" },
+  { id: "nfl", sport: "football", name: "NFL" },
+  { id: "nba", sport: "basketball", name: "NBA" },
+  { id: "wnba", sport: "basketball", name: "WNBA" },
+  { id: "mlb", sport: "baseball", name: "MLB" },
+  { id: "mls", sport: "soccer", name: "MLS" },
+  { id: "f1", sport: "racing", name: "Formula 1" },
+  { id: "mens-college-basketball", sport: "basketball", name: "NCAA Basketball (M)" },
+  { id: "womens-college-basketball", sport: "basketball", name: "NCAA Basketball (W)" },
+  { id: "college-football", sport: "football", name: "NCAA Football" },
 ];
 
 export interface SportsTeam {
@@ -34,16 +34,16 @@ export interface SportsTeam {
 export interface SportsCompetitor {
   team: SportsTeam;
   score: string;
-  homeAway: 'home' | 'away';
+  homeAway: "home" | "away";
   winner?: boolean;
   records?: { summary: string }[];
 }
 
-export type GameStatus = 'pre' | 'in' | 'post';
+export type GameStatus = "pre" | "in" | "post";
 
 export interface RaceSession {
-  type: string;       // e.g. "FP1", "Qual", "Race", "Sprint"
-  date: string;       // ISO string
+  type: string; // e.g. "FP1", "Qual", "Race", "Sprint"
+  date: string; // ISO string
   statusDetail: string;
   status: GameStatus;
 }
@@ -54,9 +54,9 @@ export interface SportGame {
   name: string;
   shortName: string;
   status: GameStatus;
-  statusDetail: string;   // e.g. "Final", "7:30 PM ET", "3rd 4:22"
-  period?: number;        // current period / quarter
-  clock?: string;         // remaining clock
+  statusDetail: string; // e.g. "Final", "7:30 PM ET", "3rd 4:22"
+  period?: number; // current period / quarter
+  clock?: string; // remaining clock
   competitors: [SportsCompetitor, SportsCompetitor]; // [away, home] typically
   /** Present for F1/racing: sessions (FP1, Qual, Race, etc.) for this race weekend */
   raceSessions?: RaceSession[];
@@ -66,7 +66,7 @@ export interface SportGame {
 // API fetch
 // ---------------------------------------------------------------------------
 
-const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
+const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 
 // Simple in-memory cache keyed by leagueId or leagueId:dates
 const scoreboardCache = new Map<
@@ -122,32 +122,30 @@ function buildScoreboardUrl(leagueId: string, sport: string, dates?: string): st
   return dates ? `${base}?dates=${dates}` : base;
 }
 
- 
 function parseCompetitor(c: EspnCompetitor): SportsCompetitor {
   return {
     team: {
-      id: c.team?.id ?? '',
-      abbreviation: c.team?.abbreviation ?? '',
-      displayName: c.team?.displayName ?? c.team?.name ?? '',
-      shortDisplayName: c.team?.shortDisplayName ?? c.team?.abbreviation ?? '',
+      id: c.team?.id ?? "",
+      abbreviation: c.team?.abbreviation ?? "",
+      displayName: c.team?.displayName ?? c.team?.name ?? "",
+      shortDisplayName: c.team?.shortDisplayName ?? c.team?.abbreviation ?? "",
       logo: c.team?.logo,
       color: c.team?.color ? `#${c.team.color}` : undefined,
     },
-    score: c.score ?? '0',
-    homeAway: c.homeAway === 'home' ? 'home' : 'away',
+    score: c.score ?? "0",
+    homeAway: c.homeAway === "home" ? "home" : "away",
     winner: c.winner,
     records: c.records,
   };
 }
 
- 
 function parseGame(event: EspnEvent): SportGame {
   const competition = event.competitions?.[0];
   const statusType = competition?.status?.type;
 
-  let status: GameStatus = 'pre';
-  if (statusType?.state === 'in') status = 'in';
-  else if (statusType?.state === 'post') status = 'post';
+  let status: GameStatus = "pre";
+  if (statusType?.state === "in") status = "in";
+  else if (statusType?.state === "post") status = "post";
 
   const competitors: [SportsCompetitor, SportsCompetitor] = [
     parseCompetitor(competition?.competitors?.[0] ?? {}),
@@ -157,10 +155,10 @@ function parseGame(event: EspnEvent): SportGame {
   return {
     id: event.id,
     date: event.date,
-    name: event.name ?? '',
-    shortName: event.shortName ?? '',
+    name: event.name ?? "",
+    shortName: event.shortName ?? "",
     status,
-    statusDetail: statusType?.shortDetail ?? statusType?.detail ?? '',
+    statusDetail: statusType?.shortDetail ?? statusType?.detail ?? "",
     period: competition?.status?.period,
     clock: competition?.status?.displayClock,
     competitors,
@@ -168,59 +166,67 @@ function parseGame(event: EspnEvent): SportGame {
 }
 
 // F1/racing: each "event" is a race weekend with multiple sessions (FP1, Qual, Race, etc.)
- 
+
 function parseF1Event(event: EspnEvent): SportGame {
   const competitions = event.competitions ?? [];
-  const raceSession = competitions.find((c) => c.type?.abbreviation === 'Race');
-  const statusType = raceSession?.status?.type ?? event.status?.type ?? competitions[0]?.status?.type;
+  const raceSession = competitions.find((c) => c.type?.abbreviation === "Race");
+  const statusType =
+    raceSession?.status?.type ?? event.status?.type ?? competitions[0]?.status?.type;
 
-  let status: GameStatus = 'pre';
-  if (statusType?.state === 'in') status = 'in';
-  else if (statusType?.state === 'post') status = 'post';
+  let status: GameStatus = "pre";
+  if (statusType?.state === "in") status = "in";
+  else if (statusType?.state === "post") status = "post";
 
   const raceSessions: RaceSession[] = competitions.map((c) => {
     const st = c.status?.type;
-    let s: GameStatus = 'pre';
-    if (st?.state === 'in') s = 'in';
-    else if (st?.state === 'post') s = 'post';
+    let s: GameStatus = "pre";
+    if (st?.state === "in") s = "in";
+    else if (st?.state === "post") s = "post";
     return {
-      type: c.type?.abbreviation ?? c.type?.name ?? 'Session',
+      type: c.type?.abbreviation ?? c.type?.name ?? "Session",
       date: c.date ?? event.date,
-      statusDetail: st?.shortDetail ?? st?.detail ?? '',
+      statusDetail: st?.shortDetail ?? st?.detail ?? "",
       status: s,
     };
   });
 
-  const circuitName = event.circuit?.fullName ?? event.circuit?.address?.city ?? '';
+  const circuitName = event.circuit?.fullName ?? event.circuit?.address?.city ?? "";
   const placeholderTeam: SportsTeam = {
     id: event.id,
-    abbreviation: 'GP',
-    displayName: event.shortName ?? event.name ?? 'Grand Prix',
-    shortDisplayName: event.shortName ?? event.name ?? 'GP',
+    abbreviation: "GP",
+    displayName: event.shortName ?? event.name ?? "Grand Prix",
+    shortDisplayName: event.shortName ?? event.name ?? "GP",
   };
-  const nextSession = raceSessions.find((s) => s.status === 'pre') ?? raceSessions[raceSessions.length - 1];
-  const nextDetail = nextSession ? `${nextSession.type}: ${nextSession.statusDetail}` : statusType?.shortDetail ?? '';
+  const nextSession =
+    raceSessions.find((s) => s.status === "pre") ?? raceSessions[raceSessions.length - 1];
+  const nextDetail = nextSession
+    ? `${nextSession.type}: ${nextSession.statusDetail}`
+    : (statusType?.shortDetail ?? "");
 
   const competitors: [SportsCompetitor, SportsCompetitor] = [
     {
-      team: { ...placeholderTeam, displayName: circuitName || placeholderTeam.displayName, shortDisplayName: circuitName || placeholderTeam.shortDisplayName },
-      score: '',
-      homeAway: 'away',
+      team: {
+        ...placeholderTeam,
+        displayName: circuitName || placeholderTeam.displayName,
+        shortDisplayName: circuitName || placeholderTeam.shortDisplayName,
+      },
+      score: "",
+      homeAway: "away",
     },
     {
       team: { ...placeholderTeam, displayName: nextDetail, shortDisplayName: nextDetail },
-      score: '',
-      homeAway: 'home',
+      score: "",
+      homeAway: "home",
     },
   ];
 
   return {
     id: event.id,
     date: event.date,
-    name: event.name ?? '',
-    shortName: event.shortName ?? '',
+    name: event.name ?? "",
+    shortName: event.shortName ?? "",
     status,
-    statusDetail: statusType?.shortDetail ?? statusType?.detail ?? '',
+    statusDetail: statusType?.shortDetail ?? statusType?.detail ?? "",
     competitors,
     raceSessions,
   };
@@ -241,7 +247,7 @@ export interface FetchScoreboardResult {
 
 export async function fetchScoreboard(
   leagueId: string,
-  options?: FetchScoreboardOptions
+  options?: FetchScoreboardOptions,
 ): Promise<FetchScoreboardResult> {
   const league = LEAGUES.find((l) => l.id === leagueId);
   if (!league) throw new Error(`Unknown league: ${leagueId}`);
@@ -265,24 +271,21 @@ export async function fetchScoreboard(
 
   const data = await response.json();
 
-  const isRacing = league.sport === 'racing';
+  const isRacing = league.sport === "racing";
   const games: SportGame[] = ((data.events ?? []) as EspnEvent[]).map((event) =>
-    isRacing ? parseF1Event(event) : parseGame(event)
+    isRacing ? parseF1Event(event) : parseGame(event),
   );
 
   // Extract league logo from response (prefer dark variant for display on dark backgrounds)
-   
+
   const logos = (data.leagues?.[0]?.logos ?? []) as EspnLogo[];
-  const darkLogo = logos.find((l) => l.rel?.includes('dark'))?.href;
-  const defaultLogo = logos.find((l) => l.rel?.includes('default'))?.href ?? logos[0]?.href;
+  const darkLogo = logos.find((l) => l.rel?.includes("dark"))?.href;
+  const defaultLogo = logos.find((l) => l.rel?.includes("default"))?.href ?? logos[0]?.href;
   const leagueLogo: string | undefined = darkLogo ?? defaultLogo;
 
   // Scoreboard date from API (e.g. "2026-03-12" -> "20260312")
   const rawDay = data.day?.date;
-  const dateStr =
-    rawDay && typeof rawDay === 'string'
-      ? rawDay.replace(/-/g, '')
-      : dates;
+  const dateStr = rawDay && typeof rawDay === "string" ? rawDay.replace(/-/g, "") : dates;
 
   // Collect unique teams from this scoreboard response (racing events use placeholder competitors, so skip)
   const teamMap = new Map<string, SportsTeam>();
@@ -296,7 +299,7 @@ export async function fetchScoreboard(
     }
   }
   const teams = Array.from(teamMap.values()).sort((a, b) =>
-    a.displayName.localeCompare(b.displayName)
+    a.displayName.localeCompare(b.displayName),
   );
 
   const cacheEntry = {
@@ -331,7 +334,7 @@ export async function fetchLeagueTeams(leagueId: string): Promise<SportsTeam[]> 
   const league = LEAGUES.find((l) => l.id === leagueId);
   if (!league) return [];
 
-  const ESPN_TEAMS_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
+  const ESPN_TEAMS_BASE = "https://site.api.espn.com/apis/site/v2/sports";
   const url = `${ESPN_TEAMS_BASE}/${league.sport}/${leagueId}/teams?limit=200`;
 
   try {
@@ -339,17 +342,27 @@ export async function fetchLeagueTeams(leagueId: string): Promise<SportsTeam[]> 
     if (!response.ok) return [];
     const data = await response.json();
 
-    const teams: SportsTeam[] = (data.sports?.[0]?.leagues?.[0]?.teams ?? []).map(
-       
-      (entry: { team?: { id?: string; abbreviation?: string; displayName?: string; shortDisplayName?: string; logos?: { href?: string }[]; color?: string } }) => ({
-        id: entry.team?.id ?? '',
-        abbreviation: entry.team?.abbreviation ?? '',
-        displayName: entry.team?.displayName ?? '',
-        shortDisplayName: entry.team?.shortDisplayName ?? entry.team?.abbreviation ?? '',
-        logo: entry.team?.logos?.[0]?.href,
-        color: entry.team?.color ? `#${entry.team.color}` : undefined,
-      })
-    ).filter((t: SportsTeam) => t.id);
+    const teams: SportsTeam[] = (data.sports?.[0]?.leagues?.[0]?.teams ?? [])
+      .map(
+        (entry: {
+          team?: {
+            id?: string;
+            abbreviation?: string;
+            displayName?: string;
+            shortDisplayName?: string;
+            logos?: { href?: string }[];
+            color?: string;
+          };
+        }) => ({
+          id: entry.team?.id ?? "",
+          abbreviation: entry.team?.abbreviation ?? "",
+          displayName: entry.team?.displayName ?? "",
+          shortDisplayName: entry.team?.shortDisplayName ?? entry.team?.abbreviation ?? "",
+          logo: entry.team?.logos?.[0]?.href,
+          color: entry.team?.color ? `#${entry.team.color}` : undefined,
+        }),
+      )
+      .filter((t: SportsTeam) => t.id);
 
     teams.sort((a, b) => a.displayName.localeCompare(b.displayName));
     teamsCache.set(leagueId, { teams, timestamp: Date.now() });

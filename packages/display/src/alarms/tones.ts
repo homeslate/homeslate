@@ -1,4 +1,4 @@
-import type { AlarmToneId } from './types';
+import type { AlarmToneId } from "./types";
 
 let ctx: AudioContext | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -22,7 +22,7 @@ function beep(frequency: number, durationMs: number, gainValue = 0.15): void {
   const ac = getCtx();
   const osc = ac.createOscillator();
   const gain = ac.createGain();
-  osc.type = 'sine';
+  osc.type = "sine";
   osc.frequency.value = frequency;
   gain.gain.value = gainValue * duckFactor;
   osc.connect(gain);
@@ -33,7 +33,13 @@ function beep(frequency: number, durationMs: number, gainValue = 0.15): void {
   osc.stop(now + durationMs / 1000);
 }
 
-function scheduleBeep(session: number, delayMs: number, frequency: number, durationMs: number, gainValue?: number): void {
+function scheduleBeep(
+  session: number,
+  delayMs: number,
+  frequency: number,
+  durationMs: number,
+  gainValue?: number,
+): void {
   const handle = setTimeout(() => {
     if (session !== sessionId) return;
     beep(frequency, durationMs, gainValue);
@@ -44,10 +50,10 @@ function scheduleBeep(session: number, delayMs: number, frequency: number, durat
 function playPattern(toneId: AlarmToneId, session: number): void {
   if (session !== sessionId) return;
 
-  if (toneId === 'chime') {
+  if (toneId === "chime") {
     beep(880, 180);
     scheduleBeep(session, 200, 1174, 220);
-  } else if (toneId === 'bell') {
+  } else if (toneId === "bell") {
     beep(660, 400, 0.2);
   } else {
     beep(440, 120);
@@ -61,7 +67,7 @@ export async function startAlarmTone(toneId: AlarmToneId): Promise<void> {
   const session = sessionId;
 
   const ac = getCtx();
-  if (ac.state === 'suspended') {
+  if (ac.state === "suspended") {
     try {
       await ac.resume();
     } catch {

@@ -6,7 +6,9 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width 0.2s ease, min-width 0.2s ease;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -78,7 +80,9 @@
   align-items: center;
   justify-content: center;
   color: var(--token-text-muted, var(--mantine-color-dimmed));
-  transition: background 0.1s ease, color 0.1s ease;
+  transition:
+    background 0.1s ease,
+    color 0.1s ease;
 }
 
 .iconOnly:hover {

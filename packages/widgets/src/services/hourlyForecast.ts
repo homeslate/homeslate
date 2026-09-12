@@ -29,11 +29,7 @@ function startOfLocationHourMs(now: Date, utcOffsetSeconds: number): number {
   return shifted.getTime() - utcOffsetSeconds * 1000;
 }
 
-export function findHourlyStartIndex(
-  times: string[],
-  now: Date,
-  utcOffsetSeconds: number,
-): number {
+export function findHourlyStartIndex(times: string[], now: Date, utcOffsetSeconds: number): number {
   const threshold = startOfLocationHourMs(now, utcOffsetSeconds);
   for (let i = 0; i < times.length; i++) {
     const t = parseWallTimeMs(times[i], utcOffsetSeconds);

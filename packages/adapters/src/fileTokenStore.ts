@@ -1,6 +1,6 @@
-import { chmod, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import type { GoogleTokens, TokenStore } from '@homeslate/google';
+import { chmod, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { GoogleTokens, TokenStore } from "@homeslate/google";
 
 /** Refresh tokens are long-lived credentials; keep them owner-only on disk. */
 const TOKEN_DIR_MODE = 0o700;
@@ -19,7 +19,7 @@ export class FileTokenStore implements TokenStore {
 
   async getTokens(accountId: string): Promise<GoogleTokens | null> {
     try {
-      return JSON.parse(await readFile(this.pathFor(accountId), 'utf8')) as GoogleTokens;
+      return JSON.parse(await readFile(this.pathFor(accountId), "utf8")) as GoogleTokens;
     } catch (error) {
       if (isNotFound(error)) return null;
       throw error;
@@ -33,7 +33,7 @@ export class FileTokenStore implements TokenStore {
     await chmod(this.dir, TOKEN_DIR_MODE);
     const temporaryPath = `${path}.tmp`;
     await writeFile(temporaryPath, JSON.stringify(tokens), {
-      encoding: 'utf8',
+      encoding: "utf8",
       mode: TOKEN_FILE_MODE,
     });
     // writeFile only applies the mode when it creates the file.
@@ -50,7 +50,7 @@ export class FileTokenStore implements TokenStore {
   }
 
   private pathFor(accountId: string): string {
-    if (accountId.includes('/') || accountId.includes('\\') || accountId.includes('..')) {
+    if (accountId.includes("/") || accountId.includes("\\") || accountId.includes("..")) {
       throw new Error(`Invalid account id: ${accountId}`);
     }
     return join(this.dir, `${accountId}.json`);
@@ -58,5 +58,5 @@ export class FileTokenStore implements TokenStore {
 }
 
 function isNotFound(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }

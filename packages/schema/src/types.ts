@@ -1,16 +1,16 @@
-export type ColorMode = 'dark' | 'light';
+export type ColorMode = "dark" | "light";
 
 export type HolidayId =
-  | 'new-years-day'
-  | 'valentines-day'
-  | 'st-patricks-day'
-  | 'independence-day'
-  | 'halloween'
-  | 'thanksgiving'
-  | 'christmas'
-  | 'new-years-eve';
+  | "new-years-day"
+  | "valentines-day"
+  | "st-patricks-day"
+  | "independence-day"
+  | "halloween"
+  | "thanksgiving"
+  | "christmas"
+  | "new-years-eve";
 
-export type AlarmToneId = 'chime' | 'bell' | 'radar';
+export type AlarmToneId = "chime" | "bell" | "radar";
 
 export type AlarmDefinition = {
   id: string;
@@ -50,7 +50,7 @@ export type WidgetInstance = {
 
 export type ViewBackground = {
   image?: string;
-  imageSize?: 'cover' | 'contain' | 'tile';
+  imageSize?: "cover" | "contain" | "tile";
   overlayOpacity?: number;
   photos?: unknown[];
   intervalSeconds?: number;
@@ -66,6 +66,12 @@ export type View = {
   widgets: WidgetInstance[];
   background?: ViewBackground;
   notes?: StickyNote[];
+};
+
+export type HouseholdMember = {
+  id: string;
+  name: string;
+  color: string;
 };
 
 export type DisplayDocument = {
@@ -84,4 +90,7 @@ export type DisplayDocument = {
     holidayPreviewId?: HolidayId;
   };
   alarms?: AlarmDefinition[];
+  household?: {
+    members: HouseholdMember[];
+  };
 };

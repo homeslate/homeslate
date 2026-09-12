@@ -1,9 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties, type JSX } from 'react';
-import { ActionIcon, Tooltip } from '@mantine/core';
-import * as TablerIcons from '@tabler/icons-react';
-import { IconMoon, IconSun } from '@tabler/icons-react';
-import type { ColorMode, DisplayDocument, StickyNote, ThemeDocument } from '@homeslate/schema';
-import { AlarmsProvider, TimersProvider, useTimers } from '@homeslate/widgets';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type CSSProperties,
+  type JSX,
+} from "react";
+import { ActionIcon, Tooltip } from "@mantine/core";
+import * as TablerIcons from "@tabler/icons-react";
+import { IconMoon, IconSun } from "@tabler/icons-react";
+import type { ColorMode, DisplayDocument, StickyNote, ThemeDocument } from "@homeslate/schema";
+import { AlarmsProvider, HouseholdProvider, TimersProvider, useTimers } from "@homeslate/widgets";
 import {
   BackgroundSlideshow,
   DocumentCanvas,
@@ -11,13 +20,13 @@ import {
   patchWidgetConfig,
   resolveDisplayThemeVars,
   type WidgetRegistryApi,
-} from './canvas';
-import { AlarmRuntime } from './alarms/AlarmRuntime';
-import type { AlarmDefinition } from './alarms/types';
-import { coerceAlarms } from './alarms/schedule';
-import { HolidayEffects } from './HolidayEffects';
-import { createViewRotationClock } from './viewRotationClock';
-import classes from './Display.module.css';
+} from "./canvas";
+import { AlarmRuntime } from "./alarms/AlarmRuntime";
+import type { AlarmDefinition } from "./alarms/types";
+import { coerceAlarms } from "./alarms/schedule";
+import { HolidayEffects } from "./HolidayEffects";
+import { createViewRotationClock } from "./viewRotationClock";
+import classes from "./Display.module.css";
 
 const SWIPE_THRESHOLD = 60;
 const SWIPE_ANGLE_RATIO = 1.2;
@@ -52,8 +61,7 @@ export function Display(props: {
 
   const alarms = useMemo(() => coerceAlarms(document.alarms), [document.alarms]);
 
-  const effectiveColorMode: ColorMode =
-    localColorMode ?? colorMode ?? document.colorMode ?? 'dark';
+  const effectiveColorMode: ColorMode = localColorMode ?? colorMode ?? document.colorMode ?? "dark";
 
   const tokenVars = useMemo(
     () =>
@@ -102,7 +110,13 @@ export function Display(props: {
       if (!viewId) return;
       const current = documentRef.current;
       const notes = current.views.find((view) => view.id === viewId)?.notes ?? [];
-      emit(patchViewNotes(current, viewId, notes.filter((note) => note.id !== noteId)));
+      emit(
+        patchViewNotes(
+          current,
+          viewId,
+          notes.filter((note) => note.id !== noteId),
+        ),
+      );
     },
     [activeViewId, emit],
   );
@@ -126,15 +140,16 @@ export function Display(props: {
 
   const handleWidgetConfigChange = useCallback(
     (widgetId: string, config: Record<string, unknown>) => {
+      if (isPreview) return;
       const viewId = activeViewId;
       if (!viewId) return;
       emit(patchWidgetConfig(documentRef.current, viewId, widgetId, config));
     },
-    [activeViewId, emit],
+    [activeViewId, emit, isPreview],
   );
 
   const navigate = useCallback(
-    (direction: 'next' | 'prev') => {
+    (direction: "next" | "prev") => {
       if (previewViewId) return;
       const visibleViews = document.views.filter((view) => !view.hidden);
       if (visibleViews.length <= 1) return;
@@ -142,7 +157,7 @@ export function Display(props: {
         const idx = visibleViews.findIndex((view) => view.id === curr);
         const currentIdx = idx === -1 ? 0 : idx;
         const next =
-          direction === 'next'
+          direction === "next"
             ? (currentIdx + 1) % visibleViews.length
             : (currentIdx - 1 + visibleViews.length) % visibleViews.length;
         return visibleViews[next].id;
@@ -152,7 +167,9 @@ export function Display(props: {
   );
 
   const visibleCount = document.views.filter((view) => !view.hidden).length;
-  const rotationEnabled = previewViewId ? false : forceRotation || Boolean(document.rotation.enabled);
+  const rotationEnabled = previewViewId
+    ? false
+    : forceRotation || Boolean(document.rotation.enabled);
   const rotationIntervalMs = document.rotation.intervalMs ?? 30_000;
   const navigateRef = useRef(navigate);
   // eslint-disable-next-line react-hooks/refs -- keeps the ref current for edits that land in the same tick
@@ -164,7 +181,7 @@ export function Display(props: {
       enabled: rotationEnabled,
       intervalMs: rotationIntervalMs,
       visibleCount,
-      onRotate: () => navigateRef.current('next'),
+      onRotate: () => navigateRef.current("next"),
     });
     setProgressKey(clock.getProgressGeneration());
     return () => clock.stop();
@@ -176,7 +193,7 @@ export function Display(props: {
       enabled: rotationEnabled,
       intervalMs: rotationIntervalMs,
       visibleCount,
-      onRotate: () => navigateRef.current('next'),
+      onRotate: () => navigateRef.current("next"),
     });
     setProgressKey(clock.getProgressGeneration());
   }, [rotationEnabled, rotationIntervalMs, visibleCount]);
@@ -187,7 +204,7 @@ export function Display(props: {
 
     let startX = 0;
     let startY = 0;
-    let direction: 'h' | 'v' | null = null;
+    let direction: "h" | "v" | null = null;
 
     const onTouchStart = (e: TouchEvent) => {
       const count = document.views.filter((view) => !view.hidden).length;
@@ -206,36 +223,36 @@ export function Display(props: {
 
       if (direction === null) {
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-          direction = Math.abs(dx) > Math.abs(dy) * SWIPE_ANGLE_RATIO ? 'h' : 'v';
+          direction = Math.abs(dx) > Math.abs(dy) * SWIPE_ANGLE_RATIO ? "h" : "v";
         }
       }
 
-      if (direction === 'h') {
+      if (direction === "h") {
         e.preventDefault();
       }
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (direction !== 'h') return;
+      if (direction !== "h") return;
       const t = e.changedTouches[0];
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
 
       if (Math.abs(dx) >= SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * SWIPE_ANGLE_RATIO) {
-        navigate(dx < 0 ? 'next' : 'prev');
+        navigate(dx < 0 ? "next" : "prev");
         resetRotation();
       }
       direction = null;
     };
 
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
     };
   }, [document.views, navigate, previewViewId, resetRotation]);
 
@@ -245,111 +262,129 @@ export function Display(props: {
 
   return (
     <TimersProvider>
-      <AlarmsProvider alarms={alarms} readOnly>
-        <div
-          ref={rootRef}
-          className={classes.root}
-          style={tokenVars as CSSProperties}
-        >
-          {schemaView && <BackgroundSlideshow view={schemaView} />}
-          {document.settings.holidayEffectsEnabled && (
-            <HolidayEffects previewHolidayId={document.settings.holidayPreviewId} />
-          )}
-          {schemaView && (
-            <DocumentCanvas
-              view={schemaView}
-              isEditing={false}
-              stickyNotesEnabled={document.settings.stickyNotesEnabled}
-              widgetRegistry={widgetRegistry}
-              onAddNote={handleAddNote}
-              onRemoveNote={handleRemoveNote}
-              onUpdateNote={handleUpdateNote}
-              onWidgetConfigChange={handleWidgetConfigChange}
-            />
-          )}
-          {showDots && (
-            <>
-              <button
-                className={classes.navPrev}
-                onClick={() => { navigate('prev'); resetRotation(); }}
-                aria-label="Previous view"
+      <HouseholdProvider members={document.household?.members ?? []} readOnly>
+        <AlarmsProvider alarms={alarms} readOnly>
+          <div ref={rootRef} className={classes.root} style={tokenVars as CSSProperties}>
+            {schemaView && <BackgroundSlideshow view={schemaView} />}
+            {document.settings.holidayEffectsEnabled && (
+              <HolidayEffects previewHolidayId={document.settings.holidayPreviewId} />
+            )}
+            {schemaView && (
+              <DocumentCanvas
+                view={schemaView}
+                isEditing={false}
+                stickyNotesEnabled={document.settings.stickyNotesEnabled}
+                widgetRegistry={widgetRegistry}
+                onAddNote={handleAddNote}
+                onRemoveNote={handleRemoveNote}
+                onUpdateNote={handleUpdateNote}
+                onWidgetConfigChange={handleWidgetConfigChange}
               />
-              <button
-                className={classes.navNext}
-                onClick={() => { navigate('next'); resetRotation(); }}
-                aria-label="Next view"
-              />
-              <div className={classes.dots}>
-                {visibleViews.map((view) => {
-                  const IconComp = view.icon
-                    ? (TablerIcons as Record<string, unknown>)[view.icon] as ComponentType<{ size?: number; stroke?: number }> | undefined
-                    : undefined;
-                  const isActive = view.id === activeViewId;
-                  const showProgress = isActive && rotationEnabled;
-                  const circumference = 2 * Math.PI * 20;
-                  return (
-                    <button
-                      key={view.id}
-                      className={`${classes.iconIndicator} ${isActive ? classes.iconIndicatorActive : ''} ${showProgress ? classes.iconIndicatorWithProgress : ''}`}
-                      onClick={() => { setActiveViewId(view.id); resetRotation(); }}
-                      aria-label={`Switch to ${view.name}`}
-                    >
-                      {showProgress && (
-                        <svg
-                          key={progressKey}
-                          className={classes.progressRing}
-                          viewBox="0 0 44 44"
-                          width="44"
-                          height="44"
-                          style={{ '--rotation-duration': `${rotationIntervalMs}ms`, '--circumference': circumference } as CSSProperties}
-                        >
-                          <circle
-                            className={classes.progressRingFill}
-                            cx="22"
-                            cy="22"
-                            r="20"
-                            fill="none"
-                            strokeWidth="2"
-                          />
-                        </svg>
-                      )}
-                      {IconComp ? (
-                        <IconComp size={20} stroke={isActive ? 2 : 1.5} />
-                      ) : (
-                        <span className={classes.iconPlaceholder} aria-hidden="true" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-          <div className={classes.colorModeToggle}>
-            <Tooltip
-              label={effectiveColorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              position="left"
-              withArrow
-            >
-              <ActionIcon
-                variant="subtle"
-                size="md"
-                className={classes.colorModeBtn}
-                onClick={() => setLocalColorMode(effectiveColorMode === 'dark' ? 'light' : 'dark')}
-                aria-label="Toggle light/dark mode"
+            )}
+            {showDots && (
+              <>
+                <button
+                  className={classes.navPrev}
+                  onClick={() => {
+                    navigate("prev");
+                    resetRotation();
+                  }}
+                  aria-label="Previous view"
+                />
+                <button
+                  className={classes.navNext}
+                  onClick={() => {
+                    navigate("next");
+                    resetRotation();
+                  }}
+                  aria-label="Next view"
+                />
+                <div className={classes.dots}>
+                  {visibleViews.map((view) => {
+                    const IconComp = view.icon
+                      ? ((TablerIcons as Record<string, unknown>)[view.icon] as
+                          | ComponentType<{ size?: number; stroke?: number }>
+                          | undefined)
+                      : undefined;
+                    const isActive = view.id === activeViewId;
+                    const showProgress = isActive && rotationEnabled;
+                    const circumference = 2 * Math.PI * 20;
+                    return (
+                      <button
+                        key={view.id}
+                        className={`${classes.iconIndicator} ${isActive ? classes.iconIndicatorActive : ""} ${showProgress ? classes.iconIndicatorWithProgress : ""}`}
+                        onClick={() => {
+                          setActiveViewId(view.id);
+                          resetRotation();
+                        }}
+                        aria-label={`Switch to ${view.name}`}
+                      >
+                        {showProgress && (
+                          <svg
+                            key={progressKey}
+                            className={classes.progressRing}
+                            viewBox="0 0 44 44"
+                            width="44"
+                            height="44"
+                            style={
+                              {
+                                "--rotation-duration": `${rotationIntervalMs}ms`,
+                                "--circumference": circumference,
+                              } as CSSProperties
+                            }
+                          >
+                            <circle
+                              className={classes.progressRingFill}
+                              cx="22"
+                              cy="22"
+                              r="20"
+                              fill="none"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        )}
+                        {IconComp ? (
+                          <IconComp size={20} stroke={isActive ? 2 : 1.5} />
+                        ) : (
+                          <span className={classes.iconPlaceholder} aria-hidden="true" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            <div className={classes.colorModeToggle}>
+              <Tooltip
+                label={
+                  effectiveColorMode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+                }
+                position="left"
+                withArrow
               >
-                {effectiveColorMode === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />}
-              </ActionIcon>
-            </Tooltip>
+                <ActionIcon
+                  variant="subtle"
+                  size="md"
+                  className={classes.colorModeBtn}
+                  onClick={() =>
+                    setLocalColorMode(effectiveColorMode === "dark" ? "light" : "dark")
+                  }
+                  aria-label="Toggle light/dark mode"
+                >
+                  {effectiveColorMode === "dark" ? <IconSun size={16} /> : <IconMoon size={16} />}
+                </ActionIcon>
+              </Tooltip>
+            </div>
+            {!isPreview && (
+              <AlarmRuntimeBridge
+                alarms={alarms}
+                enabled
+                voiceEnabled={document.settings.voiceEnabled ?? false}
+              />
+            )}
           </div>
-          {!isPreview && (
-            <AlarmRuntimeBridge
-              alarms={alarms}
-              enabled
-              voiceEnabled={document.settings.voiceEnabled ?? false}
-            />
-          )}
-        </div>
-      </AlarmsProvider>
+        </AlarmsProvider>
+      </HouseholdProvider>
     </TimersProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Text,
@@ -10,17 +10,13 @@ import {
   PasswordInput,
   Anchor,
   Group,
-} from '@mantine/core';
-import {
-  IconChartLine,
-  IconRefresh,
-  IconExternalLink,
-} from '@tabler/icons-react';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useStocks } from '../hooks/useStocks';
-import { WidgetDataStatus } from '../chrome/WidgetDataStatus';
-import { popularStocks, popularIndices, type StockQuote } from '../services/stocks';
-import classes from './StocksWidget.module.css';
+} from "@mantine/core";
+import { IconChartLine, IconRefresh, IconExternalLink } from "@tabler/icons-react";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useStocks } from "../hooks/useStocks";
+import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { popularStocks, popularIndices, type StockQuote } from "../services/stocks";
+import classes from "./StocksWidget.module.css";
 
 export interface StocksConfig extends WidgetConfig {
   symbols: string[];
@@ -30,8 +26,12 @@ export interface StocksConfig extends WidgetConfig {
   transparentBackground: boolean;
 }
 
-function StockRow({ quote, showChange, showDayRange }: { 
-  quote: StockQuote; 
+function StockRow({
+  quote,
+  showChange,
+  showDayRange,
+}: {
+  quote: StockQuote;
   showChange: boolean;
   showDayRange: boolean;
 }) {
@@ -39,28 +39,36 @@ function StockRow({ quote, showChange, showDayRange }: {
   const changePercent = quote.changePercent ?? 0;
   const isPositive = change > 0;
   const isNegative = change < 0;
-  
+
   return (
     <Group justify="space-between" wrap="nowrap" className={classes.stockRow}>
       <Group gap="xs" wrap="nowrap">
-        <Text fw={600} size="sm">{quote.symbol}</Text>
-        <Text size="xs" c="dimmed">{quote.name}</Text>
+        <Text fw={600} size="sm">
+          {quote.symbol}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {quote.name}
+        </Text>
       </Group>
       <Group gap="xs" wrap="nowrap">
-        <Text size="sm" fw={500}>${quote.currentPrice?.toFixed(2) ?? '—'}</Text>
+        <Text size="sm" fw={500}>
+          ${quote.currentPrice?.toFixed(2) ?? "—"}
+        </Text>
         {showChange && (
           <>
-            <Text size="xs" c={isPositive ? 'teal' : isNegative ? 'red' : 'dimmed'}>
-              {isPositive ? '+' : ''}{change?.toFixed(2) ?? '—'}
+            <Text size="xs" c={isPositive ? "teal" : isNegative ? "red" : "dimmed"}>
+              {isPositive ? "+" : ""}
+              {change?.toFixed(2) ?? "—"}
             </Text>
-            <Text size="xs" c={isPositive ? 'teal' : isNegative ? 'red' : 'dimmed'}>
-              ({isPositive ? '+' : ''}{changePercent?.toFixed(2) ?? '—'}%)
+            <Text size="xs" c={isPositive ? "teal" : isNegative ? "red" : "dimmed"}>
+              ({isPositive ? "+" : ""}
+              {changePercent?.toFixed(2) ?? "—"}%)
             </Text>
           </>
         )}
         {showDayRange && (
           <Text size="xs" c="dimmed">
-            {quote.lowPrice?.toFixed(2) ?? '—'} - {quote.highPrice?.toFixed(2) ?? '—'}
+            {quote.lowPrice?.toFixed(2) ?? "—"} - {quote.highPrice?.toFixed(2) ?? "—"}
           </Text>
         )}
       </Group>
@@ -80,12 +88,14 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
   // No API key configured
   if (!apiKey) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconChartLine size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>API Key Required</Text>
+          <Text size="lg" fw={500}>
+            API Key Required
+          </Text>
           <Text size="sm" c="dimmed" ta="center">
-            Get a free API key from{' '}
+            Get a free API key from{" "}
             <Anchor href="https://finnhub.io" target="_blank" rel="noopener">
               finnhub.io
             </Anchor>
@@ -98,10 +108,12 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
   // No symbols configured
   if (symbols.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconChartLine size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>No Stocks Selected</Text>
+          <Text size="lg" fw={500}>
+            No Stocks Selected
+          </Text>
           <Text size="sm" c="dimmed">
             Add stock symbols in widget settings
           </Text>
@@ -113,17 +125,19 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
   // Loading state
   if (isLoading && quotes.size === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
           <Loader size="lg" color="green" />
-          <Text size="sm" c="dimmed" mt="sm">Loading stocks...</Text>
+          <Text size="sm" c="dimmed" mt="sm">
+            Loading stocks...
+          </Text>
         </div>
       </Box>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.header}>
         <Text className={classes.title}>
           <IconChartLine size={18} />
@@ -131,13 +145,7 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
         </Text>
         <Group gap="xs">
           {isLoading && <Loader size="xs" color="green" />}
-          <Button
-            variant="subtle"
-            size="xs"
-            p={4}
-            onClick={refresh}
-            className={classes.refreshBtn}
-          >
+          <Button variant="subtle" size="xs" p={4} onClick={refresh} className={classes.refreshBtn}>
             <IconRefresh size={14} />
           </Button>
         </Group>
@@ -145,21 +153,25 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
       <WidgetDataStatus
         widgetId={widget.id}
         lastUpdated={lastUpdated}
-        error={hasAnyError ? 'stale' : null}
+        error={hasAnyError ? "stale" : null}
         isLoading={isLoading}
       />
 
       <div className={classes.stocksList}>
         <Stack gap="xs">
-          {symbols.map(symbol => {
+          {symbols.map((symbol) => {
             const quote = quotes.get(symbol.toUpperCase());
             const error = errors.get(symbol.toUpperCase());
 
             if (error) {
               return (
                 <Paper key={symbol} className={classes.stockRow} p="xs">
-                  <Text size="sm" fw={600}>{symbol}</Text>
-                  <Text size="xs" c="red">{error}</Text>
+                  <Text size="sm" fw={600}>
+                    {symbol}
+                  </Text>
+                  <Text size="xs" c="red">
+                    {error}
+                  </Text>
                 </Paper>
               );
             }
@@ -167,7 +179,9 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
             if (!quote) {
               return (
                 <Paper key={symbol} className={classes.stockRow} p="xs">
-                  <Text size="sm" fw={600}>{symbol}</Text>
+                  <Text size="sm" fw={600}>
+                    {symbol}
+                  </Text>
                   <Loader size="xs" />
                 </Paper>
               );
@@ -194,7 +208,7 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
 
 export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<StocksConfig>) {
   const { symbols, apiKey, showChange, showDayRange } = widget.config;
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<{ symbol: string; name: string }[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -204,7 +218,7 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
   // Search for stocks when query changes
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    
+
     if (!query || query.length < 1) {
       setSearchResults([]);
       return;
@@ -212,20 +226,21 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
 
     // First filter popular stocks locally
     const localMatches = allSymbols.filter(
-      s => s.symbol.toLowerCase().includes(query.toLowerCase()) ||
-           s.name.toLowerCase().includes(query.toLowerCase())
+      (s) =>
+        s.symbol.toLowerCase().includes(query.toLowerCase()) ||
+        s.name.toLowerCase().includes(query.toLowerCase()),
     );
 
     // If we have an API key, also search Finnhub
     if (apiKey && query.length >= 2) {
       setIsSearching(true);
       try {
-        const { searchSymbols } = await import('../services/stocks');
+        const { searchSymbols } = await import("../services/stocks");
         const results = await searchSymbols(query, apiKey);
         // Combine local and API results, deduping
         const combined = [...localMatches];
-        results.forEach(r => {
-          if (!combined.some(c => c.symbol === r.symbol)) {
+        results.forEach((r) => {
+          if (!combined.some((c) => c.symbol === r.symbol)) {
             combined.push(r);
           }
         });
@@ -245,12 +260,12 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
     if (!symbols.includes(symbol.toUpperCase())) {
       onConfigChange({ symbols: [...symbols, symbol.toUpperCase()] });
     }
-    setSearchQuery('');
+    setSearchQuery("");
     setSearchResults([]);
   };
 
   const removeSymbol = (symbol: string) => {
-    onConfigChange({ symbols: symbols.filter(s => s !== symbol) });
+    onConfigChange({ symbols: symbols.filter((s) => s !== symbol) });
   };
 
   return (
@@ -260,9 +275,9 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
         placeholder="Enter your API key"
         description={
           <>
-            Get a free key at{' '}
+            Get a free key at{" "}
             <Anchor href="https://finnhub.io" target="_blank" size="xs">
-              finnhub.io <IconExternalLink size={10} style={{ display: 'inline' }} />
+              finnhub.io <IconExternalLink size={10} style={{ display: "inline" }} />
             </Anchor>
           </>
         }
@@ -271,7 +286,9 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
       />
 
       <div>
-        <Text size="sm" fw={500} mb={4}>Search Stocks</Text>
+        <Text size="sm" fw={500} mb={4}>
+          Search Stocks
+        </Text>
         <TextInput
           placeholder="Search by symbol or company name..."
           value={searchQuery}
@@ -283,7 +300,7 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
             Add API key to search all stocks
           </Text>
         )}
-        
+
         {searchResults.length > 0 && (
           <Paper className={classes.searchResults} mt="xs" p="xs">
             <Stack gap={4}>
@@ -298,12 +315,16 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
                   disabled={symbols.includes(result.symbol) || symbols.length >= 10}
                   className={classes.searchResult}
                 >
-                  <Text fw={600} size="sm" mr="xs">{result.symbol}</Text>
+                  <Text fw={600} size="sm" mr="xs">
+                    {result.symbol}
+                  </Text>
                   <Text size="xs" c="dimmed" style={{ flex: 1 }} lineClamp={1}>
                     {result.name}
                   </Text>
                   {symbols.includes(result.symbol) && (
-                    <Text size="xs" c="green">Added</Text>
+                    <Text size="xs" c="green">
+                      Added
+                    </Text>
                   )}
                 </Button>
               ))}
@@ -318,14 +339,18 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
             Selected Stocks ({symbols.length}/10)
           </Text>
           <Group gap="xs">
-            {symbols.map(symbol => {
-              const info = allSymbols.find(s => s.symbol === symbol);
+            {symbols.map((symbol) => {
+              const info = allSymbols.find((s) => s.symbol === symbol);
               return (
                 <Button
                   key={symbol}
                   variant="light"
                   size="xs"
-                  rightSection={<Text size="xs" ml={4}>×</Text>}
+                  rightSection={
+                    <Text size="xs" ml={4}>
+                      ×
+                    </Text>
+                  }
                   onClick={() => removeSymbol(symbol)}
                   title={info?.name}
                 >
@@ -361,4 +386,3 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
     </Stack>
   );
 }
-

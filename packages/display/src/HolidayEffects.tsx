@@ -1,10 +1,7 @@
-import { useMemo } from 'react';
-import {
-  getActiveHoliday,
-  getHolidayById,
-} from './holidays';
-import type { HolidayId } from './holidays';
-import classes from './HolidayEffects.module.css';
+import { useMemo } from "react";
+import { getActiveHoliday, getHolidayById } from "./holidays";
+import type { HolidayId } from "./holidays";
+import classes from "./HolidayEffects.module.css";
 
 interface HolidayEffectsProps {
   previewHolidayId?: HolidayId;
@@ -13,7 +10,7 @@ interface HolidayEffectsProps {
 export function HolidayEffects({ previewHolidayId }: HolidayEffectsProps) {
   const holiday = useMemo(
     () => (previewHolidayId ? getHolidayById(previewHolidayId) : getActiveHoliday(new Date())),
-    [previewHolidayId]
+    [previewHolidayId],
   );
 
   if (!holiday) return null;

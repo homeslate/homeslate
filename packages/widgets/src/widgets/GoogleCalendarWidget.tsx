@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback } from "react";
 import {
   Box,
   Text,
@@ -19,8 +19,8 @@ import {
   ScrollArea,
   ActionIcon,
   Divider,
-} from '@mantine/core';
-import { Calendar } from '@mantine/dates';
+} from "@mantine/core";
+import { Calendar } from "@mantine/dates";
 import {
   IconCalendarEvent,
   IconRefresh,
@@ -34,18 +34,21 @@ import {
   IconCheck,
   IconX,
   IconPlus,
-} from '@tabler/icons-react';
-import { GoogleCalendarEmptyState } from '../chrome/GoogleCalendarEmptyState';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { useDisplayCalendar } from '../hooks/useDisplayCalendar';
-import { WidgetDataStatus } from '../chrome/WidgetDataStatus';
-import { useGoogleRuntime } from '../googleRuntime';
-import type { ParsedCalendarEvent } from '../services/googleCalendar';
-import type { CalendarEventInput } from '../services/googleCalendar';
-import { displayCalendarEmptyDetail, shouldShowGoogleCalendarErrorAlert } from './googleCalendarError';
-import classes from './GoogleCalendarWidget.module.css';
-import dayjs from 'dayjs';
+} from "@tabler/icons-react";
+import { GoogleCalendarEmptyState } from "../chrome/GoogleCalendarEmptyState";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useGoogleCalendar } from "../hooks/useGoogleCalendar";
+import { useDisplayCalendar } from "../hooks/useDisplayCalendar";
+import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { useGoogleRuntime } from "../googleRuntime";
+import type { ParsedCalendarEvent } from "../services/googleCalendar";
+import type { CalendarEventInput } from "../services/googleCalendar";
+import {
+  displayCalendarEmptyDetail,
+  shouldShowGoogleCalendarErrorAlert,
+} from "./googleCalendarError";
+import classes from "./GoogleCalendarWidget.module.css";
+import dayjs from "dayjs";
 
 export interface GoogleCalendarConfig extends WidgetConfig {
   clientId: string;
@@ -59,13 +62,13 @@ export interface GoogleCalendarConfig extends WidgetConfig {
 interface EventFormData {
   title: string;
   calendarId: string;
-  date: string;      // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   allDay: boolean;
   startTime: string; // HH:MM
-  endTime: string;   // HH:MM
+  endTime: string; // HH:MM
   location: string;
   description: string;
-  eventId: string;   // empty for create
+  eventId: string; // empty for create
 }
 
 // ── Pure helpers (defined outside component) ──
@@ -75,37 +78,37 @@ function roundToNext30(date: Date): string {
   const rounded = Math.ceil(total / 30) * 30;
   const h = Math.floor(rounded / 60) % 24;
   const m = rounded % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function addMinutesToTime(time: string, minutes: number): string {
-  const [h, m] = time.split(':').map(Number);
+  const [h, m] = time.split(":").map(Number);
   const total = (h * 60 + m + minutes) % (24 * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
 function formatTimeRange(event: ParsedCalendarEvent): string {
-  if (event.allDay) return 'All day';
+  if (event.allDay) return "All day";
   const start = dayjs(event.start);
   const end = dayjs(event.end);
-  if (start.format('A') === end.format('A')) {
-    return `${start.format('h:mm')} – ${end.format('h:mm A')}`;
+  if (start.format("A") === end.format("A")) {
+    return `${start.format("h:mm")} – ${end.format("h:mm A")}`;
   }
-  return `${start.format('h:mm A')} – ${end.format('h:mm A')}`;
+  return `${start.format("h:mm A")} – ${end.format("h:mm A")}`;
 }
 
 function formatGroupHeader(dateStr: string): string {
-  const today = dayjs().startOf('day');
+  const today = dayjs().startOf("day");
   const date = dayjs(dateStr);
-  const diff = date.diff(today, 'day');
-  if (diff === 0) return 'Today';
-  if (diff === 1) return 'Tomorrow';
-  if (diff < 7) return date.format('dddd');
-  return date.format('ddd, MMM D');
+  const diff = date.diff(today, "day");
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  if (diff < 7) return date.format("dddd");
+  return date.format("ddd, MMM D");
 }
 
 function isToday(dateStr: string): boolean {
-  return dayjs(dateStr).isSame(dayjs(), 'day');
+  return dayjs(dateStr).isSame(dayjs(), "day");
 }
 
 function getRelativeTime(event: ParsedCalendarEvent): { label: string; isNow: boolean } | null {
@@ -114,9 +117,9 @@ function getRelativeTime(event: ParsedCalendarEvent): { label: string; isNow: bo
   const start = dayjs(event.start);
   const end = dayjs(event.end);
 
-  if (now.isAfter(start) && now.isBefore(end)) return { label: 'Now', isNow: true };
+  if (now.isAfter(start) && now.isBefore(end)) return { label: "Now", isNow: true };
 
-  const diffMins = start.diff(now, 'minute');
+  const diffMins = start.diff(now, "minute");
   if (diffMins <= 0 || diffMins > 120) return null;
   if (diffMins < 60) return { label: `in ${diffMins}m`, isNow: false };
   const hours = Math.floor(diffMins / 60);
@@ -128,7 +131,7 @@ function formDataToEventInput(data: EventFormData): CalendarEventInput {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   if (data.allDay) {
-    const nextDay = dayjs(data.date).add(1, 'day').format('YYYY-MM-DD');
+    const nextDay = dayjs(data.date).add(1, "day").format("YYYY-MM-DD");
     return {
       summary: data.title.trim(),
       ...(data.description ? { description: data.description } : {}),
@@ -150,7 +153,8 @@ function formDataToEventInput(data: EventFormData): CalendarEventInput {
 // ── Main widget component ──
 
 export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfig>) {
-  const { selectedCalendarIds, maxEvents, daysAhead, showCalendar, transparentBackground } = widget.config;
+  const { selectedCalendarIds, maxEvents, daysAhead, showCalendar, transparentBackground } =
+    widget.config;
   const { displayId, isPreview } = useGoogleRuntime();
   const isDisplayMode = !!displayId && !isPreview;
   const displayData = useDisplayCalendar({ displayId, selectedCalendarIds, daysAhead });
@@ -179,17 +183,17 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
 
   // Create/edit form state
   const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [formData, setFormData] = useState<EventFormData>({
-    title: '',
-    calendarId: '',
-    date: dayjs().format('YYYY-MM-DD'),
+    title: "",
+    calendarId: "",
+    date: dayjs().format("YYYY-MM-DD"),
     allDay: false,
-    startTime: '09:00',
-    endTime: '10:00',
-    location: '',
-    description: '',
-    eventId: '',
+    startTime: "09:00",
+    endTime: "10:00",
+    location: "",
+    description: "",
+    eventId: "",
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -199,7 +203,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
   const eventsByDate = useMemo(() => {
     const map = new Map<string, ParsedCalendarEvent[]>();
     for (const event of events) {
-      const key = dayjs(event.start).format('YYYY-MM-DD');
+      const key = dayjs(event.start).format("YYYY-MM-DD");
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(event);
     }
@@ -211,7 +215,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
   const groupedEvents = useMemo(() => {
     const map = new Map<string, ParsedCalendarEvent[]>();
     for (const event of upcomingEvents) {
-      const key = dayjs(event.start).format('YYYY-MM-DD');
+      const key = dayjs(event.start).format("YYYY-MM-DD");
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(event);
     }
@@ -224,10 +228,10 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
     () =>
       calendars.map((cal) => ({
         value: cal.id,
-        label: cal.summary + (cal.primary ? ' (Primary)' : ''),
-        color: cal.backgroundColor ?? '#4285f4',
+        label: cal.summary + (cal.primary ? " (Primary)" : ""),
+        color: cal.backgroundColor ?? "#4285f4",
       })),
-    [calendars]
+    [calendars],
   );
 
   // ── Handlers ──
@@ -243,21 +247,21 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
     (date: Date) => {
       const start = roundToNext30(new Date());
       setFormData({
-        title: '',
-        calendarId: selectedCalendarIds[0] ?? calendars[0]?.id ?? '',
-        date: dayjs(date).format('YYYY-MM-DD'),
+        title: "",
+        calendarId: selectedCalendarIds[0] ?? calendars[0]?.id ?? "",
+        date: dayjs(date).format("YYYY-MM-DD"),
         allDay: false,
         startTime: start,
         endTime: addMinutesToTime(start, 60),
-        location: '',
-        description: '',
-        eventId: '',
+        location: "",
+        description: "",
+        eventId: "",
       });
-      setFormMode('create');
+      setFormMode("create");
       setFormError(null);
       setFormOpen(true);
     },
-    [selectedCalendarIds, calendars]
+    [selectedCalendarIds, calendars],
   );
 
   const openEditModal = useCallback((event: ParsedCalendarEvent) => {
@@ -265,38 +269,38 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
     setDeleteConfirming(false);
     setDeleteError(null);
     setFormData({
-      title: event.title === '(No title)' ? '' : event.title,
+      title: event.title === "(No title)" ? "" : event.title,
       calendarId: event.calendarId,
-      date: dayjs(event.start).format('YYYY-MM-DD'),
+      date: dayjs(event.start).format("YYYY-MM-DD"),
       allDay: event.allDay,
-      startTime: event.allDay ? '09:00' : dayjs(event.start).format('HH:mm'),
-      endTime: event.allDay ? '10:00' : dayjs(event.end).format('HH:mm'),
-      location: event.location ?? '',
-      description: event.description ? event.description.replace(/<[^>]*>/g, '').trim() : '',
+      startTime: event.allDay ? "09:00" : dayjs(event.start).format("HH:mm"),
+      endTime: event.allDay ? "10:00" : dayjs(event.end).format("HH:mm"),
+      location: event.location ?? "",
+      description: event.description ? event.description.replace(/<[^>]*>/g, "").trim() : "",
       eventId: event.id,
     });
-    setFormMode('edit');
+    setFormMode("edit");
     setFormError(null);
     setFormOpen(true);
   }, []);
 
   const handleFormSubmit = useCallback(async () => {
     if (!formData.title.trim()) {
-      setFormError('Title is required');
+      setFormError("Title is required");
       return;
     }
     if (!formData.calendarId) {
-      setFormError('Please select a calendar');
+      setFormError("Please select a calendar");
       return;
     }
     if (!formData.allDay) {
       const startMins =
-        parseInt(formData.startTime.split(':')[0]) * 60 +
-        parseInt(formData.startTime.split(':')[1]);
+        parseInt(formData.startTime.split(":")[0]) * 60 +
+        parseInt(formData.startTime.split(":")[1]);
       const endMins =
-        parseInt(formData.endTime.split(':')[0]) * 60 + parseInt(formData.endTime.split(':')[1]);
+        parseInt(formData.endTime.split(":")[0]) * 60 + parseInt(formData.endTime.split(":")[1]);
       if (endMins <= startMins) {
-        setFormError('End time must be after start time');
+        setFormError("End time must be after start time");
         return;
       }
     }
@@ -305,14 +309,14 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
     setFormError(null);
     try {
       const input = formDataToEventInput(formData);
-      if (formMode === 'create') {
+      if (formMode === "create") {
         await addEvent(formData.calendarId, input);
       } else {
         await editEvent(formData.calendarId, formData.eventId, input);
       }
       setFormOpen(false);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to save event');
+      setFormError(err instanceof Error ? err.message : "Failed to save event");
     } finally {
       setFormLoading(false);
     }
@@ -327,7 +331,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
       setDetailEvent(null);
       setDeleteConfirming(false);
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : 'Failed to delete event');
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete event");
     } finally {
       setDeleteLoading(false);
     }
@@ -337,7 +341,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
   // Only show "Sign in" when not in display mode (display never needs to sign in).
   if (!isAuthenticated && !isDisplayMode) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="signIn" className={classes.empty} />
       </Box>
     );
@@ -346,7 +350,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
   // Display mode but API error (e.g. owner has not connected Google): show friendly message.
   if (isDisplayMode && error && !isLoading && events.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState
           variant="displayError"
           className={classes.empty}
@@ -358,7 +362,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
 
   if (selectedCalendarIds.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="noCalendars" className={classes.empty} />
       </Box>
     );
@@ -367,7 +371,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
   // ── Main render ──
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.content}>
         {showCalendar && (
           <div className={classes.calendarSection}>
@@ -382,7 +386,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
                 onPointerCancel: clearLongPress,
               })}
               renderDay={(date) => {
-                const key = dayjs(date).format('YYYY-MM-DD');
+                const key = dayjs(date).format("YYYY-MM-DD");
                 const dayEvents = eventsByDate.get(key) || [];
                 const colors = [...new Set(dayEvents.map((e) => e.color))].slice(0, 3);
                 return (
@@ -391,7 +395,11 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
                     {colors.length > 0 && (
                       <div className={classes.eventDots}>
                         {colors.map((color, i) => (
-                          <div key={i} className={classes.eventDotColored} style={{ backgroundColor: color }} />
+                          <div
+                            key={i}
+                            className={classes.eventDotColored}
+                            style={{ backgroundColor: color }}
+                          />
                         ))}
                       </div>
                     )}
@@ -423,7 +431,12 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
               >
                 <IconPlus size={13} />
               </ActionIcon>
-              <ActionIcon variant="subtle" size="xs" onClick={refresh} className={classes.refreshBtn}>
+              <ActionIcon
+                variant="subtle"
+                size="xs"
+                onClick={refresh}
+                className={classes.refreshBtn}
+              >
                 <IconRefresh size={13} />
               </ActionIcon>
             </Group>
@@ -446,7 +459,9 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
               groupedEvents.map(([dateStr, dayEvents]) => (
                 <div key={dateStr} className={classes.dayGroup}>
                   <div className={classes.dayHeader}>
-                    <span className={`${classes.dayHeaderLabel} ${isToday(dateStr) ? classes.dayHeaderToday : ''}`}>
+                    <span
+                      className={`${classes.dayHeaderLabel} ${isToday(dateStr) ? classes.dayHeaderToday : ""}`}
+                    >
                       {formatGroupHeader(dateStr)}
                     </span>
                     <div className={classes.dayHeaderLine} />
@@ -456,19 +471,24 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
                     return (
                       <div
                         key={event.id}
-                        className={`${classes.eventCard} ${relTime?.isNow ? classes.eventCardNow : ''}`}
+                        className={`${classes.eventCard} ${relTime?.isNow ? classes.eventCardNow : ""}`}
                         onClick={() => {
                           setDeleteConfirming(false);
                           setDeleteError(null);
                           setDetailEvent(event);
                         }}
                       >
-                        <div className={classes.eventIndicator} style={{ backgroundColor: event.color }} />
+                        <div
+                          className={classes.eventIndicator}
+                          style={{ backgroundColor: event.color }}
+                        />
                         <div className={classes.eventBody}>
                           <div className={classes.eventTitleRow}>
                             <span className={classes.eventTitle}>{event.title}</span>
                             {relTime && (
-                              <span className={relTime.isNow ? classes.nowBadge : classes.soonBadge}>
+                              <span
+                                className={relTime.isNow ? classes.nowBadge : classes.soonBadge}
+                              >
                                 {relTime.label}
                               </span>
                             )}
@@ -499,10 +519,14 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
             ) : isLoading ? (
               <div className={classes.loadingEvents}>
                 <Loader size="sm" color="blue" />
-                <Text size="xs" c="dimmed">Loading events...</Text>
+                <Text size="xs" c="dimmed">
+                  Loading events...
+                </Text>
               </div>
             ) : (
-              <Text size="sm" c="dimmed" ta="center" py="xl">No upcoming events</Text>
+              <Text size="sm" c="dimmed" ta="center" py="xl">
+                No upcoming events
+              </Text>
             )}
           </ScrollArea>
         </div>
@@ -511,12 +535,26 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
       {/* ── Event detail modal ── */}
       <Modal
         opened={!!detailEvent}
-        onClose={() => { setDetailEvent(null); setDeleteConfirming(false); setDeleteError(null); }}
+        onClose={() => {
+          setDetailEvent(null);
+          setDeleteConfirming(false);
+          setDeleteError(null);
+        }}
         title={
           detailEvent && (
             <Group gap="sm" wrap="nowrap">
-              <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: detailEvent.color, flexShrink: 0 }} />
-              <Text fw={600} size="sm" style={{ lineHeight: 1.3 }}>{detailEvent.title}</Text>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: detailEvent.color,
+                  flexShrink: 0,
+                }}
+              />
+              <Text fw={600} size="sm" style={{ lineHeight: 1.3 }}>
+                {detailEvent.title}
+              </Text>
             </Group>
           )
         }
@@ -528,8 +566,12 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
             <div className={classes.modalDetailRow}>
               <IconClock size={15} className={classes.modalDetailIcon} />
               <div>
-                <Text size="sm" fw={500}>{formatGroupHeader(dayjs(detailEvent.start).format('YYYY-MM-DD'))}</Text>
-                <Text size="xs" c="dimmed">{formatTimeRange(detailEvent)}</Text>
+                <Text size="sm" fw={500}>
+                  {formatGroupHeader(dayjs(detailEvent.start).format("YYYY-MM-DD"))}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {formatTimeRange(detailEvent)}
+                </Text>
               </div>
             </div>
 
@@ -550,8 +592,8 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
             {detailEvent.description && (
               <div className={classes.modalDetailRow}>
                 <IconFileText size={15} className={classes.modalDetailIcon} />
-                <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {detailEvent.description.replace(/<[^>]*>/g, '').trim()}
+                <Text size="sm" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                  {detailEvent.description.replace(/<[^>]*>/g, "").trim()}
                 </Text>
               </div>
             )}
@@ -560,17 +602,24 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
 
             {deleteConfirming ? (
               <div className={classes.deleteConfirmRow}>
-                <Text size="sm" c="dimmed">Delete this event?</Text>
+                <Text size="sm" c="dimmed">
+                  Delete this event?
+                </Text>
                 <Group gap="xs" justify="flex-end">
                   <Button
-                    variant="subtle" size="xs"
+                    variant="subtle"
+                    size="xs"
                     leftSection={<IconX size={13} />}
-                    onClick={() => { setDeleteConfirming(false); setDeleteError(null); }}
+                    onClick={() => {
+                      setDeleteConfirming(false);
+                      setDeleteError(null);
+                    }}
                   >
                     Cancel
                   </Button>
                   <Button
-                    color="red" size="xs"
+                    color="red"
+                    size="xs"
                     leftSection={<IconTrash size={13} />}
                     loading={deleteLoading}
                     onClick={handleDelete}
@@ -578,19 +627,26 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
                     Delete
                   </Button>
                 </Group>
-                {deleteError && <Text size="xs" c="red">{deleteError}</Text>}
+                {deleteError && (
+                  <Text size="xs" c="red">
+                    {deleteError}
+                  </Text>
+                )}
               </div>
             ) : (
               <Group gap="xs" justify="space-between">
                 <Button
-                  variant="subtle" color="red" size="xs"
+                  variant="subtle"
+                  color="red"
+                  size="xs"
                   leftSection={<IconTrash size={13} />}
                   onClick={() => setDeleteConfirming(true)}
                 >
                   Delete
                 </Button>
                 <Button
-                  variant="light" size="xs"
+                  variant="light"
+                  size="xs"
                   leftSection={<IconPencil size={13} />}
                   onClick={() => openEditModal(detailEvent)}
                 >
@@ -606,7 +662,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
       <Modal
         opened={formOpen}
         onClose={() => setFormOpen(false)}
-        title={formMode === 'create' ? 'New Event' : 'Edit Event'}
+        title={formMode === "create" ? "New Event" : "Edit Event"}
         size="sm"
         centered
         scrollAreaComponent={ScrollArea.Autosize}
@@ -618,7 +674,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
             required
             value={formData.title}
             onChange={(e) => setFormData((d) => ({ ...d, title: e.currentTarget.value }))}
-            autoFocus={formMode === 'create'}
+            autoFocus={formMode === "create"}
           />
 
           <Select
@@ -627,12 +683,20 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
             required
             data={calendarOptions}
             value={formData.calendarId}
-            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? '' }))}
+            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? "" }))}
             renderOption={({ option }) => {
               const cal = calendars.find((c) => c.id === option.value);
               return (
                 <Group gap="xs">
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: cal?.backgroundColor ?? '#4285f4', flexShrink: 0 }} />
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: cal?.backgroundColor ?? "#4285f4",
+                      flexShrink: 0,
+                    }}
+                  />
                   <Text size="sm">{option.label}</Text>
                 </Group>
               );
@@ -698,11 +762,11 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
             </Button>
             <Button
               size="sm"
-              leftSection={formMode === 'create' ? undefined : <IconCheck size={14} />}
+              leftSection={formMode === "create" ? undefined : <IconCheck size={14} />}
               loading={formLoading}
               onClick={handleFormSubmit}
             >
-              {formMode === 'create' ? 'Create Event' : 'Save Changes'}
+              {formMode === "create" ? "Create Event" : "Save Changes"}
             </Button>
           </Group>
         </Stack>
@@ -724,7 +788,7 @@ export function GoogleCalendarWidgetSettings({
 
   const calendarOptions = calendars.map((cal) => ({
     value: cal.id,
-    label: cal.summary + (cal.primary ? ' (Primary)' : ''),
+    label: cal.summary + (cal.primary ? " (Primary)" : ""),
   }));
 
   return (
@@ -732,7 +796,9 @@ export function GoogleCalendarWidgetSettings({
       <Paper p="sm" className={classes.authSection}>
         {isAuthenticated ? (
           <>
-            <Badge color="green" variant="light" mb="sm">Connected to Google</Badge>
+            <Badge color="green" variant="light" mb="sm">
+              Connected to Google
+            </Badge>
             <MultiSelect
               label="Select Calendars"
               placeholder="Choose calendars to display..."
@@ -744,7 +810,9 @@ export function GoogleCalendarWidgetSettings({
           </>
         ) : (
           <Stack align="center" gap="sm">
-            <Text size="sm" c="dimmed">Sign in to select your calendars</Text>
+            <Text size="sm" c="dimmed">
+              Sign in to select your calendars
+            </Text>
             <Button
               leftSection={<IconBrandGoogle size={16} />}
               onClick={signIn}
@@ -767,7 +835,8 @@ export function GoogleCalendarWidgetSettings({
 
       <NumberInput
         label="Maximum Events to Show"
-        min={1} max={20}
+        min={1}
+        max={20}
         value={maxEvents}
         onChange={(value) => onConfigChange({ maxEvents: Number(value) || 10 })}
       />
@@ -775,7 +844,8 @@ export function GoogleCalendarWidgetSettings({
       <NumberInput
         label="Days Ahead"
         description="How many days ahead to fetch events"
-        min={1} max={90}
+        min={1}
+        max={90}
         value={daysAhead}
         onChange={(value) => onConfigChange({ daysAhead: Number(value) || 30 })}
       />

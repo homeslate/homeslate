@@ -1,9 +1,7 @@
 import type { CSSProperties } from "react";
 import type { ResolvedTheme } from "./resolvedTypes";
 
-export function hexToRgb(
-  hex: string,
-): { r: number; g: number; b: number } | null {
+export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
     ? {
@@ -20,15 +18,11 @@ interface BackgroundImageConfig {
   backgroundOverlayOpacity?: number;
 }
 
-export function getBackgroundStyle(
-  config: BackgroundImageConfig,
-): CSSProperties {
+export function getBackgroundStyle(config: BackgroundImageConfig): CSSProperties {
   if (!config.backgroundImage) return {};
   const opacity = config.backgroundOverlayOpacity ?? 0.5;
   const size =
-    config.backgroundImageSize === "tile"
-      ? "auto"
-      : (config.backgroundImageSize ?? "cover");
+    config.backgroundImageSize === "tile" ? "auto" : (config.backgroundImageSize ?? "cover");
   const repeat = config.backgroundImageSize === "tile" ? "repeat" : "no-repeat";
   return {
     background: `linear-gradient(rgba(0,0,0,${opacity}), rgba(0,0,0,${opacity})), url(${config.backgroundImage}) center/${size} ${repeat}`,
@@ -55,9 +49,7 @@ function varName(path: string[]): string {
     return `--token-z-${path.slice(2).map(kebab).join("-")}`;
   }
   const stripped =
-    path[0] === "foundation" ||
-    path[0] === "semantic" ||
-    path[0] === "components"
+    path[0] === "foundation" || path[0] === "semantic" || path[0] === "components"
       ? path.slice(1)
       : path;
   return `--token-${stripped.map(kebab).join("-")}`;
@@ -67,11 +59,7 @@ function isObject(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 
-function walk(
-  node: unknown,
-  path: string[],
-  out: Record<string, string>,
-): void {
+function walk(node: unknown, path: string[], out: Record<string, string>): void {
   if (node === undefined || node === null) return;
   if (isObject(node)) {
     for (const [key, value] of Object.entries(node)) {
@@ -92,8 +80,7 @@ export function themeToVars(resolved: ResolvedTheme): Record<string, string> {
   const brand500 = resolved.foundation.color.brand["500"];
   if (brand500 && brand500.startsWith("#")) {
     const rgb = hexToRgb(brand500);
-    if (rgb)
-      out["--token-color-brand-500-rgb"] = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+    if (rgb) out["--token-color-brand-500-rgb"] = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
   }
   out["--token-glow"] = resolved.semantic.focus.ring;
 

@@ -1,7 +1,8 @@
 .container {
   height: 100%;
   background: var(--token-widget-background, var(--token-surface-card));
-  border: var(--token-widget-border-width, 1px) solid var(--token-widget-border-color, var(--token-border-default));
+  border: var(--token-widget-border-width, 1px) solid
+    var(--token-widget-border-color, var(--token-border-default));
   border-radius: var(--token-widget-radius, var(--token-radius-md));
   padding: var(--token-widget-padding, var(--token-spacing-3));
   overflow-y: auto;

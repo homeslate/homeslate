@@ -1,4 +1,4 @@
-import type { AlarmToneId } from '@homeslate/schema';
+import type { AlarmToneId } from "@homeslate/schema";
 
 export interface TimerPreset {
   id: string;
@@ -15,7 +15,7 @@ export interface TimerRuntime {
   toneId: AlarmToneId;
   endsAt: number;
   remainingMs: number;
-  status: 'running' | 'paused';
+  status: "running" | "paused";
 }
 
 export interface TimersWidgetConfig {

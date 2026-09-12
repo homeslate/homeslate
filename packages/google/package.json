@@ -2,21 +2,25 @@
   "name": "@homeslate/google",
   "version": "0.1.1",
   "license": "MIT",
-  "type": "module",
-  "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/homeslate/homeslate.git"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --tsconfig ../../tsconfig.app.json",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   }
 }

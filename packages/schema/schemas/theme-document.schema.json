@@ -60,10 +60,7 @@
         }
       },
       "additionalProperties": {
-        "anyOf": [
-          { "$ref": "#/$defs/tokenGroup" },
-          { "$ref": "#/$defs/tokenLeaf" }
-        ]
+        "anyOf": [{ "$ref": "#/$defs/tokenGroup" }, { "$ref": "#/$defs/tokenLeaf" }]
       }
     },
     "foundationTokens": {

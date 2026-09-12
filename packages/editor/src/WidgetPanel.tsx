@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import {
   Stack,
   Text,
@@ -18,22 +18,34 @@ import {
   Loader,
   Progress,
   Anchor,
-} from '@mantine/core';
+} from "@mantine/core";
 import {
-  IconChevronLeft, IconChevronRight, IconX, IconUpload, IconPhoto,
-  IconLink, IconBrandGoogle, IconPlus, IconTrash, IconExternalLink,
-} from '@tabler/icons-react';
-import { v4 as uuidv4 } from 'uuid';
+  IconChevronLeft,
+  IconChevronRight,
+  IconX,
+  IconUpload,
+  IconPhoto,
+  IconLink,
+  IconBrandGoogle,
+  IconPlus,
+  IconTrash,
+  IconExternalLink,
+} from "@tabler/icons-react";
+import { v4 as uuidv4 } from "uuid";
 import {
   getWidgetTypes,
   useGooglePhotos,
   loadStoredImage,
   useGoogleRuntime,
-} from '@homeslate/widgets';
-import type { Photo, StoredPhoto } from '@homeslate/widgets';
-import type { DisplayDocument, View, ViewBackground, WidgetInstance } from '@homeslate/schema';
-import { addWidget, findAvailablePosition, type WidgetRegistryApi } from '@homeslate/display/canvas';
-import classes from './WidgetPanel.module.css';
+} from "@homeslate/widgets";
+import type { Photo, StoredPhoto } from "@homeslate/widgets";
+import type { DisplayDocument, View, ViewBackground, WidgetInstance } from "@homeslate/schema";
+import {
+  addWidget,
+  findAvailablePosition,
+  type WidgetRegistryApi,
+} from "@homeslate/display/canvas";
+import classes from "./WidgetPanel.module.css";
 
 type UploadBackgroundPhoto = (payload: {
   dataUrl?: string;
@@ -44,21 +56,21 @@ type UploadBackgroundPhoto = (payload: {
 // ── Interval presets ───────────────────────────────────────────────────────────
 
 const INTERVAL_PRESETS = [
-  { value: 5, label: '5s' },
-  { value: 10, label: '10s' },
-  { value: 30, label: '30s' },
-  { value: 60, label: '1m' },
-  { value: 300, label: '5m' },
+  { value: 5, label: "5s" },
+  { value: 10, label: "10s" },
+  { value: 30, label: "30s" },
+  { value: 60, label: "1m" },
+  { value: 300, label: "5m" },
 ];
 const INTERVAL_PRESET_VALUES = INTERVAL_PRESETS.map((p) => p.value);
 
 function asPhotos(value: unknown[] | undefined): Photo[] {
   if (!value) return [];
   return value.filter((photo): photo is Photo => {
-    if (typeof photo !== 'object' || photo === null || !('type' in photo)) return false;
+    if (typeof photo !== "object" || photo === null || !("type" in photo)) return false;
     const typed = photo as { type?: unknown; url?: unknown; key?: unknown };
-    if (typed.type === 'url') return typeof typed.url === 'string';
-    if (typed.type === 'stored') return typeof typed.key === 'string';
+    if (typed.type === "url") return typeof typed.url === "string";
+    if (typed.type === "stored") return typeof typed.key === "string";
     return false;
   });
 }
@@ -80,28 +92,38 @@ function BgThumbGrid({ photos, onRemove }: BgThumbGridProps) {
       const map = new Map<string, string>();
       await Promise.all(
         photos.map(async (photo) => {
-          if (photo.type === 'url') {
+          if (photo.type === "url") {
             map.set(photo.url, photo.url);
           } else {
             const cached = blobUrlsRef.current.get(photo.key);
-            if (cached) { map.set(photo.key, cached); return; }
+            if (cached) {
+              map.set(photo.key, cached);
+              return;
+            }
             try {
               const blobUrl = await loadStoredImage(photo.key);
               if (!cancelled) blobUrlsRef.current.set(photo.key, blobUrl);
               map.set(photo.key, blobUrl);
-            } catch { /* skip */ }
+            } catch {
+              /* skip */
+            }
           }
-        })
+        }),
       );
       if (!cancelled) setThumbUrls(map);
     };
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [photos]);
 
   useEffect(() => {
     const blobUrls = blobUrlsRef.current;
-    return () => { blobUrls.forEach((u) => URL.revokeObjectURL(u)); blobUrls.clear(); };
+    return () => {
+      blobUrls.forEach((u) => URL.revokeObjectURL(u));
+      blobUrls.clear();
+    };
   }, []);
 
   if (photos.length === 0) return null;
@@ -109,20 +131,33 @@ function BgThumbGrid({ photos, onRemove }: BgThumbGridProps) {
   return (
     <SimpleGrid cols={3} spacing={4}>
       {photos.map((photo, index) => {
-        const id = photo.type === 'url' ? photo.url : photo.key;
+        const id = photo.type === "url" ? photo.url : photo.key;
         const src = thumbUrls.get(id);
         return (
-          <Box key={index} pos="relative" style={{ borderRadius: 4, overflow: 'hidden', height: 52 }}>
+          <Box
+            key={index}
+            pos="relative"
+            style={{ borderRadius: 4, overflow: "hidden", height: 52 }}
+          >
             {src ? (
               <Image src={src} height={52} fit="cover" radius={0} />
             ) : (
-              <Box style={{ height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--mantine-color-default-border)' }}>
+              <Box
+                style={{
+                  height: 52,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "var(--mantine-color-default-border)",
+                }}
+              >
                 <Loader size="xs" />
               </Box>
             )}
             <ActionIcon
               pos="absolute"
-              top={2} right={2}
+              top={2}
+              right={2}
               size="xs"
               color="red"
               variant="filled"
@@ -153,10 +188,10 @@ export function BgSettings(props: {
   const interval = view.background?.intervalSeconds ?? 10;
   const overlay = view.background?.overlayOpacity ?? 0.5;
   const image = view.background?.image;
-  const imageSize = view.background?.imageSize ?? 'cover';
+  const imageSize = view.background?.imageSize ?? "cover";
 
   // URL tab
-  const [newUrl, setNewUrl] = useState('');
+  const [newUrl, setNewUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [urlUploading, setUrlUploading] = useState(false);
 
@@ -180,18 +215,20 @@ export function BgSettings(props: {
   // When Google picker completes, add photos
   const savedGoogleRef = useRef(false);
   useEffect(() => {
-    if (pickerStatus === 'ready' && storedImages.length > 0 && !savedGoogleRef.current) {
+    if (pickerStatus === "ready" && storedImages.length > 0 && !savedGoogleRef.current) {
       savedGoogleRef.current = true;
       const newPhotos: StoredPhoto[] = storedImages.map((img) => ({
-        type: 'stored', key: img.key, filename: img.filename,
+        type: "stored",
+        key: img.key,
+        filename: img.filename,
       }));
       const existingKeys = new Set(
-        photos.filter((p): p is StoredPhoto => p.type === 'stored').map((p) => p.key)
+        photos.filter((p): p is StoredPhoto => p.type === "stored").map((p) => p.key),
       );
       const toAdd = newPhotos.filter((p) => !existingKeys.has(p.key));
       if (toAdd.length > 0) updateBg({ photos: [...photos, ...toAdd] });
     }
-    if (pickerStatus === 'idle') savedGoogleRef.current = false;
+    if (pickerStatus === "idle") savedGoogleRef.current = false;
   }, [pickerStatus, storedImages, photos, updateBg]);
 
   const removePhoto = (index: number) => {
@@ -202,16 +239,19 @@ export function BgSettings(props: {
     if (!newUrl.trim()) return;
     setUrlError(null);
     if (!onUploadBackgroundPhoto) {
-      setUrlError('Photo upload is unavailable');
+      setUrlError("Photo upload is unavailable");
       return;
     }
     setUrlUploading(true);
     try {
-      const { key, filename } = await onUploadBackgroundPhoto({ url: newUrl.trim(), filename: newUrl.split('/').pop() });
-      updateBg({ photos: [...photos, { type: 'stored', key, filename } as StoredPhoto] });
-      setNewUrl('');
+      const { key, filename } = await onUploadBackgroundPhoto({
+        url: newUrl.trim(),
+        filename: newUrl.split("/").pop(),
+      });
+      updateBg({ photos: [...photos, { type: "stored", key, filename } as StoredPhoto] });
+      setNewUrl("");
     } catch (err) {
-      setUrlError(err instanceof Error ? err.message : 'Failed to add photo');
+      setUrlError(err instanceof Error ? err.message : "Failed to add photo");
     } finally {
       setUrlUploading(false);
     }
@@ -223,23 +263,26 @@ export function BgSettings(props: {
     setUploading(true);
     const newPhotos: StoredPhoto[] = [];
     for (const file of Array.from(files)) {
-      if (!file.type.startsWith('image/')) { setUploadError(`"${file.name}" is not an image`); continue; }
+      if (!file.type.startsWith("image/")) {
+        setUploadError(`"${file.name}" is not an image`);
+        continue;
+      }
       try {
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.onerror = () => reject(new Error("Failed to read file"));
           reader.readAsDataURL(file);
         });
         const { key, filename } = await onUploadBackgroundPhoto({ dataUrl, filename: file.name });
-        newPhotos.push({ type: 'stored', key, filename });
+        newPhotos.push({ type: "stored", key, filename });
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : `Failed to upload "${file.name}"`);
       }
     }
     if (newPhotos.length > 0) updateBg({ photos: [...photos, ...newPhotos] });
     setUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const hasBackground = photos.length > 0 || !!image;
@@ -247,21 +290,23 @@ export function BgSettings(props: {
   return (
     <Stack gap="xs">
       {/* Thumbnail strip */}
-      {photos.length > 0 && (
-        <BgThumbGrid photos={photos} onRemove={removePhoto} />
-      )}
+      {photos.length > 0 && <BgThumbGrid photos={photos} onRemove={removePhoto} />}
 
       {/* Legacy single backgroundImage preview */}
       {photos.length === 0 && image && (
-        <Box pos="relative" style={{ borderRadius: 6, overflow: 'hidden', height: 64 }}>
+        <Box pos="relative" style={{ borderRadius: 6, overflow: "hidden", height: 64 }}>
           <img
             src={image}
             alt="Background preview"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
           <ActionIcon
-            pos="absolute" top={4} right={4}
-            size="sm" variant="filled" color="red"
+            pos="absolute"
+            top={4}
+            right={4}
+            size="sm"
+            variant="filled"
+            color="red"
             onClick={() => updateBg({ image: undefined })}
           >
             <IconX size={12} />
@@ -272,11 +317,17 @@ export function BgSettings(props: {
       {/* Add photos tabs */}
       <Tabs defaultValue="url" variant="pills">
         <Tabs.List grow>
-          <Tabs.Tab value="url" leftSection={<IconLink size={12} />}>URL</Tabs.Tab>
+          <Tabs.Tab value="url" leftSection={<IconLink size={12} />}>
+            URL
+          </Tabs.Tab>
           {onUploadBackgroundPhoto && (
-            <Tabs.Tab value="upload" leftSection={<IconUpload size={12} />}>Device</Tabs.Tab>
+            <Tabs.Tab value="upload" leftSection={<IconUpload size={12} />}>
+              Device
+            </Tabs.Tab>
           )}
-          <Tabs.Tab value="google" leftSection={<IconBrandGoogle size={12} />}>Google</Tabs.Tab>
+          <Tabs.Tab value="google" leftSection={<IconBrandGoogle size={12} />}>
+            Google
+          </Tabs.Tab>
         </Tabs.List>
 
         {/* URL tab */}
@@ -288,8 +339,13 @@ export function BgSettings(props: {
                 size="xs"
                 placeholder="https://example.com/photo.jpg"
                 value={newUrl}
-                onChange={(e) => { setNewUrl(e.currentTarget.value); setUrlError(null); }}
-                onKeyDown={(e) => { if (e.key === 'Enter') void addUrlPhoto(); }}
+                onChange={(e) => {
+                  setNewUrl(e.currentTarget.value);
+                  setUrlError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void addUrlPhoto();
+                }}
                 leftSection={<IconPhoto size={12} />}
               />
               <Button
@@ -304,7 +360,11 @@ export function BgSettings(props: {
                 Add
               </Button>
             </Group>
-            {urlError && <Alert color="red" variant="light" p="xs"><Text size="xs">{urlError}</Text></Alert>}
+            {urlError && (
+              <Alert color="red" variant="light" p="xs">
+                <Text size="xs">{urlError}</Text>
+              </Alert>
+            )}
           </Stack>
         </Tabs.Panel>
 
@@ -317,7 +377,7 @@ export function BgSettings(props: {
                 type="file"
                 accept="image/*"
                 multiple
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
                 onChange={(e) => void handleFileUpload(e.currentTarget.files)}
               />
               <Button
@@ -328,10 +388,16 @@ export function BgSettings(props: {
                 onClick={() => fileInputRef.current?.click()}
                 fullWidth
               >
-                {uploading ? 'Uploading…' : 'Choose from Device'}
+                {uploading ? "Uploading…" : "Choose from Device"}
               </Button>
-              {uploadError && <Alert color="red" variant="light" p="xs"><Text size="xs">{uploadError}</Text></Alert>}
-              <Text size="xs" c="dimmed">JPEG, PNG, GIF, WebP — max 20 MB</Text>
+              {uploadError && (
+                <Alert color="red" variant="light" p="xs">
+                  <Text size="xs">{uploadError}</Text>
+                </Alert>
+              )}
+              <Text size="xs" c="dimmed">
+                JPEG, PNG, GIF, WebP — max 20 MB
+              </Text>
             </Stack>
           </Tabs.Panel>
         )}
@@ -341,7 +407,9 @@ export function BgSettings(props: {
           <Stack gap={4}>
             {!isAuthenticated ? (
               <>
-                <Text size="xs" c="dimmed">Sign in to pick from Google Photos</Text>
+                <Text size="xs" c="dimmed">
+                  Sign in to pick from Google Photos
+                </Text>
                 <Button
                   size="xs"
                   leftSection={<IconBrandGoogle size={12} />}
@@ -353,34 +421,50 @@ export function BgSettings(props: {
               </>
             ) : (
               <>
-                <Text size="xs" c="dimmed">Connected to Google</Text>
-                {pickerStatus === 'pending' && pickerUri && (
+                <Text size="xs" c="dimmed">
+                  Connected to Google
+                </Text>
+                {pickerStatus === "pending" && pickerUri && (
                   <Stack gap={2}>
-                    <Text size="xs" c="dimmed">Select photos, then come back here.</Text>
+                    <Text size="xs" c="dimmed">
+                      Select photos, then come back here.
+                    </Text>
                     <Anchor href={pickerUri} target="_blank" size="xs">
                       Open Google Photos <IconExternalLink size={10} />
                     </Anchor>
                   </Stack>
                 )}
-                {pickerStatus === 'uploading' && uploadProgress && (
+                {pickerStatus === "uploading" && uploadProgress && (
                   <Stack gap={2}>
-                    <Text size="xs" c="dimmed">Saving… {uploadProgress.done}/{uploadProgress.total}</Text>
-                    <Progress value={(uploadProgress.done / uploadProgress.total) * 100} size="xs" animated />
+                    <Text size="xs" c="dimmed">
+                      Saving… {uploadProgress.done}/{uploadProgress.total}
+                    </Text>
+                    <Progress
+                      value={(uploadProgress.done / uploadProgress.total) * 100}
+                      size="xs"
+                      animated
+                    />
                   </Stack>
                 )}
-                {googleError && <Alert color="red" variant="light" p="xs"><Text size="xs">{googleError}</Text></Alert>}
+                {googleError && (
+                  <Alert color="red" variant="light" p="xs">
+                    <Text size="xs">{googleError}</Text>
+                  </Alert>
+                )}
                 <Group gap={4}>
                   <Button
                     size="xs"
                     leftSection={<IconPhoto size={12} />}
-                    loading={pickerStatus === 'pending' || pickerStatus === 'uploading'}
-                    disabled={pickerStatus === 'pending' || pickerStatus === 'uploading'}
+                    loading={pickerStatus === "pending" || pickerStatus === "uploading"}
+                    disabled={pickerStatus === "pending" || pickerStatus === "uploading"}
                     onClick={() => void startPicker()}
                   >
                     Pick Photos
                   </Button>
                   {storedImages.length > 0 && (
-                    <Button size="xs" variant="subtle" color="red" onClick={clearGoogleSelection}>Cancel</Button>
+                    <Button size="xs" variant="subtle" color="red" onClick={clearGoogleSelection}>
+                      Cancel
+                    </Button>
                   )}
                 </Group>
               </>
@@ -392,13 +476,15 @@ export function BgSettings(props: {
       {/* Interval (only when multiple photos) */}
       {photos.length > 1 && (
         <Stack gap={4}>
-          <Text size="xs" c="dimmed">Slideshow interval</Text>
+          <Text size="xs" c="dimmed">
+            Slideshow interval
+          </Text>
           <Group gap={4} wrap="wrap">
             {INTERVAL_PRESETS.map(({ value, label }) => (
               <Button
                 key={value}
                 size="xs"
-                variant={interval === value ? 'filled' : 'default'}
+                variant={interval === value ? "filled" : "default"}
                 onClick={() => updateBg({ intervalSeconds: value })}
               >
                 {label}
@@ -406,8 +492,10 @@ export function BgSettings(props: {
             ))}
             <Button
               size="xs"
-              variant={!INTERVAL_PRESET_VALUES.includes(interval) ? 'filled' : 'default'}
-              onClick={() => { if (INTERVAL_PRESET_VALUES.includes(interval)) updateBg({ intervalSeconds: 20 }); }}
+              variant={!INTERVAL_PRESET_VALUES.includes(interval) ? "filled" : "default"}
+              onClick={() => {
+                if (INTERVAL_PRESET_VALUES.includes(interval)) updateBg({ intervalSeconds: 20 });
+              }}
             >
               Custom
             </Button>
@@ -422,7 +510,11 @@ export function BgSettings(props: {
                 if (!isNaN(num) && num >= 3) updateBg({ intervalSeconds: num });
               }}
               w={100}
-              rightSection={<Text size="xs" c="dimmed">s</Text>}
+              rightSection={
+                <Text size="xs" c="dimmed">
+                  s
+                </Text>
+              }
             />
           )}
         </Stack>
@@ -434,17 +526,21 @@ export function BgSettings(props: {
           <Select
             size="xs"
             data={[
-              { value: 'cover', label: 'Cover (fill screen)' },
-              { value: 'contain', label: 'Contain (fit inside)' },
-              { value: 'tile', label: 'Tile (repeat)' },
+              { value: "cover", label: "Cover (fill screen)" },
+              { value: "contain", label: "Contain (fit inside)" },
+              { value: "tile", label: "Tile (repeat)" },
             ]}
             value={imageSize}
-            onChange={(v) => v && updateBg({ imageSize: v as ViewBackground['imageSize'] })}
+            onChange={(v) => v && updateBg({ imageSize: v as ViewBackground["imageSize"] })}
           />
           <Stack gap={2}>
             <Group justify="space-between">
-              <Text size="xs" c="dimmed">Overlay darkness</Text>
-              <Text size="xs" c="dimmed">{Math.round(overlay * 100)}%</Text>
+              <Text size="xs" c="dimmed">
+                Overlay darkness
+              </Text>
+              <Text size="xs" c="dimmed">
+                {Math.round(overlay * 100)}%
+              </Text>
             </Group>
             <Slider
               value={overlay * 100}
@@ -521,13 +617,13 @@ export function WidgetPanel(props: {
   };
 
   return (
-    <aside className={`${classes.panel} ${collapsed ? classes.collapsed : ''}`}>
+    <aside className={`${classes.panel} ${collapsed ? classes.collapsed : ""}`}>
       <div className={classes.toggleBar}>
         <ActionIcon
           variant="subtle"
           onClick={() => setCollapsed((c) => !c)}
           className={classes.toggleBtn}
-          title={collapsed ? 'Expand widget panel' : 'Collapse widget panel'}
+          title={collapsed ? "Expand widget panel" : "Collapse widget panel"}
         >
           {collapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
         </ActionIcon>
@@ -567,8 +663,12 @@ export function WidgetPanel(props: {
                     <Icon size={18} />
                   </div>
                   <div>
-                    <Text size="sm" fw={500}>{widget.name}</Text>
-                    <Text size="xs" c="dimmed" lineClamp={1}>{widget.description}</Text>
+                    <Text size="sm" fw={500}>
+                      {widget.name}
+                    </Text>
+                    <Text size="xs" c="dimmed" lineClamp={1}>
+                      {widget.description}
+                    </Text>
                   </div>
                 </UnstyledButton>
               );

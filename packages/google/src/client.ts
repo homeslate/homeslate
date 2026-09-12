@@ -1,14 +1,14 @@
-import { listCalendarsWithAccessToken, listEventsWithAccessToken } from './calendar';
-import { fetchPhotoWithAccessToken } from './photos';
-import { GoogleAuthError, isGoogleAuthError } from './errors';
-import { exchangeAuthorizationCode, refreshAccessToken } from './tokens';
-import type { GoogleClient, GoogleTokens, TokenStore } from './types';
+import { listCalendarsWithAccessToken, listEventsWithAccessToken } from "./calendar";
+import { fetchPhotoWithAccessToken } from "./photos";
+import { GoogleAuthError, isGoogleAuthError } from "./errors";
+import { exchangeAuthorizationCode, refreshAccessToken } from "./tokens";
+import type { GoogleClient, GoogleTokens, TokenStore } from "./types";
 
 const ACCESS_TOKEN_SAFETY_MS = 60_000;
 
 function requireCredentials(clientId: string, clientSecret: string): void {
   if (!clientId.trim() || !clientSecret.trim()) {
-    throw new Error('Missing Google OAuth credentials');
+    throw new Error("Missing Google OAuth credentials");
   }
 }
 
@@ -37,8 +37,8 @@ export function createGoogleClient(opts: {
     const refreshToken = stored?.refreshToken || (await tokenStore.getRefreshToken(accountId));
     if (!refreshToken) {
       throw new GoogleAuthError(
-        'missing_tokens',
-        'No Google refresh token is stored for this account'
+        "missing_tokens",
+        "No Google refresh token is stored for this account",
       );
     }
 
@@ -47,10 +47,7 @@ export function createGoogleClient(opts: {
       grant = await refreshAccessToken({ clientId, clientSecret, refreshToken, nowMs });
     } catch (err) {
       if (isGoogleAuthError(err)) throw err;
-      throw new GoogleAuthError(
-        'refresh_failed',
-        err instanceof Error ? err.message : String(err)
-      );
+      throw new GoogleAuthError("refresh_failed", err instanceof Error ? err.message : String(err));
     }
 
     const next: GoogleTokens = {
@@ -65,7 +62,7 @@ export function createGoogleClient(opts: {
   async function exchangeAuthCode(
     accountId: string,
     code: string,
-    redirectUri: string
+    redirectUri: string,
   ): Promise<GoogleTokens> {
     const grant = await exchangeAuthorizationCode({
       clientId,
@@ -76,7 +73,7 @@ export function createGoogleClient(opts: {
     const existing = await tokenStore.getTokens(accountId);
     const refreshToken = grant.refreshToken ?? existing?.refreshToken;
     if (!refreshToken) {
-      throw new Error('Auth code exchange did not return a refresh token');
+      throw new Error("Auth code exchange did not return a refresh token");
     }
     const tokens: GoogleTokens = {
       refreshToken,

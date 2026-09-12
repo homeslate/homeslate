@@ -1,5 +1,5 @@
-import { createContext, useContext, type ReactNode } from 'react';
-import type { AlarmDefinition } from '@homeslate/schema';
+import { createContext, useContext, type ReactNode } from "react";
+import type { AlarmDefinition } from "@homeslate/schema";
 
 interface AlarmsContextValue {
   provided: boolean;

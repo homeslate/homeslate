@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from "react";
 import {
   Box,
   Text,
@@ -18,8 +18,8 @@ import {
   Select,
   Switch,
   Alert,
-} from '@mantine/core';
-import { DatePicker } from '@mantine/dates';
+} from "@mantine/core";
+import { DatePicker } from "@mantine/dates";
 import {
   IconBrandGoogle,
   IconCalendarEvent,
@@ -27,17 +27,17 @@ import {
   IconMapPin,
   IconPlus,
   IconCheck,
-} from '@tabler/icons-react';
-import { GoogleCalendarEmptyState } from '../chrome/GoogleCalendarEmptyState';
-import { displayCalendarEmptyDetail } from './googleCalendarError';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { useDisplayCalendar } from '../hooks/useDisplayCalendar';
-import { WidgetDataStatus } from '../chrome/WidgetDataStatus';
-import { useGoogleRuntime } from '../googleRuntime';
-import type { ParsedCalendarEvent, CalendarEventInput } from '../services/googleCalendar';
-import classes from './GoogleCalendarMonthWidget.module.css';
-import dayjs from 'dayjs';
+} from "@tabler/icons-react";
+import { GoogleCalendarEmptyState } from "../chrome/GoogleCalendarEmptyState";
+import { displayCalendarEmptyDetail } from "./googleCalendarError";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useGoogleCalendar } from "../hooks/useGoogleCalendar";
+import { useDisplayCalendar } from "../hooks/useDisplayCalendar";
+import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { useGoogleRuntime } from "../googleRuntime";
+import type { ParsedCalendarEvent, CalendarEventInput } from "../services/googleCalendar";
+import classes from "./GoogleCalendarMonthWidget.module.css";
+import dayjs from "dayjs";
 
 export interface GoogleCalendarMonthConfig extends WidgetConfig {
   selectedCalendarIds: string[];
@@ -63,19 +63,19 @@ function roundToNext30(date: Date): string {
   const rounded = Math.ceil(total / 30) * 30;
   const h = Math.floor(rounded / 60) % 24;
   const m = rounded % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function addMinutesToTime(time: string, minutes: number): string {
-  const [h, m] = time.split(':').map(Number);
+  const [h, m] = time.split(":").map(Number);
   const total = (h * 60 + m + minutes) % (24 * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
 function formDataToEventInput(data: EventFormData): CalendarEventInput {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   if (data.allDay) {
-    const nextDay = dayjs(data.date).add(1, 'day').format('YYYY-MM-DD');
+    const nextDay = dayjs(data.date).add(1, "day").format("YYYY-MM-DD");
     return {
       summary: data.title.trim(),
       ...(data.description ? { description: data.description } : {}),
@@ -94,13 +94,13 @@ function formDataToEventInput(data: EventFormData): CalendarEventInput {
 }
 
 function formatTimeRange(event: ParsedCalendarEvent): string {
-  if (event.allDay) return 'All day';
+  if (event.allDay) return "All day";
   const start = dayjs(event.start);
   const end = dayjs(event.end);
-  if (start.format('A') === end.format('A')) {
-    return `${start.format('h:mm')} – ${end.format('h:mm A')}`;
+  if (start.format("A") === end.format("A")) {
+    return `${start.format("h:mm")} – ${end.format("h:mm A")}`;
   }
-  return `${start.format('h:mm A')} – ${end.format('h:mm A')}`;
+  return `${start.format("h:mm A")} – ${end.format("h:mm A")}`;
 }
 
 // ── Main widget ──
@@ -111,21 +111,23 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
   const isDisplayMode = !!displayId && !isPreview;
   const displayData = useDisplayCalendar({ displayId, selectedCalendarIds, daysAhead });
   const googleData = useGoogleCalendar({ selectedCalendarIds, daysAhead, enabled: !isDisplayMode });
-  const { isLoading, events, calendars, lastUpdated, error, refresh, addEvent } = isDisplayMode ? displayData : googleData;
+  const { isLoading, events, calendars, lastUpdated, error, refresh, addEvent } = isDisplayMode
+    ? displayData
+    : googleData;
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // ── Create event form state ──
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState<EventFormData>({
-    title: '',
-    calendarId: '',
-    date: dayjs().format('YYYY-MM-DD'),
+    title: "",
+    calendarId: "",
+    date: dayjs().format("YYYY-MM-DD"),
     allDay: false,
-    startTime: '09:00',
-    endTime: '10:00',
-    location: '',
-    description: '',
+    startTime: "09:00",
+    endTime: "10:00",
+    location: "",
+    description: "",
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -134,49 +136,48 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
     () =>
       calendars.map((cal) => ({
         value: cal.id,
-        label: cal.summary + (cal.primary ? ' (Primary)' : ''),
-        color: cal.backgroundColor ?? '#4285f4',
+        label: cal.summary + (cal.primary ? " (Primary)" : ""),
+        color: cal.backgroundColor ?? "#4285f4",
       })),
-    [calendars]
+    [calendars],
   );
 
   const openCreateModal = useCallback(
     (date: Date) => {
       const start = roundToNext30(new Date());
       setFormData({
-        title: '',
-        calendarId: selectedCalendarIds[0] ?? calendars[0]?.id ?? '',
-        date: dayjs(date).format('YYYY-MM-DD'),
+        title: "",
+        calendarId: selectedCalendarIds[0] ?? calendars[0]?.id ?? "",
+        date: dayjs(date).format("YYYY-MM-DD"),
         allDay: false,
         startTime: start,
         endTime: addMinutesToTime(start, 60),
-        location: '',
-        description: '',
+        location: "",
+        description: "",
       });
       setFormError(null);
       setFormOpen(true);
     },
-    [selectedCalendarIds, calendars]
+    [selectedCalendarIds, calendars],
   );
 
   const handleFormSubmit = useCallback(async () => {
     if (!formData.title.trim()) {
-      setFormError('Title is required');
+      setFormError("Title is required");
       return;
     }
     if (!formData.calendarId) {
-      setFormError('Please select a calendar');
+      setFormError("Please select a calendar");
       return;
     }
     if (!formData.allDay) {
       const startMins =
-        parseInt(formData.startTime.split(':')[0]) * 60 +
-        parseInt(formData.startTime.split(':')[1]);
+        parseInt(formData.startTime.split(":")[0]) * 60 +
+        parseInt(formData.startTime.split(":")[1]);
       const endMins =
-        parseInt(formData.endTime.split(':')[0]) * 60 +
-        parseInt(formData.endTime.split(':')[1]);
+        parseInt(formData.endTime.split(":")[0]) * 60 + parseInt(formData.endTime.split(":")[1]);
       if (endMins <= startMins) {
-        setFormError('End time must be after start time');
+        setFormError("End time must be after start time");
         return;
       }
     }
@@ -187,7 +188,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
       await addEvent(formData.calendarId, input);
       setFormOpen(false);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to create event');
+      setFormError(err instanceof Error ? err.message : "Failed to create event");
     } finally {
       setFormLoading(false);
     }
@@ -198,26 +199,26 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
   const eventsByDate = useMemo(() => {
     const map = new Map<string, ParsedCalendarEvent[]>();
     for (const event of events) {
-      const key = dayjs(event.start).format('YYYY-MM-DD');
+      const key = dayjs(event.start).format("YYYY-MM-DD");
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(event);
     }
     return map;
   }, [events]);
 
-  const selectedDateStr = dayjs(selectedDate).format('YYYY-MM-DD');
+  const selectedDateStr = dayjs(selectedDate).format("YYYY-MM-DD");
   const selectedDateEvents = eventsByDate.get(selectedDateStr) ?? [];
 
   const selectedLabel = (() => {
-    const diff = dayjs(selectedDate).diff(dayjs().startOf('day'), 'day');
-    if (diff === 0) return 'Today';
-    if (diff === 1) return 'Tomorrow';
-    return dayjs(selectedDate).format('ddd, MMM D');
+    const diff = dayjs(selectedDate).diff(dayjs().startOf("day"), "day");
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    return dayjs(selectedDate).format("ddd, MMM D");
   })();
 
   if (!isAuthenticated && !isDisplayMode) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="signIn" className={classes.empty} />
       </Box>
     );
@@ -225,7 +226,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
 
   if (isDisplayMode && displayData.error && !displayData.isLoading && events.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState
           variant="displayError"
           className={classes.empty}
@@ -237,14 +238,14 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
 
   if (selectedCalendarIds.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="noCalendars" className={classes.empty} />
       </Box>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.header}>
         <span className={classes.title}>
           <IconCalendarEvent size={12} />
@@ -278,7 +279,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
           value={selectedDate}
           onChange={(d) => d && setSelectedDate(new Date(d))}
           renderDay={(date) => {
-            const key = dayjs(date).format('YYYY-MM-DD');
+            const key = dayjs(date).format("YYYY-MM-DD");
             const dayEvents = eventsByDate.get(key) ?? [];
             const colors = [...new Set(dayEvents.map((e) => e.color))].slice(0, 3);
             return (
@@ -314,7 +315,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
             onClick={() => openCreateModal(selectedDate)}
             className={classes.addBtn}
             title="Add event"
-            style={{ marginLeft: 'auto' }}
+            style={{ marginLeft: "auto" }}
           >
             <IconPlus size={12} />
           </ActionIcon>
@@ -327,10 +328,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
           <ScrollArea className={classes.dayEventsList} scrollbarSize={4}>
             {selectedDateEvents.map((event) => (
               <div key={event.id} className={classes.eventCard}>
-                <div
-                  className={classes.eventIndicator}
-                  style={{ backgroundColor: event.color }}
-                />
+                <div className={classes.eventIndicator} style={{ backgroundColor: event.color }} />
                 <div className={classes.eventBody}>
                   <div className={classes.eventTitle}>{event.title}</div>
                   <div className={classes.eventTime}>{formatTimeRange(event)}</div>
@@ -372,7 +370,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
             required
             data={calendarOptions}
             value={formData.calendarId}
-            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? '' }))}
+            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? "" }))}
             renderOption={({ option }) => {
               const cal = calendars.find((c) => c.id === option.value);
               return (
@@ -381,8 +379,8 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
                     style={{
                       width: 10,
                       height: 10,
-                      borderRadius: '50%',
-                      backgroundColor: cal?.backgroundColor ?? '#4285f4',
+                      borderRadius: "50%",
+                      backgroundColor: cal?.backgroundColor ?? "#4285f4",
                       flexShrink: 0,
                     }}
                   />
@@ -476,7 +474,7 @@ export function GoogleCalendarMonthWidgetSettings({
 
   const calendarOptions = calendars.map((cal) => ({
     value: cal.id,
-    label: cal.summary + (cal.primary ? ' (Primary)' : ''),
+    label: cal.summary + (cal.primary ? " (Primary)" : ""),
   }));
 
   return (

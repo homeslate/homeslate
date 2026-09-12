@@ -1,9 +1,9 @@
-export type WeatherSizeTier = 'compact' | 'medium' | 'full';
+export type WeatherSizeTier = "compact" | "medium" | "full";
 
 export function getWeatherSizeTier(w: number, h: number): WeatherSizeTier {
-  if (h <= 2) return 'compact';
-  if (h <= 3 || w <= 3) return 'medium';
-  return 'full';
+  if (h <= 2) return "compact";
+  if (h <= 3 || w <= 3) return "medium";
+  return "full";
 }
 
 export function getWeatherSectionVisibility(tier: WeatherSizeTier): {
@@ -14,7 +14,7 @@ export function getWeatherSectionVisibility(tier: WeatherSizeTier): {
   showWeekly: boolean;
 } {
   switch (tier) {
-    case 'compact':
+    case "compact":
       return {
         showLocation: false,
         showUpdated: false,
@@ -22,7 +22,7 @@ export function getWeatherSectionVisibility(tier: WeatherSizeTier): {
         showHourly: false,
         showWeekly: false,
       };
-    case 'medium':
+    case "medium":
       return {
         showLocation: true,
         showUpdated: true,
@@ -30,7 +30,7 @@ export function getWeatherSectionVisibility(tier: WeatherSizeTier): {
         showHourly: true,
         showWeekly: false,
       };
-    case 'full':
+    case "full":
       return {
         showLocation: true,
         showUpdated: true,

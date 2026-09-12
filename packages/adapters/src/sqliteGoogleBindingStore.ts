@@ -1,5 +1,5 @@
-import type { GoogleBindingStore } from '@homeslate/google';
-import type { DatabaseSync } from 'node:sqlite';
+import type { GoogleBindingStore } from "@homeslate/google";
+import type { DatabaseSync } from "node:sqlite";
 
 type GoogleBindingRow = {
   account_id: string;
@@ -14,7 +14,7 @@ export class SqliteGoogleBindingStore implements GoogleBindingStore {
 
   async getAccountIdForDisplay(displayId: string): Promise<string | null> {
     const row = this.database
-      .prepare('SELECT account_id FROM google_bindings WHERE display_id = ?')
+      .prepare("SELECT account_id FROM google_bindings WHERE display_id = ?")
       .get(displayId) as GoogleBindingRow | undefined;
     return row?.account_id ?? null;
   }

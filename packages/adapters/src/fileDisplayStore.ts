@@ -1,14 +1,14 @@
-import { randomUUID } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import type { DisplayDocument } from '@homeslate/schema';
-import { assertValidDisplayDocument } from './validateDocument';
+import { randomUUID } from "node:crypto";
+import { mkdir, readdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { DisplayDocument } from "@homeslate/schema";
+import { assertValidDisplayDocument } from "./validateDocument";
 import {
   DisplayNotFoundError,
   type DisplayRecord,
   type DisplayStore,
   type DisplaySummary,
-} from './types';
+} from "./types";
 
 export class FileDisplayStore implements DisplayStore {
   private readonly dir: string;
@@ -23,7 +23,7 @@ export class FileDisplayStore implements DisplayStore {
 
   async getByPublicId(publicId: string): Promise<DisplayRecord | null> {
     for (const file of await this.jsonFiles()) {
-      const record = await this.readRecord(file.slice(0, -'.json'.length));
+      const record = await this.readRecord(file.slice(0, -".json".length));
       if (record?.publicId === publicId) return record;
     }
     return null;
@@ -50,7 +50,7 @@ export class FileDisplayStore implements DisplayStore {
   async list(): Promise<DisplaySummary[]> {
     const summaries: DisplaySummary[] = [];
     for (const file of await this.jsonFiles()) {
-      const record = await this.readRecord(file.slice(0, -'.json'.length));
+      const record = await this.readRecord(file.slice(0, -".json".length));
       if (record) summaries.push({ id: record.id, name: record.document.name });
     }
     return summaries.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
@@ -66,7 +66,7 @@ export class FileDisplayStore implements DisplayStore {
 
   private async jsonFiles(): Promise<string[]> {
     try {
-      return (await readdir(this.dir)).filter((file) => file.endsWith('.json'));
+      return (await readdir(this.dir)).filter((file) => file.endsWith(".json"));
     } catch (error) {
       if (isNotFound(error)) return [];
       throw error;
@@ -75,7 +75,7 @@ export class FileDisplayStore implements DisplayStore {
 
   private async readRecord(id: string): Promise<DisplayRecord | null> {
     try {
-      const record = JSON.parse(await readFile(this.pathFor(id), 'utf8')) as DisplayRecord;
+      const record = JSON.parse(await readFile(this.pathFor(id), "utf8")) as DisplayRecord;
       return { ...record, document: assertValidDisplayDocument(record.document) };
     } catch (error) {
       if (isNotFound(error)) return null;
@@ -87,12 +87,12 @@ export class FileDisplayStore implements DisplayStore {
     await mkdir(this.dir, { recursive: true });
     const path = this.pathFor(record.id);
     const temporaryPath = `${path}.tmp`;
-    await writeFile(temporaryPath, JSON.stringify(record), 'utf8');
+    await writeFile(temporaryPath, JSON.stringify(record), "utf8");
     await rename(temporaryPath, path);
   }
 
   private pathFor(id: string): string {
-    if (id.includes('/') || id.includes('\\')) {
+    if (id.includes("/") || id.includes("\\")) {
       throw new Error(`Invalid display id: ${id}`);
     }
     return join(this.dir, `${id}.json`);
@@ -100,5 +100,5 @@ export class FileDisplayStore implements DisplayStore {
 }
 
 function isNotFound(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }

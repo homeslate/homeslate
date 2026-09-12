@@ -2,7 +2,7 @@
 // Uses the Picker API (photospicker.googleapis.com) introduced in 2025 after
 // the photoslibrary.readonly scope was removed on March 31 2025.
 
-const PICKER_API_BASE = 'https://photospicker.googleapis.com/v1';
+const PICKER_API_BASE = "https://photospicker.googleapis.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ export interface PickerSession {
 export interface PickedMediaItem {
   id: string;
   createTime: string;
-  type: 'PHOTO' | 'VIDEO';
+  type: "PHOTO" | "VIDEO";
   mediaFile: {
     baseUrl: string;
     mimeType: string;
@@ -59,17 +59,17 @@ export interface StoredImage {
 
 export async function createPickerSession(token: string): Promise<PickerSession> {
   const response = await fetch(`${PICKER_API_BASE}/sessions`, {
-    method: 'POST',
+    method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({}),
   });
 
   if (!response.ok) {
-    if (response.status === 401) throw new Error('Token expired. Please sign in again.');
-    const body = await response.text().catch(() => '');
+    if (response.status === 401) throw new Error("Token expired. Please sign in again.");
+    const body = await response.text().catch(() => "");
     throw new Error(`Failed to create picker session: ${response.status} ${body}`);
   }
 
@@ -84,7 +84,7 @@ export async function getPickerSession(token: string, sessionId: string): Promis
   });
 
   if (!response.ok) {
-    if (response.status === 401) throw new Error('Token expired. Please sign in again.');
+    if (response.status === 401) throw new Error("Token expired. Please sign in again.");
     throw new Error(`Failed to get picker session: ${response.statusText}`);
   }
 
@@ -93,7 +93,7 @@ export async function getPickerSession(token: string, sessionId: string): Promis
 
 export async function deletePickerSession(token: string, sessionId: string): Promise<void> {
   await fetch(`${PICKER_API_BASE}/sessions/${sessionId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -104,15 +104,15 @@ export async function deletePickerSession(token: string, sessionId: string): Pro
 
 export async function listPickedMediaItems(
   token: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<PickedMediaItem[]> {
   const items: PickedMediaItem[] = [];
   let pageToken: string | undefined;
 
   do {
     const url = new URL(`${PICKER_API_BASE}/mediaItems`);
-    url.searchParams.set('sessionId', sessionId);
-    if (pageToken) url.searchParams.set('pageToken', pageToken);
+    url.searchParams.set("sessionId", sessionId);
+    if (pageToken) url.searchParams.set("pageToken", pageToken);
 
     const response = await fetch(url.toString(), {
       headers: {
@@ -121,11 +121,14 @@ export async function listPickedMediaItems(
     });
 
     if (!response.ok) {
-      if (response.status === 401) throw new Error('Token expired. Please sign in again.');
+      if (response.status === 401) throw new Error("Token expired. Please sign in again.");
       throw new Error(`Failed to list picked media items: ${response.statusText}`);
     }
 
-    const data = await response.json() as { mediaItems?: PickedMediaItem[]; nextPageToken?: string };
+    const data = (await response.json()) as {
+      mediaItems?: PickedMediaItem[];
+      nextPageToken?: string;
+    };
     items.push(...(data.mediaItems ?? []));
     pageToken = data.nextPageToken;
   } while (pageToken);
@@ -136,7 +139,7 @@ export async function listPickedMediaItems(
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function isImageItem(item: PickedMediaItem): boolean {
-  return item.mediaFile.mimeType.startsWith('image/');
+  return item.mediaFile.mimeType.startsWith("image/");
 }
 
 export function imageItems(items: PickedMediaItem[]): PickedMediaItem[] {
@@ -161,23 +164,23 @@ export function pickRandomItem(items: PickedMediaItem[]): PickedMediaItem | null
 export async function storeImage(
   baseUrl: string,
   token: string,
-  size = 'w800-h600'
+  size = "w800-h600",
 ): Promise<string> {
-  const response = await fetch('/api/photo-store', {
-    method: 'POST',
+  const response = await fetch("/api/photo-store", {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ baseUrl, size }),
   });
 
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
+    const text = await response.text().catch(() => "");
     throw new Error(`Failed to store image: ${response.status} ${text}`);
   }
 
-  const data = await response.json() as { key: string };
+  const data = (await response.json()) as { key: string };
   return data.key;
 }
 

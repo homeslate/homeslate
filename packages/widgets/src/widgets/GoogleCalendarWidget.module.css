@@ -156,7 +156,10 @@
   overflow: hidden;
   margin-bottom: 0.3rem;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .eventCard:last-child {
@@ -175,7 +178,11 @@
 }
 
 .eventCardNow:hover {
-  background: color-mix(in srgb, var(--token-status-success-fg) 16%, var(--token-status-success-bg)) !important;
+  background: color-mix(
+    in srgb,
+    var(--token-status-success-fg) 16%,
+    var(--token-status-success-bg)
+  ) !important;
 }
 
 .eventIndicator {
@@ -289,11 +296,19 @@
 }
 
 .googleButton {
-  background: linear-gradient(135deg, var(--token-color-brand-500) 0%, var(--token-status-success-fg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--token-color-brand-500) 0%,
+    var(--token-status-success-fg) 100%
+  );
 }
 
 .googleButton:hover {
-  background: linear-gradient(135deg, var(--token-color-brand-600) 0%, var(--token-status-success-fg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--token-color-brand-600) 0%,
+    var(--token-status-success-fg) 100%
+  );
 }
 
 /* ── Empty state ── */

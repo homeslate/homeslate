@@ -15,7 +15,7 @@ export function createDebouncedPersist<T>(
   let timer: ReturnType<typeof setTimeout> | null = null;
   let pending: T | null = null;
   const unloadTarget =
-    options?.unloadTarget ?? (typeof window === 'undefined' ? undefined : window);
+    options?.unloadTarget ?? (typeof window === "undefined" ? undefined : window);
 
   const commit = (options: PersistPutOptions) => {
     if (timer) {
@@ -39,11 +39,11 @@ export function createDebouncedPersist<T>(
     },
     flush,
     attach() {
-      unloadTarget?.addEventListener('pagehide', flushUnload);
-      unloadTarget?.addEventListener('beforeunload', flushUnload);
+      unloadTarget?.addEventListener("pagehide", flushUnload);
+      unloadTarget?.addEventListener("beforeunload", flushUnload);
       return () => {
-        unloadTarget?.removeEventListener('pagehide', flushUnload);
-        unloadTarget?.removeEventListener('beforeunload', flushUnload);
+        unloadTarget?.removeEventListener("pagehide", flushUnload);
+        unloadTarget?.removeEventListener("beforeunload", flushUnload);
       };
     },
   };

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { readFileSync } from "node:fs";
 
 const source = readFileSync(new URL("./ThemeEditor.tsx", import.meta.url), "utf8");
@@ -7,7 +7,7 @@ const styles = readFileSync(new URL("./ThemeEditor.module.css", import.meta.url)
 describe("ThemeEditor markup", () => {
   it("does not render the dirty badge inside a paragraph", () => {
     expect(source).toMatch(
-      /<Text\s+size="sm"\s+c="dimmed"\s+component="div">[\s\S]*?<Badge\s+ml="xs"\s+size="xs"\s+color="orange"\s+variant="light">/
+      /<Text\s+size="sm"\s+c="dimmed"\s+component="div">[\s\S]*?<Badge\s+ml="xs"\s+size="xs"\s+color="orange"\s+variant="light">/,
     );
   });
 

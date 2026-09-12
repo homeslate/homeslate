@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Text, Stack, Switch, Select, Group } from '@mantine/core';
-import type { WidgetProps, WidgetConfig, TextAlign } from '../types';
-import classes from './ClockWidget.module.css';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Box, Text, Stack, Switch, Select, Group } from "@mantine/core";
+import type { WidgetProps, WidgetConfig, TextAlign } from "../types";
+import classes from "./ClockWidget.module.css";
 
 export interface ClockConfig extends WidgetConfig {
   showSeconds: boolean;
@@ -17,7 +17,14 @@ export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
   const [fontSize, setFontSize] = useState(24);
   const [dateSize, setDateSize] = useState(12);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { showSeconds, showDate, use24Hour, timezone, transparentBackground, textAlign = 'center' } = widget.config;
+  const {
+    showSeconds,
+    showDate,
+    use24Hour,
+    timezone,
+    transparentBackground,
+    textAlign = "center",
+  } = widget.config;
 
   const updateSizes = useCallback(() => {
     const el = containerRef.current;
@@ -46,38 +53,38 @@ export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
 
   const formatTime = () => {
     const options: Intl.DateTimeFormatOptions = {
-      hour: '2-digit',
-      minute: '2-digit',
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: !use24Hour,
-      ...(timezone !== 'local' && { timeZone: timezone }),
+      ...(timezone !== "local" && { timeZone: timezone }),
     };
-    
+
     if (showSeconds) {
-      options.second = '2-digit';
+      options.second = "2-digit";
     }
-    
+
     return time.toLocaleTimeString(undefined, options);
   };
 
   const formatDate = () => {
     const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      ...(timezone !== 'local' && { timeZone: timezone }),
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      ...(timezone !== "local" && { timeZone: timezone }),
     };
     return time.toLocaleDateString(undefined, options);
   };
 
-  const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' } as const;
+  const alignMap = { left: "flex-start", center: "center", right: "flex-end" } as const;
   const align = alignMap[textAlign];
 
   return (
     <Box
       ref={containerRef}
-      className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}
+      className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}
     >
-      <Stack gap={0} align={align} justify="center" h="100%" style={{ textAlign, width: '100%' }}>
+      <Stack gap={0} align={align} justify="center" h="100%" style={{ textAlign, width: "100%" }}>
         <Text className={classes.time} style={{ fontSize: `${fontSize}px` }}>
           {formatTime()}
         </Text>
@@ -92,17 +99,17 @@ export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
 }
 
 export function ClockWidgetSettings({ widget, onConfigChange }: WidgetProps<ClockConfig>) {
-  const { showSeconds, showDate, use24Hour, timezone, textAlign = 'center' } = widget.config;
+  const { showSeconds, showDate, use24Hour, timezone, textAlign = "center" } = widget.config;
 
   const timezones = [
-    { value: 'local', label: 'Local Time' },
-    { value: 'America/New_York', label: 'Eastern Time' },
-    { value: 'America/Chicago', label: 'Central Time' },
-    { value: 'America/Denver', label: 'Mountain Time' },
-    { value: 'America/Los_Angeles', label: 'Pacific Time' },
-    { value: 'Europe/London', label: 'London' },
-    { value: 'Europe/Paris', label: 'Paris' },
-    { value: 'Asia/Tokyo', label: 'Tokyo' },
+    { value: "local", label: "Local Time" },
+    { value: "America/New_York", label: "Eastern Time" },
+    { value: "America/Chicago", label: "Central Time" },
+    { value: "America/Denver", label: "Mountain Time" },
+    { value: "America/Los_Angeles", label: "Pacific Time" },
+    { value: "Europe/London", label: "London" },
+    { value: "Europe/Paris", label: "Paris" },
+    { value: "Asia/Tokyo", label: "Tokyo" },
   ];
 
   return (
@@ -132,19 +139,18 @@ export function ClockWidgetSettings({ widget, onConfigChange }: WidgetProps<Cloc
         label="Timezone"
         data={timezones}
         value={timezone}
-        onChange={(value) => onConfigChange({ timezone: value || 'local' })}
+        onChange={(value) => onConfigChange({ timezone: value || "local" })}
       />
       <Select
         label="Text Alignment"
         data={[
-          { value: 'left', label: 'Left' },
-          { value: 'center', label: 'Center' },
-          { value: 'right', label: 'Right' },
+          { value: "left", label: "Left" },
+          { value: "center", label: "Center" },
+          { value: "right", label: "Right" },
         ]}
         value={textAlign}
-        onChange={(value) => onConfigChange({ textAlign: (value as TextAlign) || 'center' })}
+        onChange={(value) => onConfigChange({ textAlign: (value as TextAlign) || "center" })}
       />
     </Stack>
   );
 }
-

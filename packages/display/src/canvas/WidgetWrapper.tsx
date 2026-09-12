@@ -1,24 +1,43 @@
-import { useEffect, useState, Suspense } from 'react';
-import { Paper, ActionIcon, Group, Text, Modal, Stack, Button, Tooltip, Switch, Divider, Center, Loader } from '@mantine/core';
-import { IconSettings, IconTrash, IconGripVertical, IconArrowsMaximize, IconCircleFilled } from '@tabler/icons-react';
-import type { WidgetInstance } from '@homeslate/schema';
+import { useEffect, useState, Suspense } from "react";
+import {
+  Paper,
+  ActionIcon,
+  Group,
+  Text,
+  Modal,
+  Stack,
+  Button,
+  Tooltip,
+  Switch,
+  Divider,
+  Center,
+  Loader,
+} from "@mantine/core";
+import {
+  IconSettings,
+  IconTrash,
+  IconGripVertical,
+  IconArrowsMaximize,
+  IconCircleFilled,
+} from "@tabler/icons-react";
+import type { WidgetInstance } from "@homeslate/schema";
 import {
   getWidgetByType,
   UnknownWidget,
   type WidgetConfig,
   type WidgetDefinition,
   type WidgetHealthStatus,
-} from '@homeslate/widgets';
-import classes from './WidgetWrapper.module.css';
+} from "@homeslate/widgets";
+import classes from "./WidgetWrapper.module.css";
 
 export type WidgetRegistryApi = {
-  getWidgetByType: (type: string) => import('@homeslate/widgets').WidgetRegistryEntry | undefined;
-  getWidgetTypes: () => import('@homeslate/widgets').WidgetRegistryEntry[];
+  getWidgetByType: (type: string) => import("@homeslate/widgets").WidgetRegistryEntry | undefined;
+  getWidgetTypes: () => import("@homeslate/widgets").WidgetRegistryEntry[];
 };
 
 function WidgetLoader() {
   return (
-    <Center style={{ width: '100%', height: '100%' }}>
+    <Center style={{ width: "100%", height: "100%" }}>
       <Loader size="sm" />
     </Center>
   );
@@ -40,7 +59,7 @@ export function WidgetWrapper({
   widgetRegistry,
 }: WidgetWrapperProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [healthStatus, setHealthStatus] = useState<WidgetHealthStatus>('idle');
+  const [healthStatus, setHealthStatus] = useState<WidgetHealthStatus>("idle");
   const widgetDef = widget as WidgetDefinition;
 
   useEffect(() => {
@@ -51,15 +70,17 @@ export function WidgetWrapper({
       }
     };
 
-    window.addEventListener('widget-health-change', onHealthChange);
-    return () => window.removeEventListener('widget-health-change', onHealthChange);
+    window.addEventListener("widget-health-change", onHealthChange);
+    return () => window.removeEventListener("widget-health-change", onHealthChange);
   }, [widget.id]);
 
   const lookup = widgetRegistry?.getWidgetByType ?? getWidgetByType;
   const widgetEntry = lookup(widget.type);
 
   if (!widgetEntry) {
-    return <UnknownWidget widget={widgetDef} isEditing={isEditing} onConfigChange={onConfigChange} />;
+    return (
+      <UnknownWidget widget={widgetDef} isEditing={isEditing} onConfigChange={onConfigChange} />
+    );
   }
 
   const WidgetComponent = widgetEntry.component;
@@ -67,11 +88,11 @@ export function WidgetWrapper({
   const isTransparent = widget.config.transparentBackground === true;
 
   const healthLabel: Record<WidgetHealthStatus, string> = {
-    idle: 'No recent data yet',
-    loading: 'Loading data',
-    ok: 'Healthy',
-    stale: 'Using cached data',
-    error: 'Fetch error',
+    idle: "No recent data yet",
+    loading: "Loading data",
+    ok: "Healthy",
+    stale: "Using cached data",
+    error: "Fetch error",
   };
 
   const healthClass: Record<WidgetHealthStatus, string> = {
@@ -85,7 +106,7 @@ export function WidgetWrapper({
   return (
     <>
       <Paper
-        className={`${classes.wrapper} ${isTransparent ? classes.transparent : ''} ${isEditing ? classes.editing : ''}`}
+        className={`${classes.wrapper} ${isTransparent ? classes.transparent : ""} ${isEditing ? classes.editing : ""}`}
         data-widget-id={widget.id}
       >
         {isEditing && (
@@ -103,7 +124,9 @@ export function WidgetWrapper({
                 <Tooltip label="Drag edges to resize" position="bottom">
                   <div className={classes.sizeIndicator}>
                     <IconArrowsMaximize size={12} />
-                    <Text size="xs">{widget.layout.w}×{widget.layout.h}</Text>
+                    <Text size="xs">
+                      {widget.layout.w}×{widget.layout.h}
+                    </Text>
                   </div>
                 </Tooltip>
                 <Tooltip label={`Data status: ${healthLabel[healthStatus]}`} position="bottom">
@@ -132,9 +155,7 @@ export function WidgetWrapper({
                 </ActionIcon>
               </Group>
             </div>
-            <div className={classes.resizeHint}>
-              Drag edges to resize
-            </div>
+            <div className={classes.resizeHint}>Drag edges to resize</div>
           </>
         )}
         <div className={classes.content}>
@@ -173,7 +194,9 @@ export function WidgetWrapper({
                 <Text size="sm">Transparent Background</Text>
                 <Switch
                   checked={widget.config.transparentBackground === true}
-                  onChange={(e) => onConfigChange({ transparentBackground: e.currentTarget.checked })}
+                  onChange={(e) =>
+                    onConfigChange({ transparentBackground: e.currentTarget.checked })
+                  }
                 />
               </Group>
               <Divider label="Settings" labelPosition="left" />

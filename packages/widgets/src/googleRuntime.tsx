@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from "react";
 
 export type GoogleRuntime = {
   accessToken: string | null;
@@ -19,7 +19,7 @@ export const DEFAULT_GOOGLE_RUNTIME: GoogleRuntime = {
   refreshAccessToken: async () => null,
   displayId: null,
   isPreview: false,
-  kioskFetchBaseUrl: '/api',
+  kioskFetchBaseUrl: "/api",
 };
 
 const GoogleRuntimeContext = createContext<GoogleRuntime | null>(null);

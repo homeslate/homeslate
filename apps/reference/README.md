@@ -9,37 +9,22 @@ There are no accounts, Stripe, or quotas. Persistence is a sqlite file under `ap
 From the repository root:
 
 ```bash
-npm install
+vp install
 ```
 
-Then start the API and Vite UI in two terminals:
+Then start the API and Vite UI:
 
 ```bash
-npx tsx apps/reference/src/server/listen.ts
+vp run dev:reference
 ```
 
-```bash
-npx vite --config apps/reference/vite.config.ts
-```
-
-Workspace scripts (same split):
-
-```bash
-npm run dev:reference
-npm run dev:web -w homeslate-reference
-```
-
-Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the Hono server on port 8787.
+Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the Hono server on port 8787. Opening the API port redirects there.
 
 This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. There is no production `vite build` + static-serving mode yet.
 
 ## Typecheck
 
-The reference app builds on its own tsconfig solution (Node libs for `src/server`, DOM libs for `src/web`) and is deliberately outside the hosted `npm run build`:
-
-```bash
-npm run typecheck:reference
-```
+The reference app builds on its own tsconfig solution (Node libs for `src/server`, DOM libs for `src/web`) and is deliberately outside the package `vp run build`.
 
 ## Optional Google Calendar
 

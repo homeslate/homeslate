@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useGoogleRuntime } from '../googleRuntime';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useGoogleRuntime } from "../googleRuntime";
 import {
   createPickerSession,
   getPickerSession,
@@ -11,14 +11,14 @@ import {
   type PickerSession,
   type PickedMediaItem,
   type StoredImage,
-} from '../services/googlePhotos';
+} from "../services/googlePhotos";
 
 export type PickerStatus =
-  | 'idle'      // no photos stored
-  | 'pending'   // picker session open, waiting for user to pick
-  | 'uploading' // fetching picked items and uploading to Blobs
-  | 'ready'     // displaying stored photos
-  | 'error';
+  | "idle" // no photos stored
+  | "pending" // picker session open, waiting for user to pick
+  | "uploading" // fetching picked items and uploading to Blobs
+  | "ready" // displaying stored photos
+  | "error";
 
 export interface CurrentPhoto {
   objectUrl: string; // blob URL — revoked when next photo loads
@@ -27,8 +27,8 @@ export interface CurrentPhoto {
 }
 
 interface UseGooglePhotosOptions {
-  refreshInterval?: number;       // ms between auto photo changes
-  savedImages?: StoredImage[];    // pre-stored images from widget config
+  refreshInterval?: number; // ms between auto photo changes
+  savedImages?: StoredImage[]; // pre-stored images from widget config
 }
 
 interface UseGooglePhotosResult {
@@ -53,9 +53,11 @@ export function useGooglePhotos({
   const { accessToken, isAuthenticated } = useGoogleRuntime();
 
   const [pickerStatus, setPickerStatus] = useState<PickerStatus>(
-    savedImages.length > 0 ? 'ready' : 'idle'
+    savedImages.length > 0 ? "ready" : "idle",
   );
-  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [pickerUri, setPickerUri] = useState<string | null>(null);
   const [storedImages, setStoredImages] = useState<StoredImage[]>(savedImages);
@@ -75,18 +77,24 @@ export function useGooglePhotos({
     }
   }, []);
 
-  const loadPhoto = useCallback(async (image: StoredImage) => {
-    revokeCurrent();
-    const objectUrl = await loadStoredImage(image.key);
-    currentBlobUrlRef.current = objectUrl;
-    setCurrentPhoto({ objectUrl, filename: image.filename, createTime: image.createTime });
-  }, [revokeCurrent]);
+  const loadPhoto = useCallback(
+    async (image: StoredImage) => {
+      revokeCurrent();
+      const objectUrl = await loadStoredImage(image.key);
+      currentBlobUrlRef.current = objectUrl;
+      setCurrentPhoto({ objectUrl, filename: image.filename, createTime: image.createTime });
+    },
+    [revokeCurrent],
+  );
 
-  const loadRandomPhoto = useCallback(async (images: StoredImage[]) => {
-    if (images.length === 0) return;
-    const item = images[Math.floor(Math.random() * images.length)];
-    await loadPhoto(item);
-  }, [loadPhoto]);
+  const loadRandomPhoto = useCallback(
+    async (images: StoredImage[]) => {
+      if (images.length === 0) return;
+      const item = images[Math.floor(Math.random() * images.length)];
+      await loadPhoto(item);
+    },
+    [loadPhoto],
+  );
 
   // ── Polling helpers ──────────────────────────────────────────────────────
 
@@ -108,31 +116,31 @@ export function useGooglePhotos({
       setUploadProgress({ done: 0, total: images.length });
 
       for (const item of images) {
-        const key = await storeImage(item.mediaFile.baseUrl, token, 'w1920-h1080');
+        const key = await storeImage(item.mediaFile.baseUrl, token, "w1920-h1080");
         results.push({ key, filename: item.mediaFile.filename, createTime: item.createTime });
-        setUploadProgress((prev) => prev ? { ...prev, done: prev.done + 1 } : null);
+        setUploadProgress((prev) => (prev ? { ...prev, done: prev.done + 1 } : null));
       }
 
       setUploadProgress(null);
       return results;
     },
-    []
+    [],
   );
 
   const fetchItemsAndFinish = useCallback(
     async (session: PickerSession, token: string) => {
-      setPickerStatus('uploading');
+      setPickerStatus("uploading");
       try {
         const items = await listPickedMediaItems(token, session.id);
         const stored = await uploadPickedItems(items, token);
         if (stored.length === 0) {
-          setError('No images were selected.');
-          setPickerStatus('error');
+          setError("No images were selected.");
+          setPickerStatus("error");
           return;
         }
 
         setStoredImages(stored);
-        setPickerStatus('ready');
+        setPickerStatus("ready");
         setPickerUri(null);
 
         // Loading a preview image is best-effort. If this fails, keep the
@@ -146,11 +154,11 @@ export function useGooglePhotos({
         void deletePickerSession(token, session.id);
         sessionRef.current = null;
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to retrieve photos');
-        setPickerStatus('error');
+        setError(err instanceof Error ? err.message : "Failed to retrieve photos");
+        setPickerStatus("error");
       }
     },
-    [uploadPickedItems, loadRandomPhoto]
+    [uploadPickedItems, loadRandomPhoto],
   );
 
   const pollSession = useCallback(
@@ -174,11 +182,11 @@ export function useGooglePhotos({
         }, pollIntervalMs);
       } catch (err) {
         stopPolling();
-        setError(err instanceof Error ? err.message : 'Polling error');
-        setPickerStatus('error');
+        setError(err instanceof Error ? err.message : "Polling error");
+        setPickerStatus("error");
       }
     },
-    [stopPolling, fetchItemsAndFinish]
+    [stopPolling, fetchItemsAndFinish],
   );
 
   // ── Public actions ───────────────────────────────────────────────────────
@@ -186,7 +194,7 @@ export function useGooglePhotos({
   const startPicker = useCallback(async () => {
     if (!accessToken) return;
     setError(null);
-    setPickerStatus('pending');
+    setPickerStatus("pending");
 
     try {
       const session = await createPickerSession(accessToken);
@@ -201,8 +209,8 @@ export function useGooglePhotos({
         void pollSession(session, accessToken);
       }, pollIntervalMs);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start photo picker');
-      setPickerStatus('error');
+      setError(err instanceof Error ? err.message : "Failed to start photo picker");
+      setPickerStatus("error");
     }
   }, [accessToken, pollSession]);
 
@@ -221,7 +229,7 @@ export function useGooglePhotos({
     setStoredImages([]);
     setCurrentPhoto(null);
     setPickerUri(null);
-    setPickerStatus('idle');
+    setPickerStatus("idle");
     setUploadProgress(null);
     setError(null);
   }, [accessToken, stopPolling, revokeCurrent]);
@@ -231,19 +239,19 @@ export function useGooglePhotos({
   useEffect(() => {
     if (savedImages.length > 0 && !currentPhoto) {
       void loadRandomPhoto(savedImages).catch(() => {
-        setError('Failed to load stored photos');
-        setPickerStatus('error');
+        setError("Failed to load stored photos");
+        setPickerStatus("error");
       });
     }
-  // Only run on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only run on mount
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Auto-rotate photos ────────────────────────────────────────────────────
 
   useEffect(() => {
     if (photoTimerRef.current) clearInterval(photoTimerRef.current);
-    if (pickerStatus === 'ready' && storedImages.length > 1) {
+    if (pickerStatus === "ready" && storedImages.length > 1) {
       photoTimerRef.current = setInterval(() => {
         void loadRandomPhoto(storedImages);
       }, refreshInterval);

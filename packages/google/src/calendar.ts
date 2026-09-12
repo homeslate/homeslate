@@ -1,20 +1,20 @@
-import type { CalendarEvent, CalendarListItem } from './types';
+import type { CalendarEvent, CalendarListItem } from "./types";
 
-const GOOGLE_API_BASE = 'https://www.googleapis.com/calendar/v3';
-const DEFAULT_CALENDAR_COLOR = '#4285f4';
+const GOOGLE_API_BASE = "https://www.googleapis.com/calendar/v3";
+const DEFAULT_CALENDAR_COLOR = "#4285f4";
 
 const EVENT_COLORS: Record<string, string> = {
-  '1': '#7986CB',
-  '2': '#33B679',
-  '3': '#8E24AA',
-  '4': '#E67C73',
-  '5': '#F6BF26',
-  '6': '#F4511E',
-  '7': '#039BE5',
-  '8': '#3F51B5',
-  '9': '#0F9D58',
-  '10': '#D50000',
-  '11': '#616161',
+  "1": "#7986CB",
+  "2": "#33B679",
+  "3": "#8E24AA",
+  "4": "#E67C73",
+  "5": "#F6BF26",
+  "6": "#F4511E",
+  "7": "#039BE5",
+  "8": "#3F51B5",
+  "9": "#0F9D58",
+  "10": "#D50000",
+  "11": "#616161",
 };
 
 type GoogleCalendarEvent = {
@@ -37,7 +37,7 @@ function parseEvent(
   event: GoogleCalendarEvent,
   calendarId: string,
   calendarColor: string,
-  calendarName?: string
+  calendarName?: string,
 ): CalendarEvent | null {
   const start = event.start?.dateTime ?? event.start?.date;
   const end = event.end?.dateTime ?? event.end?.date;
@@ -48,7 +48,7 @@ function parseEvent(
     id: event.id,
     calendarId,
     calendarName,
-    title: event.summary ?? '(No title)',
+    title: event.summary ?? "(No title)",
     description: event.description,
     location: event.location,
     start,
@@ -60,7 +60,7 @@ function parseEvent(
 }
 
 export async function listCalendarsWithAccessToken(
-  accessToken: string
+  accessToken: string,
 ): Promise<CalendarListItem[]> {
   const res = await fetch(`${GOOGLE_API_BASE}/users/me/calendarList`, {
     headers: authHeaders(accessToken),
@@ -98,10 +98,9 @@ export async function listEventsWithAccessToken(
     timeMax: string;
     calendarList?: CalendarListItem[];
     maxResults?: number;
-  }
+  },
 ): Promise<CalendarEvent[]> {
-  const calendars =
-    params.calendarList ?? (await listCalendarsWithAccessToken(accessToken));
+  const calendars = params.calendarList ?? (await listCalendarsWithAccessToken(accessToken));
   const calendarMap = new Map(calendars.map((calendar) => [calendar.id, calendar]));
   const maxResults = String(params.maxResults ?? 100);
   const allEvents: CalendarEvent[] = [];
@@ -113,23 +112,21 @@ export async function listEventsWithAccessToken(
       timeMin: params.timeMin,
       timeMax: params.timeMax,
       maxResults,
-      singleEvents: 'true',
-      orderBy: 'startTime',
+      singleEvents: "true",
+      orderBy: "startTime",
     });
     const res = await fetch(
       `${GOOGLE_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events?${query}`,
-      { headers: authHeaders(accessToken) }
+      { headers: authHeaders(accessToken) },
     );
     if (!res.ok) continue;
     const data = (await res.json()) as { items?: GoogleCalendarEvent[] };
     for (const event of data.items ?? []) {
-      if (event.status === 'cancelled') continue;
+      if (event.status === "cancelled") continue;
       const parsed = parseEvent(event, calendarId, color, cal?.summary);
       if (parsed) allEvents.push(parsed);
     }
   }
 
-  return allEvents.sort(
-    (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-  );
+  return allEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 }

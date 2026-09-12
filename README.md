@@ -7,7 +7,7 @@ Public MIT packages and reference self-host app for Homeslate.
 ```bash
 git clone https://github.com/homeslate/homeslate.git
 cd homeslate
-npm install
+vp install
 ```
 
 ## Packages
@@ -21,13 +21,23 @@ Published on npm as `@homeslate/*`:
 - `@homeslate/display`
 - `@homeslate/adapters`
 
+## Releasing
+
+Packages version independently with [Changesets](https://changesets.dev). On a PR that should publish `@homeslate/*`:
+
+```bash
+pnpm changeset
+```
+
+Merging to `main` opens a **Version Packages** PR. Merging that PR publishes to npm (`NPM_TOKEN` secret). In the repo settings under Actions → General, enable **Allow GitHub Actions to create and approve pull requests**.
+
 ## Reference app
 
 ```bash
-npm run dev:reference
+vp run dev:reference
 ```
 
-Hono API + Vite UI for self-hosting with file/SQLite adapters.
+Then open [http://127.0.0.1:5174](http://127.0.0.1:5174). That one command starts the Hono API and the Vite UI (Vite proxies `/api` to port 8787).
 
 ## Hosted product
 

@@ -1,7 +1,7 @@
-import { registerWidgetConfigSchema } from '@homeslate/schema';
-import { z } from 'zod';
+import { registerWidgetConfigSchema } from "@homeslate/schema";
+import { z } from "zod";
 
-const textAlign = z.enum(['left', 'center', 'right']);
+const textAlign = z.enum(["left", "center", "right"]);
 
 export const clockConfigSchema = z.object({
   showSeconds: z.boolean().optional(),
@@ -45,16 +45,20 @@ export const googleCalendarDayConfigSchema = z.object({
 
 export const weekCalendarConfigSchema = z.object({
   selectedCalendarIds: z.array(z.string()).optional(),
-  viewMode: z.enum(['calendar-week', 'rolling-7']).optional(),
+  viewMode: z.enum(["calendar-week", "rolling-7"]).optional(),
   weekStartsOn: z.union([z.literal(0), z.literal(1)]).optional(),
   startHour: z.number().optional(),
   endHour: z.number().optional(),
   transparentBackground: z.boolean().optional(),
 });
 
-const urlPhoto = z.object({ type: z.literal('url'), url: z.string(), caption: z.string().optional() });
+const urlPhoto = z.object({
+  type: z.literal("url"),
+  url: z.string(),
+  caption: z.string().optional(),
+});
 const storedPhoto = z.object({
-  type: z.literal('stored'),
+  type: z.literal("stored"),
   key: z.string(),
   filename: z.string(),
   caption: z.string().optional(),
@@ -65,7 +69,7 @@ const photo = z.union([urlPhoto, storedPhoto]);
 export const photoConfigSchema = z.object({
   photos: z.array(photo).optional(),
   interval: z.number().optional(),
-  transition: z.enum(['fade', 'slide', 'none']).optional(),
+  transition: z.enum(["fade", "slide", "none"]).optional(),
   showCaption: z.boolean().optional(),
   transparentBackground: z.boolean().optional(),
 });
@@ -80,7 +84,7 @@ export const weatherConfigSchema = z.object({
   location: z.string().optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
-  units: z.enum(['imperial', 'metric']).optional(),
+  units: z.enum(["imperial", "metric"]).optional(),
   showForecast: z.boolean().optional(),
   forecastDays: z.number().optional(),
   transparentBackground: z.boolean().optional(),
@@ -111,7 +115,7 @@ export const todoConfigSchema = z.object({
         id: z.string(),
         text: z.string(),
         checked: z.boolean(),
-      })
+      }),
     )
     .optional(),
   hideCompleted: z.boolean().optional(),
@@ -135,22 +139,115 @@ export const timersConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+const routineIcon = z.enum([
+  "sun",
+  "bed",
+  "utensils",
+  "shirt",
+  "toothbrush",
+  "backpack",
+  "shoes",
+  "book",
+  "soap",
+  "star",
+]);
+
+export const dailyRoutineConfigSchema = z.object({
+  steps: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        icon: routineIcon.optional(),
+      }),
+    )
+    .optional(),
+  resetHour: z.number().optional(),
+  completionDay: z.string().nullable().optional(),
+  completedStepIds: z.array(z.string()).optional(),
+  showReset: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const choresConfigSchema = z.object({
+  chores: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        assigneeId: z.string().optional(),
+        days: z.array(z.number()),
+      }),
+    )
+    .optional(),
+  completions: z
+    .array(
+      z.object({
+        choreId: z.string(),
+        day: z.string(),
+      }),
+    )
+    .optional(),
+  showCompleted: z.boolean().optional(),
+  onlyToday: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const groceryConfigSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        text: z.string(),
+        checked: z.boolean(),
+        aisle: z.string().optional(),
+      }),
+    )
+    .optional(),
+  hideChecked: z.boolean().optional(),
+  groupByAisle: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const countdownConfigSchema = z.object({
+  target: z.string().optional(),
+  allDay: z.boolean().optional(),
+  label: z.string().optional(),
+  showSeconds: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+  textAlign: textAlign.optional(),
+});
+
+export const announcementConfigSchema = z.object({
+  body: z.string().optional(),
+  textAlign: textAlign.optional(),
+  size: z.enum(["md", "lg", "xl"]).optional(),
+  showFrom: z.string().optional(),
+  showUntil: z.string().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   clock: clockConfigSchema,
   calendar: calendarConfigSchema,
-  'google-calendar': googleCalendarConfigSchema,
-  'google-calendar-month': googleCalendarMonthConfigSchema,
-  'google-calendar-day': googleCalendarDayConfigSchema,
+  "google-calendar": googleCalendarConfigSchema,
+  "google-calendar-month": googleCalendarMonthConfigSchema,
+  "google-calendar-day": googleCalendarDayConfigSchema,
   photo: photoConfigSchema,
-  'google-photo-collage': googlePhotoCollageConfigSchema,
+  "google-photo-collage": googlePhotoCollageConfigSchema,
   weather: weatherConfigSchema,
   news: newsConfigSchema,
   stocks: stocksConfigSchema,
-  'week-calendar': weekCalendarConfigSchema,
+  "week-calendar": weekCalendarConfigSchema,
   todo: todoConfigSchema,
   sports: sportsConfigSchema,
   alarms: alarmsConfigSchema,
   timers: timersConfigSchema,
+  "daily-routine": dailyRoutineConfigSchema,
+  chores: choresConfigSchema,
+  grocery: groceryConfigSchema,
+  countdown: countdownConfigSchema,
+  announcement: announcementConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

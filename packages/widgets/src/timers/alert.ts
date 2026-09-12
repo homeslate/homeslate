@@ -1,7 +1,7 @@
-import type { AlarmToneId } from '@homeslate/schema';
+import type { AlarmToneId } from "@homeslate/schema";
 
 export type TimerAlertPayload = {
-  kind: 'timer';
+  kind: "timer";
   id: string;
   label: string;
   subtitle: string;

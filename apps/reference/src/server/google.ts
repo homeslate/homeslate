@@ -1,21 +1,21 @@
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from "node:crypto";
 
-export const DEFAULT_REFERENCE_PUBLIC_BASE_URL = 'http://127.0.0.1:8787';
+export const DEFAULT_REFERENCE_PUBLIC_BASE_URL = "http://127.0.0.1:8787";
 
-export const GOOGLE_OAUTH_STATE_COOKIE = 'homeslate_oauth_state';
+export const GOOGLE_OAUTH_STATE_COOKIE = "homeslate_oauth_state";
 
 /** Google discards the state after the callback, so a short window is enough. */
 export const GOOGLE_OAUTH_STATE_MAX_AGE_S = 600;
 
-const GOOGLE_AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
-const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar';
+const GOOGLE_AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
 
 export function googleRedirectUri(publicBaseUrl: string): string {
-  return `${publicBaseUrl.replace(/\/+$/, '')}/api/google/callback`;
+  return `${publicBaseUrl.replace(/\/+$/, "")}/api/google/callback`;
 }
 
 export function createOAuthState(): string {
-  return randomBytes(32).toString('base64url');
+  return randomBytes(32).toString("base64url");
 }
 
 export function isMatchingOAuthState(
@@ -37,10 +37,10 @@ export function googleAuthorizationUrl(
   url.search = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
-    response_type: 'code',
+    response_type: "code",
     scope: GOOGLE_CALENDAR_SCOPE,
-    access_type: 'offline',
-    prompt: 'consent',
+    access_type: "offline",
+    prompt: "consent",
     state,
   }).toString();
   return url.toString();

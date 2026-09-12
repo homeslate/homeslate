@@ -89,10 +89,18 @@
 }
 
 .refreshButton {
-  background-color: color-mix(in srgb, var(--token-surface-overlay, var(--token-surface-card)) 75%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--token-surface-overlay, var(--token-surface-card)) 75%,
+    transparent
+  );
   color: var(--token-text-inverse);
 }
 
 .refreshButton:hover {
-  background-color: color-mix(in srgb, var(--token-surface-overlay, var(--token-surface-card)) 90%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--token-surface-overlay, var(--token-surface-card)) 90%,
+    transparent
+  );
 }

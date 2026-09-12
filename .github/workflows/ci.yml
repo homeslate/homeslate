@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: voidzero-dev/setup-vp@v1.19.0
         with:
           node-version: "22"
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npm run test:run
+          cache: true
+      - run: vp install
+      - run: vp check
+      - run: vp run build
+      - run: vp test

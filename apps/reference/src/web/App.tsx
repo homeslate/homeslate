@@ -1,11 +1,19 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Link, Navigate, Route, BrowserRouter, Routes, useNavigate, useParams } from 'react-router-dom';
-import { Anchor, AppShell, Button, Group, Loader, Stack, Text, Title } from '@mantine/core';
-import type { DisplayDocument } from '@homeslate/schema';
-import { Editor } from '@homeslate/editor';
-import { Display } from '@homeslate/display';
-import { createDebouncedPersist } from './editorPersist';
-import { ReferenceGoogleRuntime } from './ReferenceGoogleRuntime';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  Link,
+  Navigate,
+  Route,
+  BrowserRouter,
+  Routes,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import { Anchor, AppShell, Button, Group, Loader, Stack, Text, Title } from "@mantine/core";
+import type { DisplayDocument } from "@homeslate/schema";
+import { Editor } from "@homeslate/editor";
+import { Display } from "@homeslate/display";
+import { createDebouncedPersist } from "./editorPersist";
+import { ReferenceGoogleRuntime } from "./ReferenceGoogleRuntime";
 
 type DisplaySummary = { id: string; name: string };
 type DisplayRecord = { id: string; publicId: string; document: DisplayDocument };
@@ -14,12 +22,12 @@ const EDITOR_PUT_DEBOUNCE_MS = 400;
 const KIOSK_POLL_MS = 10_000;
 
 const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
-  position: 'fixed',
+  position: "fixed",
   insetInline: 0,
   top: 0,
   zIndex: 1000,
-  textAlign: 'center',
-  background: 'rgba(0, 0, 0, 0.75)',
+  textAlign: "center",
+  background: "rgba(0, 0, 0, 0.75)",
 };
 
 export function App() {
@@ -46,7 +54,7 @@ function DisplayListPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const list = await getJson<DisplaySummary[]>('/api/displays');
+        const list = await getJson<DisplaySummary[]>("/api/displays");
         const withPublicIds = await Promise.all(
           list.map(async (item) => {
             const record = await getJson<DisplayRecord>(`/api/displays/${item.id}`);
@@ -69,7 +77,7 @@ function DisplayListPage() {
     setCreating(true);
     setError(null);
     try {
-      const record = await postJson<DisplayRecord>('/api/displays');
+      const record = await postJson<DisplayRecord>("/api/displays");
       navigate(`/edit/${record.id}`);
     } catch (cause) {
       setError(errorMessage(cause));
@@ -165,7 +173,12 @@ function EditorPage() {
     [persist],
   );
 
-  if (error) return <Text c="red" p="md">{error}</Text>;
+  if (error)
+    return (
+      <Text c="red" p="md">
+        {error}
+      </Text>
+    );
   if (!record) return <Loader m="md" />;
 
   const viewId = record.document.activeViewId ?? record.document.views[0].id;
@@ -176,7 +189,9 @@ function EditorPage() {
         <AppShell.Header>
           <Group h="100%" px="md" justify="space-between">
             <Group>
-              <Anchor component={Link} to="/">Displays</Anchor>
+              <Anchor component={Link} to="/">
+                Displays
+              </Anchor>
               <Title order={4}>{record.document.name}</Title>
             </Group>
             <Group>
@@ -191,12 +206,8 @@ function EditorPage() {
             </Group>
           </Group>
         </AppShell.Header>
-        <AppShell.Main style={{ height: 'calc(100vh - 56px)', display: 'flex' }}>
-          <Editor
-            document={record.document}
-            viewId={viewId}
-            onChange={onChange}
-          />
+        <AppShell.Main style={{ height: "calc(100vh - 56px)", display: "flex" }}>
+          <Editor document={record.document} viewId={viewId} onChange={onChange} />
         </AppShell.Main>
       </AppShell>
     </ReferenceGoogleRuntime>
@@ -245,7 +256,12 @@ function KioskPage() {
     [publicId],
   );
 
-  if (error && !document) return <Text c="red" p="md">{error}</Text>;
+  if (error && !document)
+    return (
+      <Text c="red" p="md">
+        {error}
+      </Text>
+    );
   if (!document || !publicId) return <Loader m="md" />;
 
   return (
@@ -269,7 +285,7 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 async function postJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { method: 'POST' });
+  const response = await fetch(url, { method: "POST" });
   if (!response.ok) {
     throw new Error(await readError(response));
   }
@@ -282,8 +298,8 @@ async function putJson(
   options?: { keepalive?: boolean },
 ): Promise<void> {
   const response = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     keepalive: options?.keepalive,
   });
@@ -301,8 +317,8 @@ async function readError(response: Response): Promise<string> {
     if (body.error) return body.error;
     if (body.errors?.length) {
       return body.errors
-        .map((issue) => [issue.path, issue.message].filter(Boolean).join(': '))
-        .join('; ');
+        .map((issue) => [issue.path, issue.message].filter(Boolean).join(": "))
+        .join("; ");
     }
   } catch {
     // Body was not JSON; fall back to the status line below.

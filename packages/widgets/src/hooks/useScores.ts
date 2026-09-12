@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { fetchScoreboard, type SportGame, type SportsTeam } from '../services/sports';
-import { getNextPollDelay } from './polling';
+import { useState, useEffect, useCallback } from "react";
+import { fetchScoreboard, type SportGame, type SportsTeam } from "../services/sports";
+import { getNextPollDelay } from "./polling";
 
 interface UseScoresOptions {
   leagueId: string;
@@ -13,8 +13,8 @@ interface UseScoresOptions {
 function getTodayYYYYMMDD(): string {
   const d = new Date();
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}${m}${day}`;
 }
 
@@ -26,8 +26,8 @@ function getPreviousDay(yyyymmdd: string): string {
   const prev = new Date(y, m, d);
   prev.setDate(prev.getDate() - 1);
   const py = prev.getFullYear();
-  const pm = String(prev.getMonth() + 1).padStart(2, '0');
-  const pd = String(prev.getDate()).padStart(2, '0');
+  const pm = String(prev.getMonth() + 1).padStart(2, "0");
+  const pd = String(prev.getDate()).padStart(2, "0");
   return `${py}${pm}${pd}`;
 }
 
@@ -43,16 +43,11 @@ interface UseScoresResult {
   loadMore: () => Promise<void>;
 }
 
-function filterAndSortGames(
-  fetchedGames: SportGame[],
-  favoriteTeamIds: string[]
-): SportGame[] {
+function filterAndSortGames(fetchedGames: SportGame[], favoriteTeamIds: string[]): SportGame[] {
   const isRacing = fetchedGames.some((g) => g.raceSessions?.length);
   const filtered =
     favoriteTeamIds.length > 0 && !isRacing
-      ? fetchedGames.filter((g) =>
-          g.competitors.some((c) => favoriteTeamIds.includes(c.team.id))
-        )
+      ? fetchedGames.filter((g) => g.competitors.some((c) => favoriteTeamIds.includes(c.team.id)))
       : fetchedGames;
   return [...filtered].sort((a, b) => {
     const order = { in: 0, pre: 1, post: 2 };
@@ -94,7 +89,7 @@ export function useScores({
       setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch scores');
+      setError(err instanceof Error ? err.message : "Failed to fetch scores");
       setConsecutiveFailures((prev) => prev + 1);
     } finally {
       setIsLoading(false);
@@ -142,5 +137,15 @@ export function useScores({
     return () => clearTimeout(interval);
   }, [fetchData, refreshInterval, leagueId, consecutiveFailures]);
 
-  return { games, allTeams, leagueLogo, isLoading, isLoadingMore, error, lastUpdated, refresh: fetchData, loadMore };
+  return {
+    games,
+    allTeams,
+    leagueLogo,
+    isLoading,
+    isLoadingMore,
+    error,
+    lastUpdated,
+    refresh: fetchData,
+    loadMore,
+  };
 }

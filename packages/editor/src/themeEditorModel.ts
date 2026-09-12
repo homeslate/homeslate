@@ -40,8 +40,15 @@ function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function isEditableToken(value: unknown, types: readonly EditableTokenType[]): value is { $type: EditableTokenType; $value: string } {
-  return isRecord(value) && types.includes(value.$type as EditableTokenType) && typeof value.$value === "string";
+function isEditableToken(
+  value: unknown,
+  types: readonly EditableTokenType[],
+): value is { $type: EditableTokenType; $value: string } {
+  return (
+    isRecord(value) &&
+    types.includes(value.$type as EditableTokenType) &&
+    typeof value.$value === "string"
+  );
 }
 
 function titleize(value: string): string {
@@ -77,9 +84,7 @@ export function tokenCssVarName(referencePath: string): string {
     return `--token-z-${path.slice(2).map(kebab).join("-")}`;
   }
   const stripped =
-    path[0] === "foundation" ||
-    path[0] === "semantic" ||
-    path[0] === "components"
+    path[0] === "foundation" || path[0] === "semantic" || path[0] === "components"
       ? path.slice(1)
       : path;
   return `--token-${stripped.map(kebab).join("-")}`;
@@ -89,7 +94,8 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
   {
     id: "widget",
     title: "Widget component",
-    description: "Direct widget container tokens: card background, border, radius, padding, and shadow.",
+    description:
+      "Direct widget container tokens: card background, border, radius, padding, and shadow.",
     paths: [
       "components.widget.background",
       "components.widget.borderColor",
@@ -102,7 +108,8 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
   {
     id: "surfaces",
     title: "Surfaces and borders",
-    description: "Shared surfaces and border colors used inside widget content, overlays, lists, and cards.",
+    description:
+      "Shared surfaces and border colors used inside widget content, overlays, lists, and cards.",
     paths: [
       "semantic.surface.canvas",
       "semantic.surface.sunken",
@@ -117,7 +124,8 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
   {
     id: "text",
     title: "Text and typography",
-    description: "Primary widget text, muted labels, inverse text over media, links, and font families.",
+    description:
+      "Primary widget text, muted labels, inverse text over media, links, and font families.",
     paths: [
       "semantic.text.primary",
       "semantic.text.muted",
@@ -144,7 +152,8 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
   {
     id: "shape",
     title: "Shape and spacing",
-    description: "Foundation radius and spacing tokens that widget modules use for density and layout rhythm.",
+    description:
+      "Foundation radius and spacing tokens that widget modules use for density and layout rhythm.",
     prefixes: ["foundation.radius.", "foundation.spacing."],
   },
 ] as const;
@@ -157,7 +166,8 @@ function matchesSection(entry: EditableTokenEntry, section: WidgetTokenSectionDe
 
 function matchesQuery(entry: EditableTokenEntry, query: string) {
   if (!query) return true;
-  const haystack = `${entry.label} ${entry.referencePath} ${tokenCssVarName(entry.referencePath)} ${entry.value}`.toLowerCase();
+  const haystack =
+    `${entry.label} ${entry.referencePath} ${tokenCssVarName(entry.referencePath)} ${entry.value}`.toLowerCase();
   return haystack.includes(query);
 }
 
@@ -224,7 +234,10 @@ export function getColorTokenEntries(doc: ThemeDocument, mode: ColorMode): Color
   return getEditableTokenEntries(doc, mode, ["color"]) as ColorTokenEntry[];
 }
 
-export function getWidgetTokenSections(entries: EditableTokenEntry[], query = ""): WidgetTokenSection[] {
+export function getWidgetTokenSections(
+  entries: EditableTokenEntry[],
+  query = "",
+): WidgetTokenSection[] {
   const normalizedQuery = query.trim().toLowerCase();
   const used = new Set<string>();
 

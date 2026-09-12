@@ -1,5 +1,5 @@
-import { Paper, Text } from '@mantine/core';
-import type { WidgetProps } from './types';
+import { Paper, Text } from "@mantine/core";
+import type { WidgetProps } from "./types";
 
 export function unknownWidgetLabel(type: string): string {
   return `Unknown widget type: ${type}`;

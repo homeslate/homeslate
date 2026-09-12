@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { resolveTheme, ThemeResolutionError } from "./resolver";
 import type { ThemeDocument } from "@homeslate/schema";
 
@@ -37,10 +37,7 @@ describe("resolveTheme — alias resolution", () => {
 
   it("resolves alias chains up to depth 8", () => {
     const doc = makeDoc((d) => {
-      const palette = d.tokens.foundation.color.neutral as Record<
-        string,
-        unknown
-      >;
+      const palette = d.tokens.foundation.color.neutral as Record<string, unknown>;
       const letters = ["a", "b", "c", "d", "e", "f", "g"];
       letters.forEach((letter, idx) => {
         const next =
@@ -60,10 +57,7 @@ describe("resolveTheme — alias resolution", () => {
 
   it('throws ThemeResolutionError with reason="depth" for >8 hops', () => {
     const doc = makeDoc((d) => {
-      const palette = d.tokens.foundation.color.neutral as Record<
-        string,
-        unknown
-      >;
+      const palette = d.tokens.foundation.color.neutral as Record<string, unknown>;
       const letters = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]; // 9 hops
       letters.forEach((letter, idx) => {
         const next =
@@ -88,10 +82,7 @@ describe("resolveTheme — alias resolution", () => {
 
   it('throws ThemeResolutionError with reason="cycle" on a cyclic alias', () => {
     const doc = makeDoc((d) => {
-      const palette = d.tokens.foundation.color.neutral as Record<
-        string,
-        unknown
-      >;
+      const palette = d.tokens.foundation.color.neutral as Record<string, unknown>;
       palette.a = { $type: "color", $value: "{foundation.color.neutral.b}" };
       palette.b = { $type: "color", $value: "{foundation.color.neutral.a}" };
       d.tokens.modes.dark.semantic.text.primary = {
@@ -145,12 +136,8 @@ describe("resolveTheme — mode handling", () => {
   it("produces structurally identical shapes for dark and light modes", () => {
     const dark = resolveTheme(BASE_DOC, "dark");
     const light = resolveTheme(BASE_DOC, "light");
-    expect(Object.keys(dark.semantic).sort()).toEqual(
-      Object.keys(light.semantic).sort(),
-    );
-    expect(dark.semantic.surface.canvas).not.toBe(
-      light.semantic.surface.canvas,
-    );
+    expect(Object.keys(dark.semantic).sort()).toEqual(Object.keys(light.semantic).sort());
+    expect(dark.semantic.surface.canvas).not.toBe(light.semantic.surface.canvas);
     expect(dark.meta.mode).toBe("dark");
     expect(light.meta.mode).toBe("light");
   });
@@ -159,9 +146,7 @@ describe("resolveTheme — mode handling", () => {
     const resolved = resolveTheme(BASE_DOC, "dark");
     expect(typeof resolved.semantic.text.primary).toBe("string");
     expect(resolved.semantic.text.primary).not.toMatch(/\$value/);
-    expect(typeof resolved.foundation.typography.lineHeight.normal).toBe(
-      "number",
-    );
+    expect(typeof resolved.foundation.typography.lineHeight.normal).toBe("number");
   });
 });
 

@@ -1,23 +1,44 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import {
-  Box, Text, Stack, Button, Group, Loader, Alert, Anchor, NumberInput, Progress,
-  Tabs, TextInput, ActionIcon, SimpleGrid, Image, Tooltip,
-} from '@mantine/core';
+  Box,
+  Text,
+  Stack,
+  Button,
+  Group,
+  Loader,
+  Alert,
+  Anchor,
+  NumberInput,
+  Progress,
+  Tabs,
+  TextInput,
+  ActionIcon,
+  SimpleGrid,
+  Image,
+  Tooltip,
+} from "@mantine/core";
 import {
-  IconLayoutGrid, IconBrandGoogle, IconUpload, IconLink, IconExternalLink,
-  IconPlus, IconX, IconPhoto, IconTrash,
-} from '@tabler/icons-react';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useGooglePhotoCollage } from '../hooks/useGooglePhotoCollage';
-import { useGooglePhotos } from '../hooks/useGooglePhotos';
-import { useGoogleRuntime } from '../googleRuntime';
-import { loadStoredImage } from '../services/googlePhotos';
-import type { StoredImage } from '../services/googlePhotos';
-import type { Photo, StoredPhoto } from './PhotoWidget';
-import classes from './GooglePhotoCollageWidget.module.css';
+  IconLayoutGrid,
+  IconBrandGoogle,
+  IconUpload,
+  IconLink,
+  IconExternalLink,
+  IconPlus,
+  IconX,
+  IconPhoto,
+  IconTrash,
+} from "@tabler/icons-react";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useGooglePhotoCollage } from "../hooks/useGooglePhotoCollage";
+import { useGooglePhotos } from "../hooks/useGooglePhotos";
+import { useGoogleRuntime } from "../googleRuntime";
+import { loadStoredImage } from "../services/googlePhotos";
+import type { StoredImage } from "../services/googlePhotos";
+import type { Photo, StoredPhoto } from "./PhotoWidget";
+import classes from "./GooglePhotoCollageWidget.module.css";
 
 export interface GooglePhotoCollageConfig extends WidgetConfig {
-  rotationInterval: number;      // seconds between individual photo changes
+  rotationInterval: number; // seconds between individual photo changes
   transparentBackground: boolean;
   photos: Photo[];
 }
@@ -98,10 +119,19 @@ function buildSpanPattern(cols: number, rows: number, slotCount: number): CellSp
   // Candidates in priority order: try larger spans first for variety
   const candidates: [number, number][] =
     cols >= 3 && rows >= 3
-      ? [[2, 2], [2, 1], [1, 2], [1, 1]]
+      ? [
+          [2, 2],
+          [2, 1],
+          [1, 2],
+          [1, 1],
+        ]
       : cols >= 2 && rows >= 2
-      ? [[2, 1], [1, 2], [1, 1]]
-      : [[1, 1]];
+        ? [
+            [2, 1],
+            [1, 2],
+            [1, 1],
+          ]
+        : [[1, 1]];
 
   // Every ~4 cells insert a larger cell for variety; rest are 1×1
   let cellsPlaced = 0;
@@ -138,14 +168,18 @@ function buildSpanPattern(cols: number, rows: number, slotCount: number): CellSp
 
 // ── Upload helper (shared with PhotoWidget) ────────────────────────────────────
 
-async function uploadPhoto(payload: { dataUrl?: string; url?: string; filename?: string }): Promise<{ key: string; filename: string }> {
-  const res = await fetch('/api/photo-upload', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+async function uploadPhoto(payload: {
+  dataUrl?: string;
+  url?: string;
+  filename?: string;
+}): Promise<{ key: string; filename: string }> {
+  const res = await fetch("/api/photo-upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
+    const text = await res.text().catch(() => "");
     throw new Error(`Upload failed: ${res.status} ${text}`);
   }
   return res.json() as Promise<{ key: string; filename: string }>;
@@ -155,7 +189,7 @@ async function uploadPhoto(payload: { dataUrl?: string; url?: string; filename?:
 
 function photosToStoredImages(photos: Photo[]): StoredImage[] {
   return photos
-    .filter((p): p is StoredPhoto => p.type === 'stored')
+    .filter((p): p is StoredPhoto => p.type === "stored")
     .map((p) => ({ key: p.key, filename: p.filename }));
 }
 
@@ -182,23 +216,25 @@ export function GooglePhotoCollageWidget({ widget }: WidgetProps<GooglePhotoColl
   const { cols, rows, slotCount, spans } = computeLayout(dimensions.width, dimensions.height);
 
   // Convert Photo[] to StoredImage[] for the collage hook (only stored photos are supported)
-  const savedImages: StoredImage[] = photos && photos.length > 0 ? photosToStoredImages(photos) : [];
+  const savedImages: StoredImage[] =
+    photos && photos.length > 0 ? photosToStoredImages(photos) : [];
 
-  const { pickerStatus, error, slots, transitioningSlot } =
-    useGooglePhotoCollage({
-      slotCount,
-      rotationInterval: rotationInterval * 1000,
-      savedImages,
-    });
+  const { pickerStatus, error, slots, transitioningSlot } = useGooglePhotoCollage({
+    slotCount,
+    rotationInterval: rotationInterval * 1000,
+    savedImages,
+  });
 
-  const containerClass = `${classes.container} ${transparentBackground ? classes.transparent : ''}`;
+  const containerClass = `${classes.container} ${transparentBackground ? classes.transparent : ""}`;
 
   if (!photos || photos.length === 0) {
     return (
       <Box ref={containerRef} className={containerClass}>
         <div className={classes.stateContainer}>
           <IconLayoutGrid size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>No Photos Selected</Text>
+          <Text size="lg" fw={500}>
+            No Photos Selected
+          </Text>
           <Text size="sm" c="dimmed" ta="center">
             Open widget settings to add photos to your collage
           </Text>
@@ -207,12 +243,14 @@ export function GooglePhotoCollageWidget({ widget }: WidgetProps<GooglePhotoColl
     );
   }
 
-  if (pickerStatus === 'uploading') {
+  if (pickerStatus === "uploading") {
     return (
       <Box ref={containerRef} className={containerClass}>
         <div className={classes.stateContainer}>
           <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed" mt="sm">Saving photos...</Text>
+          <Text size="sm" c="dimmed" mt="sm">
+            Saving photos...
+          </Text>
         </div>
       </Box>
     );
@@ -234,7 +272,9 @@ export function GooglePhotoCollageWidget({ widget }: WidgetProps<GooglePhotoColl
       <Box ref={containerRef} className={containerClass}>
         <div className={classes.stateContainer}>
           <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed" mt="sm">Loading photos...</Text>
+          <Text size="sm" c="dimmed" mt="sm">
+            Loading photos...
+          </Text>
         </div>
       </Box>
     );
@@ -265,7 +305,7 @@ export function GooglePhotoCollageWidget({ widget }: WidgetProps<GooglePhotoColl
             >
               {photo ? (
                 <div
-                  className={`${classes.photo} ${isFading ? classes.fading : ''}`}
+                  className={`${classes.photo} ${isFading ? classes.fading : ""}`}
                   style={{ backgroundImage: `url(${photo.objectUrl})` }}
                 />
               ) : (
@@ -297,7 +337,7 @@ function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
       const map = new Map<string, string>();
       await Promise.all(
         photos.map(async (photo) => {
-          if (photo.type === 'url') {
+          if (photo.type === "url") {
             map.set(photo.url, photo.url);
           } else {
             const cached = blobUrlsRef.current.get(photo.key);
@@ -313,13 +353,15 @@ function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
               // skip
             }
           }
-        })
+        }),
       );
       if (!cancelled) setThumbUrls(map);
     };
 
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [photos]);
 
   useEffect(() => {
@@ -335,18 +377,12 @@ function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
   return (
     <SimpleGrid cols={3} spacing="xs">
       {photos.map((photo, index) => {
-        const id = photo.type === 'url' ? photo.url : photo.key;
+        const id = photo.type === "url" ? photo.url : photo.key;
         const src = thumbUrls.get(id);
         return (
           <Box key={index} className={classes.thumbWrapper}>
             {src ? (
-              <Image
-                src={src}
-                height={80}
-                fit="cover"
-                radius="sm"
-                className={classes.thumb}
-              />
+              <Image src={src} height={80} fit="cover" radius="sm" className={classes.thumb} />
             ) : (
               <Box className={classes.thumbPlaceholder}>
                 <Loader size="xs" />
@@ -373,11 +409,11 @@ function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 const ROTATION_PRESETS = [
-  { value: 5, label: '5s' },
-  { value: 10, label: '10s' },
-  { value: 30, label: '30s' },
-  { value: 60, label: '1m' },
-  { value: 300, label: '5m' },
+  { value: 5, label: "5s" },
+  { value: 10, label: "10s" },
+  { value: 30, label: "30s" },
+  { value: 60, label: "1m" },
+  { value: 300, label: "5m" },
 ];
 const ROTATION_PRESET_VALUES = ROTATION_PRESETS.map((p) => p.value);
 
@@ -388,7 +424,7 @@ export function GooglePhotoCollageWidgetSettings({
   const { rotationInterval, photos = [] } = widget.config;
 
   // URL tab state
-  const [newUrl, setNewUrl] = useState('');
+  const [newUrl, setNewUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [urlUploading, setUrlUploading] = useState(false);
 
@@ -412,26 +448,29 @@ export function GooglePhotoCollageWidgetSettings({
   // When Google Photos picker completes, add the newly stored images as StoredPhotos
   const lastSavedGoogleBatchRef = useRef<string | null>(null);
   useEffect(() => {
-    if (pickerStatus === 'ready' && storedImages.length > 0) {
-      const batchKey = storedImages.map((img) => img.key).sort().join('|');
+    if (pickerStatus === "ready" && storedImages.length > 0) {
+      const batchKey = storedImages
+        .map((img) => img.key)
+        .sort()
+        .join("|");
       if (lastSavedGoogleBatchRef.current === batchKey) return;
       lastSavedGoogleBatchRef.current = batchKey;
 
       const newPhotos: StoredPhoto[] = storedImages.map((img) => ({
-        type: 'stored',
+        type: "stored",
         key: img.key,
         filename: img.filename,
       }));
       // Avoid duplicates (by key)
       const existingKeys = new Set(
-        photos.filter((p): p is StoredPhoto => p.type === 'stored').map((p) => p.key)
+        photos.filter((p): p is StoredPhoto => p.type === "stored").map((p) => p.key),
       );
       const toAdd = newPhotos.filter((p) => !existingKeys.has(p.key));
       if (toAdd.length > 0) {
         onConfigChange({ photos: [...photos, ...toAdd] });
       }
     }
-    if (pickerStatus === 'idle') {
+    if (pickerStatus === "idle") {
       lastSavedGoogleBatchRef.current = null;
     }
   }, [pickerStatus, storedImages, photos, onConfigChange]);
@@ -446,13 +485,16 @@ export function GooglePhotoCollageWidgetSettings({
     setUrlError(null);
     setUrlUploading(true);
     try {
-      const { key, filename } = await uploadPhoto({ url: newUrl.trim(), filename: newUrl.split('/').pop() });
-      onConfigChange({
-        photos: [...photos, { type: 'stored', key, filename } as StoredPhoto],
+      const { key, filename } = await uploadPhoto({
+        url: newUrl.trim(),
+        filename: newUrl.split("/").pop(),
       });
-      setNewUrl('');
+      onConfigChange({
+        photos: [...photos, { type: "stored", key, filename } as StoredPhoto],
+      });
+      setNewUrl("");
     } catch (err) {
-      setUrlError(err instanceof Error ? err.message : 'Failed to add photo');
+      setUrlError(err instanceof Error ? err.message : "Failed to add photo");
     } finally {
       setUrlUploading(false);
     }
@@ -466,7 +508,7 @@ export function GooglePhotoCollageWidgetSettings({
 
     const newPhotos: StoredPhoto[] = [];
     for (const file of Array.from(files)) {
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setUploadError(`"${file.name}" is not an image file`);
         continue;
       }
@@ -474,11 +516,11 @@ export function GooglePhotoCollageWidgetSettings({
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.onerror = () => reject(new Error("Failed to read file"));
           reader.readAsDataURL(file);
         });
         const { key, filename } = await uploadPhoto({ dataUrl, filename: file.name });
-        newPhotos.push({ type: 'stored', key, filename });
+        newPhotos.push({ type: "stored", key, filename });
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : `Failed to upload "${file.name}"`);
       }
@@ -488,29 +530,37 @@ export function GooglePhotoCollageWidgetSettings({
       onConfigChange({ photos: [...photos, ...newPhotos] });
     }
     setUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-
 
   return (
     <Stack gap="md">
       {/* Current photos */}
       {photos.length > 0 && (
         <Stack gap="xs">
-          <Text size="sm" fw={500}>Photos ({photos.length})</Text>
+          <Text size="sm" fw={500}>
+            Photos ({photos.length})
+          </Text>
           <PhotoThumbGrid photos={photos} onRemove={removePhoto} />
         </Stack>
       )}
 
       {/* Add photos */}
-      <Text size="sm" fw={500} mt={photos.length > 0 ? 'xs' : undefined}>Add Photos</Text>
+      <Text size="sm" fw={500} mt={photos.length > 0 ? "xs" : undefined}>
+        Add Photos
+      </Text>
 
       <Tabs defaultValue="url">
         <Tabs.List>
-          <Tabs.Tab value="url" leftSection={<IconLink size={14} />}>URL</Tabs.Tab>
-          <Tabs.Tab value="upload" leftSection={<IconUpload size={14} />}>Device</Tabs.Tab>
-          <Tabs.Tab value="google" leftSection={<IconBrandGoogle size={14} />}>Google</Tabs.Tab>
+          <Tabs.Tab value="url" leftSection={<IconLink size={14} />}>
+            URL
+          </Tabs.Tab>
+          <Tabs.Tab value="upload" leftSection={<IconUpload size={14} />}>
+            Device
+          </Tabs.Tab>
+          <Tabs.Tab value="google" leftSection={<IconBrandGoogle size={14} />}>
+            Google
+          </Tabs.Tab>
         </Tabs.List>
 
         {/* URL tab */}
@@ -519,12 +569,21 @@ export function GooglePhotoCollageWidgetSettings({
             <TextInput
               placeholder="https://example.com/photo.jpg"
               value={newUrl}
-              onChange={(e) => { setNewUrl(e.currentTarget.value); setUrlError(null); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') void addUrlPhoto(); }}
+              onChange={(e) => {
+                setNewUrl(e.currentTarget.value);
+                setUrlError(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void addUrlPhoto();
+              }}
               size="sm"
               leftSection={<IconLink size={14} />}
             />
-            {urlError && <Alert color="red" variant="light"><Text size="xs">{urlError}</Text></Alert>}
+            {urlError && (
+              <Alert color="red" variant="light">
+                <Text size="xs">{urlError}</Text>
+              </Alert>
+            )}
             <Button
               leftSection={<IconPlus size={16} />}
               onClick={() => void addUrlPhoto()}
@@ -545,7 +604,7 @@ export function GooglePhotoCollageWidgetSettings({
               type="file"
               accept="image/*"
               multiple
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
               onChange={(e) => void handleFileUpload(e.currentTarget.files)}
             />
             <Button
@@ -555,10 +614,16 @@ export function GooglePhotoCollageWidgetSettings({
               size="sm"
               variant="default"
             >
-              {uploading ? 'Uploading...' : 'Choose Photos from Device'}
+              {uploading ? "Uploading..." : "Choose Photos from Device"}
             </Button>
-            {uploadError && <Alert color="red" variant="light"><Text size="xs">{uploadError}</Text></Alert>}
-            <Text size="xs" c="dimmed">Supports JPEG, PNG, GIF, WebP. Max 20 MB per photo.</Text>
+            {uploadError && (
+              <Alert color="red" variant="light">
+                <Text size="xs">{uploadError}</Text>
+              </Alert>
+            )}
+            <Text size="xs" c="dimmed">
+              Supports JPEG, PNG, GIF, WebP. Max 20 MB per photo.
+            </Text>
           </Stack>
         </Tabs.Panel>
 
@@ -567,7 +632,9 @@ export function GooglePhotoCollageWidgetSettings({
           <Stack gap="xs">
             {!isAuthenticated ? (
               <Stack align="flex-start" gap="sm">
-                <Text size="sm" c="dimmed">Sign in to pick photos from Google Photos</Text>
+                <Text size="sm" c="dimmed">
+                  Sign in to pick photos from Google Photos
+                </Text>
                 <Button
                   leftSection={<IconBrandGoogle size={16} />}
                   onClick={signIn}
@@ -579,35 +646,49 @@ export function GooglePhotoCollageWidgetSettings({
               </Stack>
             ) : (
               <>
-                <Text size="sm" c="dimmed">Connected to Google</Text>
+                <Text size="sm" c="dimmed">
+                  Connected to Google
+                </Text>
 
-                {pickerStatus === 'pending' && pickerUri && (
+                {pickerStatus === "pending" && pickerUri && (
                   <Stack gap="xs">
-                    <Text size="sm" c="dimmed">Select photos in Google Photos, then come back here.</Text>
+                    <Text size="sm" c="dimmed">
+                      Select photos in Google Photos, then come back here.
+                    </Text>
                     <Anchor href={pickerUri} target="_blank" size="sm">
                       Open Google Photos <IconExternalLink size={12} />
                     </Anchor>
                   </Stack>
                 )}
 
-                {pickerStatus === 'uploading' && uploadProgress && (
+                {pickerStatus === "uploading" && uploadProgress && (
                   <Stack gap="xs">
-                    <Text size="sm" c="dimmed">Saving photos… {uploadProgress.done}/{uploadProgress.total}</Text>
-                    <Progress value={(uploadProgress.done / uploadProgress.total) * 100} size="sm" animated />
+                    <Text size="sm" c="dimmed">
+                      Saving photos… {uploadProgress.done}/{uploadProgress.total}
+                    </Text>
+                    <Progress
+                      value={(uploadProgress.done / uploadProgress.total) * 100}
+                      size="sm"
+                      animated
+                    />
                   </Stack>
                 )}
 
                 {googleError && (
-                  <Alert color="red" variant="light"><Text size="sm">{googleError}</Text></Alert>
+                  <Alert color="red" variant="light">
+                    <Text size="sm">{googleError}</Text>
+                  </Alert>
                 )}
 
                 <Group gap="xs">
                   <Button
                     size="sm"
                     leftSection={<IconPhoto size={16} />}
-                    onClick={() => { void startPicker(); }}
-                    loading={pickerStatus === 'pending' || pickerStatus === 'uploading'}
-                    disabled={pickerStatus === 'pending' || pickerStatus === 'uploading'}
+                    onClick={() => {
+                      void startPicker();
+                    }}
+                    loading={pickerStatus === "pending" || pickerStatus === "uploading"}
+                    disabled={pickerStatus === "pending" || pickerStatus === "uploading"}
                   >
                     Pick Photos
                   </Button>
@@ -625,7 +706,9 @@ export function GooglePhotoCollageWidgetSettings({
 
       {/* Rotation speed */}
       <Stack gap="xs">
-        <Text size="sm" fw={500}>Rotation Speed</Text>
+        <Text size="sm" fw={500}>
+          Rotation Speed
+        </Text>
         <Text size="xs" c="dimmed">
           How often a single photo in the collage is replaced
         </Text>
@@ -634,7 +717,7 @@ export function GooglePhotoCollageWidgetSettings({
             <Button
               key={value}
               size="xs"
-              variant={rotationInterval === value ? 'filled' : 'default'}
+              variant={rotationInterval === value ? "filled" : "default"}
               onClick={() => onConfigChange({ rotationInterval: value })}
             >
               {label}
@@ -642,7 +725,7 @@ export function GooglePhotoCollageWidgetSettings({
           ))}
           <Button
             size="xs"
-            variant={!ROTATION_PRESET_VALUES.includes(rotationInterval) ? 'filled' : 'default'}
+            variant={!ROTATION_PRESET_VALUES.includes(rotationInterval) ? "filled" : "default"}
             onClick={() => {
               if (ROTATION_PRESET_VALUES.includes(rotationInterval)) {
                 onConfigChange({ rotationInterval: 20 });
@@ -657,7 +740,7 @@ export function GooglePhotoCollageWidgetSettings({
             placeholder="Seconds"
             value={rotationInterval}
             onChange={(val) => {
-              const num = typeof val === 'number' ? val : parseInt(String(val), 10);
+              const num = typeof val === "number" ? val : parseInt(String(val), 10);
               if (!isNaN(num) && num >= 5) onConfigChange({ rotationInterval: num });
             }}
             min={5}

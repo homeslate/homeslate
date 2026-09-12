@@ -46,10 +46,7 @@ export type TailwindPaletteName = (typeof TAILWIND_PALETTE_NAMES)[number];
 export type TailwindPalette = Record<TailwindPaletteStep, string>;
 export type TailwindPaletteSet = Record<TailwindPaletteName, TailwindPalette>;
 
-export type ColorTokenGroup = Record<
-  string,
-  { $type: "color"; $value: string }
->;
+export type ColorTokenGroup = Record<string, { $type: "color"; $value: string }>;
 
 export const TAILWIND_COLOR_PALETTES = {
   slate: {
@@ -392,8 +389,8 @@ export const TAILWIND_COLOR_PALETTES = {
   },
 } as const satisfies TailwindPaletteSet;
 
-export const TAILWIND_COLOR_SWATCHES = TAILWIND_PALETTE_NAMES.flatMap(
-  (name) => TAILWIND_PALETTE_STEPS.map((step) => TAILWIND_COLOR_PALETTES[name][step]),
+export const TAILWIND_COLOR_SWATCHES = TAILWIND_PALETTE_NAMES.flatMap((name) =>
+  TAILWIND_PALETTE_STEPS.map((step) => TAILWIND_COLOR_PALETTES[name][step]),
 );
 
 const COMPACT_SWATCH_PALETTES = [
@@ -426,10 +423,7 @@ export const TAILWIND_COMPACT_COLOR_SWATCHES = [
   TAILWIND_COLOR_PALETTES.neutral["950"],
 ];
 
-export function tailwindPaletteToTokenGroup(): Record<
-  TailwindPaletteName,
-  ColorTokenGroup
-> {
+export function tailwindPaletteToTokenGroup(): Record<TailwindPaletteName, ColorTokenGroup> {
   return Object.fromEntries(
     TAILWIND_PALETTE_NAMES.map((name) => [
       name,

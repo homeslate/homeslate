@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Box,
   Text,
@@ -12,17 +12,14 @@ import {
   MultiSelect,
   Divider,
   Switch,
-} from '@mantine/core';
-import {
-  IconTrophy,
-  IconRefresh,
-} from '@tabler/icons-react';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useScores } from '../hooks/useScores';
-import { WidgetDataStatus } from '../chrome/WidgetDataStatus';
-import { LEAGUES, fetchLeagueTeams, type SportsTeam } from '../services/sports';
-import type { SportGame, RaceSession } from '../services/sports';
-import classes from './SportsWidget.module.css';
+} from "@mantine/core";
+import { IconTrophy, IconRefresh } from "@tabler/icons-react";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useScores } from "../hooks/useScores";
+import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { LEAGUES, fetchLeagueTeams, type SportsTeam } from "../services/sports";
+import type { SportGame, RaceSession } from "../services/sports";
+import classes from "./SportsWidget.module.css";
 
 export interface SportsConfig extends WidgetConfig {
   leagueId: string;
@@ -37,14 +34,14 @@ export interface SportsConfig extends WidgetConfig {
 // ---------------------------------------------------------------------------
 
 function GameCard({ game }: { game: SportGame }) {
-  const away = game.competitors.find((c) => c.homeAway === 'away') ?? game.competitors[0];
-  const home = game.competitors.find((c) => c.homeAway === 'home') ?? game.competitors[1];
+  const away = game.competitors.find((c) => c.homeAway === "away") ?? game.competitors[0];
+  const home = game.competitors.find((c) => c.homeAway === "home") ?? game.competitors[1];
 
-  const isLive = game.status === 'in';
-  const isFinal = game.status === 'post';
-  const isPre = game.status === 'pre';
+  const isLive = game.status === "in";
+  const isFinal = game.status === "post";
+  const isPre = game.status === "pre";
 
-  const statusColor = isLive ? 'green' : isFinal ? 'dimmed' : 'blue';
+  const statusColor = isLive ? "green" : isFinal ? "dimmed" : "blue";
 
   const awayWon = isFinal && away.winner;
   const homeWon = isFinal && home.winner;
@@ -60,7 +57,7 @@ function GameCard({ game }: { game: SportGame }) {
               : game.statusDetail}
           </Badge>
         ) : (
-          <Text size="xs" c={statusColor} className={isFinal ? classes.finalText : ''}>
+          <Text size="xs" c={statusColor} className={isFinal ? classes.finalText : ""}>
             {game.statusDetail}
           </Text>
         )}
@@ -68,18 +65,8 @@ function GameCard({ game }: { game: SportGame }) {
 
       {/* Teams & scores */}
       <Stack gap={2}>
-        <TeamRow
-          team={away.team}
-          score={away.score}
-          isWinner={awayWon}
-          showScore={!isPre}
-        />
-        <TeamRow
-          team={home.team}
-          score={home.score}
-          isWinner={homeWon}
-          showScore={!isPre}
-        />
+        <TeamRow team={away.team} score={away.score} isWinner={awayWon} showScore={!isPre} />
+        <TeamRow team={home.team} score={home.score} isWinner={homeWon} showScore={!isPre} />
       </Stack>
     </Box>
   );
@@ -99,19 +86,8 @@ function TeamRow({
   return (
     <Group justify="space-between" wrap="nowrap" className={classes.teamRow}>
       <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-        {team.logo && (
-          <img
-            src={team.logo}
-            alt={team.abbreviation}
-            className={classes.teamLogo}
-          />
-        )}
-        <Text
-          size="sm"
-          fw={isWinner ? 700 : 400}
-          className={classes.teamName}
-          truncate
-        >
+        {team.logo && <img src={team.logo} alt={team.abbreviation} className={classes.teamLogo} />}
+        <Text size="sm" fw={isWinner ? 700 : 400} className={classes.teamName} truncate>
           {team.shortDisplayName || team.abbreviation}
         </Text>
       </Group>
@@ -137,10 +113,10 @@ function formatPeriod(period: number, detail: string): string {
 
 function RaceCard({ game }: { game: SportGame }) {
   const sessions = game.raceSessions ?? [];
-  const isLive = game.status === 'in';
-  const isFinal = game.status === 'post';
+  const isLive = game.status === "in";
+  const isFinal = game.status === "post";
 
-  const statusColor = isLive ? 'green' : isFinal ? 'dimmed' : 'blue';
+  const statusColor = isLive ? "green" : isFinal ? "dimmed" : "blue";
 
   return (
     <Box className={classes.gameCard}>
@@ -150,7 +126,7 @@ function RaceCard({ game }: { game: SportGame }) {
             {game.statusDetail}
           </Badge>
         ) : (
-          <Text size="xs" c={statusColor} className={isFinal ? classes.finalText : ''}>
+          <Text size="xs" c={statusColor} className={isFinal ? classes.finalText : ""}>
             {game.statusDetail}
           </Text>
         )}
@@ -160,12 +136,17 @@ function RaceCard({ game }: { game: SportGame }) {
       </Text>
       <Stack gap={2}>
         {sessions.map((session: RaceSession) => (
-          <Group key={session.type} justify="space-between" wrap="nowrap" className={classes.teamRow}>
+          <Group
+            key={session.type}
+            justify="space-between"
+            wrap="nowrap"
+            className={classes.teamRow}
+          >
             <Text size="xs" c="dimmed">
               {session.type}
             </Text>
-            <Text size="xs" c={session.status === 'post' ? 'dimmed' : undefined}>
-              {session.statusDetail || (session.status === 'pre' ? 'Scheduled' : '—')}
+            <Text size="xs" c={session.status === "post" ? "dimmed" : undefined}>
+              {session.statusDetail || (session.status === "pre" ? "Scheduled" : "—")}
             </Text>
           </Group>
         ))}
@@ -179,14 +160,29 @@ function RaceCard({ game }: { game: SportGame }) {
 // ---------------------------------------------------------------------------
 
 export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
-  const { leagueId, favoriteTeamIds, showAllGames, showCurrentGames = true, transparentBackground } = widget.config;
+  const {
+    leagueId,
+    favoriteTeamIds,
+    showAllGames,
+    showCurrentGames = true,
+    transparentBackground,
+  } = widget.config;
 
   const teamFilter = useMemo(
     () => (showAllGames ? [] : favoriteTeamIds),
-    [showAllGames, favoriteTeamIds]
+    [showAllGames, favoriteTeamIds],
   );
 
-  const { games: rawGames, leagueLogo, isLoading, isLoadingMore, error, lastUpdated, refresh, loadMore } = useScores({
+  const {
+    games: rawGames,
+    leagueLogo,
+    isLoading,
+    isLoadingMore,
+    error,
+    lastUpdated,
+    refresh,
+    loadMore,
+  } = useScores({
     leagueId,
     favoriteTeamIds: teamFilter,
   });
@@ -201,7 +197,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
         if (!e?.isIntersecting || isLoadingMore || isLoading) return;
         loadMore();
       },
-      { root: null, rootMargin: '100px', threshold: 0 }
+      { root: null, rootMargin: "100px", threshold: 0 },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -210,17 +206,18 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
   const leagueName = LEAGUES.find((l) => l.id === leagueId)?.name ?? leagueId.toUpperCase();
 
   const games = useMemo(
-    () =>
-      showCurrentGames ? rawGames : rawGames.filter((g) => g.status !== 'in'),
-    [rawGames, showCurrentGames]
+    () => (showCurrentGames ? rawGames : rawGames.filter((g) => g.status !== "in")),
+    [rawGames, showCurrentGames],
   );
 
   if (!leagueId) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconTrophy size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>No League Selected</Text>
+          <Text size="lg" fw={500}>
+            No League Selected
+          </Text>
           <Text size="sm" c="dimmed" ta="center">
             Choose a league in widget settings
           </Text>
@@ -231,10 +228,12 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
 
   if (isLoading && games.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
           <Loader size="lg" color="green" />
-          <Text size="sm" c="dimmed" mt="sm">Loading scores...</Text>
+          <Text size="sm" c="dimmed" mt="sm">
+            Loading scores...
+          </Text>
         </div>
       </Box>
     );
@@ -242,10 +241,12 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
 
   if (error && games.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconTrophy size={48} className={classes.emptyIcon} />
-          <Text size="sm" c="red" ta="center">{error}</Text>
+          <Text size="sm" c="red" ta="center">
+            {error}
+          </Text>
           <Button size="xs" variant="subtle" onClick={refresh} mt="sm">
             Retry
           </Button>
@@ -255,16 +256,12 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {/* Header */}
       <div className={classes.header}>
         <Text className={classes.title}>
           {leagueLogo ? (
-            <img
-              src={leagueLogo}
-              alt={leagueName}
-              className={classes.leagueLogo}
-            />
+            <img src={leagueLogo} alt={leagueName} className={classes.leagueLogo} />
           ) : (
             <IconTrophy size={16} />
           )}
@@ -272,13 +269,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
         </Text>
         <Group gap="xs">
           {isLoading && <Loader size="xs" color="green" />}
-          <Button
-            variant="subtle"
-            size="xs"
-            p={4}
-            onClick={refresh}
-            className={classes.refreshBtn}
-          >
+          <Button variant="subtle" size="xs" p={4} onClick={refresh} className={classes.refreshBtn}>
             <IconRefresh size={14} />
           </Button>
         </Group>
@@ -293,7 +284,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
       {games.length === 0 ? (
         <div className={classes.empty}>
           <Text size="sm" c="dimmed" ta="center">
-            {leagueId === 'f1' ? 'No races today' : 'No games scheduled today'}
+            {leagueId === "f1" ? "No races today" : "No games scheduled today"}
           </Text>
           {!showAllGames && favoriteTeamIds.length > 0 && (
             <Text size="xs" c="dimmed" ta="center" mt={4}>
@@ -307,11 +298,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
             {games.map((game, i) => (
               <div key={game.id}>
                 {i > 0 && <Divider opacity={0.3} />}
-                {game.raceSessions?.length ? (
-                  <RaceCard game={game} />
-                ) : (
-                  <GameCard game={game} />
-                )}
+                {game.raceSessions?.length ? <RaceCard game={game} /> : <GameCard game={game} />}
               </div>
             ))}
             <div ref={loadMoreSentinelRef} style={{ minHeight: 1 }} aria-hidden />
@@ -367,7 +354,7 @@ export function SportsWidgetSettings({ widget, onConfigChange }: WidgetProps<Spo
   }));
 
   const handleLeagueChange = (value: string | null) => {
-    onConfigChange({ leagueId: value ?? '', favoriteTeamIds: [] });
+    onConfigChange({ leagueId: value ?? "", favoriteTeamIds: [] });
   };
 
   const handleTeamsChange = (values: string[]) => {
@@ -389,7 +376,7 @@ export function SportsWidgetSettings({ widget, onConfigChange }: WidgetProps<Spo
         <MultiSelect
           label="Favorite Teams"
           description="Only games featuring these teams will be shown (unless 'Show all games' is on)"
-          placeholder={loadingTeams ? 'Loading teams...' : 'Search for teams…'}
+          placeholder={loadingTeams ? "Loading teams..." : "Search for teams…"}
           data={teamOptions}
           value={favoriteTeamIds}
           onChange={handleTeamsChange}

@@ -1,6 +1,6 @@
-import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 
 export function openSqlite(filename: string): DatabaseSync {
   mkdirSync(dirname(filename), { recursive: true });

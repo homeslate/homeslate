@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { fetchNewsCached, type NewsItem, type RSSFeed } from '../services/news';
-import { getNextPollDelay } from './polling';
+import { useState, useEffect, useCallback } from "react";
+import { fetchNewsCached, type NewsItem, type RSSFeed } from "../services/news";
+import { getNextPollDelay } from "./polling";
 
 interface UseNewsOptions {
   feeds: RSSFeed[];
@@ -45,7 +45,7 @@ export function useNews({
       setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch news');
+      setError(err instanceof Error ? err.message : "Failed to fetch news");
       setConsecutiveFailures((prev) => prev + 1);
     } finally {
       setIsLoading(false);
@@ -59,10 +59,7 @@ export function useNews({
   useEffect(() => {
     if (feeds.length === 0) return;
 
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(refreshInterval, consecutiveFailures)
-    );
+    const timeout = setTimeout(fetchData, getNextPollDelay(refreshInterval, consecutiveFailures));
     return () => clearTimeout(timeout);
   }, [fetchData, refreshInterval, feeds.length, consecutiveFailures]);
 
@@ -74,4 +71,3 @@ export function useNews({
     refresh: fetchData,
   };
 }
-

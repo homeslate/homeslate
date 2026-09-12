@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import type { SnoozeMinutes } from '../alarms/types';
-import { parseAlarmVoiceCommand } from './parseAlarmVoiceCommand';
+import { useEffect, useRef, useState } from "react";
+import type { SnoozeMinutes } from "../alarms/types";
+import { parseAlarmVoiceCommand } from "./parseAlarmVoiceCommand";
 import {
   SpeechRecognitionSession,
   isSpeechRecognitionSupported,
   type SpeechUnavailableReason,
-} from './speechRecognition';
+} from "./speechRecognition";
 
-export type VoiceStatusReason = SpeechUnavailableReason | 'disabled';
+export type VoiceStatusReason = SpeechUnavailableReason | "disabled";
 
 export interface UseAlarmVoiceCommandsResult {
   listening: boolean;
@@ -36,7 +36,7 @@ export function useAlarmVoiceCommands({
 
     if (!enabled) {
       setListening(false);
-      setUnavailableReason(active ? 'disabled' : null);
+      setUnavailableReason(active ? "disabled" : null);
       return;
     }
 
@@ -48,7 +48,7 @@ export function useAlarmVoiceCommands({
 
     if (!isSpeechRecognitionSupported()) {
       setListening(false);
-      setUnavailableReason('unsupported');
+      setUnavailableReason("unsupported");
       return;
     }
 
@@ -63,7 +63,7 @@ export function useAlarmVoiceCommands({
         handledRef.current = true;
         session.stop();
         setListening(false);
-        if (command.type === 'dismiss') {
+        if (command.type === "dismiss") {
           onDismiss();
         } else {
           onSnooze(command.minutes);

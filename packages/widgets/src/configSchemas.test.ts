@@ -1,12 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import {
-  clearWidgetConfigSchemas,
-  validateDisplayDocument,
-} from '@homeslate/schema';
-import {
-  BUILTIN_WIDGET_CONFIG_SCHEMAS,
-  registerBuiltInWidgetConfigSchemas,
-} from './configSchemas';
+import { afterEach, describe, expect, it } from "vite-plus/test";
+import { clearWidgetConfigSchemas, validateDisplayDocument } from "@homeslate/schema";
+import { BUILTIN_WIDGET_CONFIG_SCHEMAS, registerBuiltInWidgetConfigSchemas } from "./configSchemas";
 
 afterEach(() => {
   clearWidgetConfigSchemas();
@@ -14,11 +8,11 @@ afterEach(() => {
 
 const baseDoc = {
   schemaVersion: 1 as const,
-  name: 'Kitchen',
+  name: "Kitchen",
   views: [
     {
-      id: 'v1',
-      name: 'Main',
+      id: "v1",
+      name: "Main",
       columns: 12,
       rowHeight: 80,
       widgets: [] as Array<{
@@ -30,7 +24,7 @@ const baseDoc = {
       }>,
     },
   ],
-  activeViewId: 'v1',
+  activeViewId: "v1",
   rotation: { enabled: false, intervalMs: 30000 },
   themes: [],
   activeThemeId: null,
@@ -45,7 +39,7 @@ function docWith(type: string, config: Record<string, unknown>) {
         ...baseDoc.views[0],
         widgets: [
           {
-            id: 'w1',
+            id: "w1",
             type,
             title: type,
             config,
@@ -57,44 +51,49 @@ function docWith(type: string, config: Record<string, unknown>) {
   };
 }
 
-describe('built-in widget config schemas', () => {
-  it('registers every built-in type', () => {
+describe("built-in widget config schemas", () => {
+  it("registers every built-in type", () => {
     expect(Object.keys(BUILTIN_WIDGET_CONFIG_SCHEMAS).sort()).toEqual(
       [
-        'alarms',
-        'calendar',
-        'clock',
-        'google-calendar',
-        'google-calendar-day',
-        'google-calendar-month',
-        'google-photo-collage',
-        'news',
-        'photo',
-        'sports',
-        'stocks',
-        'timers',
-        'todo',
-        'weather',
-        'week-calendar',
-      ].sort()
+        "alarms",
+        "announcement",
+        "calendar",
+        "chores",
+        "clock",
+        "countdown",
+        "daily-routine",
+        "grocery",
+        "google-calendar",
+        "google-calendar-day",
+        "google-calendar-month",
+        "google-photo-collage",
+        "news",
+        "photo",
+        "sports",
+        "stocks",
+        "timers",
+        "todo",
+        "weather",
+        "week-calendar",
+      ].sort(),
     );
   });
 
-  it('rejects a clock with a non-boolean showSeconds', () => {
+  it("rejects a clock with a non-boolean showSeconds", () => {
     registerBuiltInWidgetConfigSchemas();
-    const result = validateDisplayDocument(docWith('clock', { showSeconds: 'yes' }));
+    const result = validateDisplayDocument(docWith("clock", { showSeconds: "yes" }));
     expect(result.ok).toBe(false);
   });
 
-  it('accepts a clock missing optional keys', () => {
+  it("accepts a clock missing optional keys", () => {
     registerBuiltInWidgetConfigSchemas();
-    const result = validateDisplayDocument(docWith('clock', {}));
+    const result = validateDisplayDocument(docWith("clock", {}));
     expect(result.ok).toBe(true);
   });
 
-  it('still accepts an unknown type with object config', () => {
+  it("still accepts an unknown type with object config", () => {
     registerBuiltInWidgetConfigSchemas();
-    const result = validateDisplayDocument(docWith('mystery-widget', { anything: true }));
+    const result = validateDisplayDocument(docWith("mystery-widget", { anything: true }));
     expect(result.ok).toBe(true);
   });
 });

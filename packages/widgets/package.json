@@ -2,13 +2,14 @@
   "name": "@homeslate/widgets",
   "version": "0.1.2",
   "license": "MIT",
-  "type": "module",
-  "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/homeslate/homeslate.git"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -23,12 +24,15 @@
       "import": "./dist/server.js"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts src/schemas.ts src/server.ts --format esm --dts --clean --tsconfig ../../tsconfig.app.json --config ../../tsup.config.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@homeslate/schema": "0.1.1",
+    "@homeslate/schema": "workspace:*",
     "@mantine/core": "^8.3.10",
     "@mantine/dates": "^8.3.10",
     "@mantine/hooks": "^8.3.10",

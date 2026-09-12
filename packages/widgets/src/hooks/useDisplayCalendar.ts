@@ -1,11 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useGoogleRuntime } from '../googleRuntime';
-import type { GoogleCalendar, ParsedCalendarEvent, CalendarEventInput } from '../services/googleCalendar';
-import { displayCalendarUserMessage, isFatalGoogleAuthFailure } from '../widgets/googleCalendarError';
+import { useState, useEffect, useCallback } from "react";
+import { useGoogleRuntime } from "../googleRuntime";
+import type {
+  GoogleCalendar,
+  ParsedCalendarEvent,
+  CalendarEventInput,
+} from "../services/googleCalendar";
+import {
+  displayCalendarUserMessage,
+  isFatalGoogleAuthFailure,
+} from "../widgets/googleCalendarError";
 
 export function displayCalendarUrl(
   kioskFetchBaseUrl: string,
-  params: { displayId: string; calendarIds: string; daysAhead: number }
+  params: { displayId: string; calendarIds: string; daysAhead: number },
 ): string {
   const search = new URLSearchParams({
     displayId: params.displayId,
@@ -14,7 +21,7 @@ export function displayCalendarUrl(
   });
   return `${kioskFetchBaseUrl}/display-calendar?${search}`;
 }
-import { getDisplayCalendarPollDelay } from './polling';
+import { getDisplayCalendarPollDelay } from "./polling";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -50,18 +57,22 @@ const EMPTY_RESULT: UseDisplayCalendarResult = {
   removeEvent: async () => {},
 };
 
-function parseEventFromServer(ev: { start: string; end: string; [k: string]: unknown }): ParsedCalendarEvent {
+function parseEventFromServer(ev: {
+  start: string;
+  end: string;
+  [k: string]: unknown;
+}): ParsedCalendarEvent {
   return {
     id: ev.id as string,
     calendarId: ev.calendarId as string,
     calendarName: ev.calendarName as string | undefined,
-    title: (ev.title as string) ?? '(No title)',
+    title: (ev.title as string) ?? "(No title)",
     description: ev.description as string | undefined,
     location: ev.location as string | undefined,
     start: new Date(ev.start as string),
     end: new Date(ev.end as string),
     allDay: !!ev.allDay,
-    color: (ev.color as string) ?? '#4285f4',
+    color: (ev.color as string) ?? "#4285f4",
     htmlLink: ev.htmlLink as string | undefined,
   };
 }
@@ -79,7 +90,7 @@ export function useDisplayCalendar({
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
   const [authFailureReason, setAuthFailureReason] = useState<string | null>(null);
-  const selectedCalendarIdsKey = selectedCalendarIds.join(',');
+  const selectedCalendarIdsKey = selectedCalendarIds.join(",");
 
   const fetchData = useCallback(async () => {
     if (!displayId || selectedCalendarIdsKey.length === 0) {
@@ -94,7 +105,7 @@ export function useDisplayCalendar({
     setIsLoading(true);
     setError(null);
     try {
-      console.info('[display-calendar] fetching', {
+      console.info("[display-calendar] fetching", {
         displayId,
         calendarCount: selectedCalendarIds.length,
         daysAhead,
@@ -104,9 +115,9 @@ export function useDisplayCalendar({
           displayId,
           calendarIds: selectedCalendarIdsKey,
           daysAhead,
-        })
+        }),
       );
-      const data = await res.json() as {
+      const data = (await res.json()) as {
         error?: string;
         reason?: string;
         details?: unknown;
@@ -114,7 +125,7 @@ export function useDisplayCalendar({
         events?: Array<{ start: string; end: string; [k: string]: unknown }>;
       };
       if (!res.ok) {
-        console.warn('[display-calendar] request failed', {
+        console.warn("[display-calendar] request failed", {
           displayId,
           status: res.status,
           error: data.error,
@@ -122,10 +133,10 @@ export function useDisplayCalendar({
           details: data.details,
         });
         setAuthFailureReason(data.reason ?? null);
-        setError(displayCalendarUserMessage(data.error ?? 'Failed to load calendar', data.reason));
+        setError(displayCalendarUserMessage(data.error ?? "Failed to load calendar", data.reason));
         return;
       }
-      console.info('[display-calendar] request succeeded', {
+      console.info("[display-calendar] request succeeded", {
         displayId,
         calendarCount: (data.calendars ?? []).length,
         eventCount: (data.events ?? []).length,
@@ -141,12 +152,12 @@ export function useDisplayCalendar({
       setAuthFailureReason(null);
       setConsecutiveFailures(0);
     } catch (err) {
-      console.warn('[display-calendar] network error', {
+      console.warn("[display-calendar] network error", {
         displayId,
         error: err instanceof Error ? err.message : String(err),
       });
       setAuthFailureReason(null);
-      setError(err instanceof Error ? err.message : 'Failed to load calendar');
+      setError(err instanceof Error ? err.message : "Failed to load calendar");
       setConsecutiveFailures((prev) => prev + 1);
     } finally {
       setIsLoading(false);
@@ -173,8 +184,8 @@ export function useDisplayCalendar({
       getDisplayCalendarPollDelay(
         REFRESH_INTERVAL_MS,
         consecutiveFailures,
-        isFatalGoogleAuthFailure(authFailureReason)
-      )
+        isFatalGoogleAuthFailure(authFailureReason),
+      ),
     );
     return () => clearTimeout(t);
   }, [displayId, selectedCalendarIdsKey, fetchData, consecutiveFailures, authFailureReason]);

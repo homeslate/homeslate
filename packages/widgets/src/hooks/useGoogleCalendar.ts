@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useGoogleRuntime } from '../googleRuntime';
+import { useState, useEffect, useCallback } from "react";
+import { useGoogleRuntime } from "../googleRuntime";
 import {
   fetchCalendarList,
   fetchAllCalendarEvents,
@@ -9,12 +9,9 @@ import {
   type GoogleCalendar,
   type ParsedCalendarEvent,
   type CalendarEventInput,
-} from '../services/googleCalendar';
-import {
-  useCalendarCacheStore,
-  calendarCacheKey,
-} from '../store/calendarCacheStore';
-import { getNextPollDelay } from './polling';
+} from "../services/googleCalendar";
+import { useCalendarCacheStore, calendarCacheKey } from "../store/calendarCacheStore";
+import { getNextPollDelay } from "./polling";
 
 interface UseGoogleCalendarOptions {
   // clientId is kept in the type for config backward-compatibility but is no
@@ -39,7 +36,7 @@ interface UseGoogleCalendarResult {
   removeEvent: (calendarId: string, eventId: string) => Promise<void>;
 }
 
-const TOKEN_EXPIRED_MSG = 'Token expired. Please sign in again.';
+const TOKEN_EXPIRED_MSG = "Token expired. Please sign in again.";
 
 export function useGoogleCalendar({
   selectedCalendarIds,
@@ -86,63 +83,76 @@ export function useGoogleCalendar({
           }
         }
       }
-      setError(err instanceof Error ? err.message : 'Failed to fetch calendars');
+      setError(err instanceof Error ? err.message : "Failed to fetch calendars");
     }
   }, [enabled, accessToken, cacheKey, getEntry, setEntry, refreshAccessToken]);
 
-  const fetchEvents = useCallback(async (force = false) => {
-    if (!enabled) return;
-    if (!accessToken || selectedCalendarIds.length === 0) {
-      setEvents([]);
-      setLastUpdated(null);
-      setConsecutiveFailures(0);
-      return;
-    }
-    if (!force) {
-      const existing = getEntry(cacheKey);
-      if (existing && Date.now() - existing.fetchedAt < refreshInterval) {
-        setCalendars(existing.calendars);
-        setEvents(existing.events);
-        setLastUpdated(existing.fetchedAt);
-        setIsLoading(false);
+  const fetchEvents = useCallback(
+    async (force = false) => {
+      if (!enabled) return;
+      if (!accessToken || selectedCalendarIds.length === 0) {
+        setEvents([]);
+        setLastUpdated(null);
+        setConsecutiveFailures(0);
         return;
       }
-    }
-    setIsLoading(true);
-    setError(null);
-    const doFetch = async (token: string) => {
-      const [calendarList, eventList] = await Promise.all([
-        fetchCalendarList(token),
-        fetchAllCalendarEvents(token, selectedCalendarIds, daysAhead),
-      ]);
-      setCalendars(calendarList);
-      setEvents(eventList);
-      const fetchedAt = Date.now();
-      setEntry(cacheKey, { calendars: calendarList, events: eventList, fetchedAt });
-      setLastUpdated(fetchedAt);
-      setConsecutiveFailures(0);
-    };
-    try {
-      await doFetch(accessToken);
-    } catch (err) {
-      if (err instanceof Error && err.message === TOKEN_EXPIRED_MSG) {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          try {
-            await doFetch(newToken);
-            setError(null);
-            return;
-          } catch {
-            /* fall through to set error */
-          }
+      if (!force) {
+        const existing = getEntry(cacheKey);
+        if (existing && Date.now() - existing.fetchedAt < refreshInterval) {
+          setCalendars(existing.calendars);
+          setEvents(existing.events);
+          setLastUpdated(existing.fetchedAt);
+          setIsLoading(false);
+          return;
         }
       }
-      setError(err instanceof Error ? err.message : 'Failed to fetch events');
-      setConsecutiveFailures((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [enabled, accessToken, selectedCalendarIds, daysAhead, cacheKey, refreshInterval, getEntry, setEntry, refreshAccessToken]);
+      setIsLoading(true);
+      setError(null);
+      const doFetch = async (token: string) => {
+        const [calendarList, eventList] = await Promise.all([
+          fetchCalendarList(token),
+          fetchAllCalendarEvents(token, selectedCalendarIds, daysAhead),
+        ]);
+        setCalendars(calendarList);
+        setEvents(eventList);
+        const fetchedAt = Date.now();
+        setEntry(cacheKey, { calendars: calendarList, events: eventList, fetchedAt });
+        setLastUpdated(fetchedAt);
+        setConsecutiveFailures(0);
+      };
+      try {
+        await doFetch(accessToken);
+      } catch (err) {
+        if (err instanceof Error && err.message === TOKEN_EXPIRED_MSG) {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            try {
+              await doFetch(newToken);
+              setError(null);
+              return;
+            } catch {
+              /* fall through to set error */
+            }
+          }
+        }
+        setError(err instanceof Error ? err.message : "Failed to fetch events");
+        setConsecutiveFailures((prev) => prev + 1);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      enabled,
+      accessToken,
+      selectedCalendarIds,
+      daysAhead,
+      cacheKey,
+      refreshInterval,
+      getEntry,
+      setEntry,
+      refreshAccessToken,
+    ],
+  );
 
   // Always fetch calendar list when authenticated (needed for settings dropdown even when none selected)
   useEffect(() => {
@@ -160,10 +170,17 @@ export function useGoogleCalendar({
     if (!isAuthenticated || selectedCalendarIds.length === 0) return;
     const interval = setTimeout(
       () => void fetchEvents(true),
-      getNextPollDelay(refreshInterval, consecutiveFailures)
+      getNextPollDelay(refreshInterval, consecutiveFailures),
     );
     return () => clearTimeout(interval);
-  }, [enabled, isAuthenticated, selectedCalendarIds, fetchEvents, refreshInterval, consecutiveFailures]);
+  }, [
+    enabled,
+    isAuthenticated,
+    selectedCalendarIds,
+    fetchEvents,
+    refreshInterval,
+    consecutiveFailures,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
@@ -181,7 +198,7 @@ export function useGoogleCalendar({
 
   const withTokenRetry = useCallback(
     async <T>(fn: (token: string) => Promise<T>): Promise<T> => {
-      if (!accessToken) throw new Error('Not authenticated');
+      if (!accessToken) throw new Error("Not authenticated");
       try {
         return await fn(accessToken);
       } catch (err) {
@@ -192,7 +209,7 @@ export function useGoogleCalendar({
         throw err;
       }
     },
-    [accessToken, refreshAccessToken]
+    [accessToken, refreshAccessToken],
   );
 
   const addEvent = useCallback(
@@ -200,7 +217,7 @@ export function useGoogleCalendar({
       await withTokenRetry((token) => createCalendarEvent(token, calendarId, event));
       void fetchEvents();
     },
-    [withTokenRetry, fetchEvents]
+    [withTokenRetry, fetchEvents],
   );
 
   const editEvent = useCallback(
@@ -208,7 +225,7 @@ export function useGoogleCalendar({
       await withTokenRetry((token) => updateCalendarEvent(token, calendarId, eventId, event));
       void fetchEvents();
     },
-    [withTokenRetry, fetchEvents]
+    [withTokenRetry, fetchEvents],
   );
 
   const removeEvent = useCallback(
@@ -216,7 +233,7 @@ export function useGoogleCalendar({
       await withTokenRetry((token) => deleteCalendarEvent(token, calendarId, eventId));
       void fetchEvents();
     },
-    [withTokenRetry, fetchEvents]
+    [withTokenRetry, fetchEvents],
   );
 
   return {

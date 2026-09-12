@@ -3,30 +3,31 @@ import type {
   ColorMode,
   DisplayDocument,
   HolidayId,
+  HouseholdMember,
   StickyNote,
   View,
   ViewBackground,
   WidgetInstance,
   WidgetLayout,
-} from './types';
+} from "./types";
 
 const DEFAULT_ROTATION_MS = 30000;
-const DEFAULT_NAME = 'Homeslate';
+const DEFAULT_NAME = "Homeslate";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function asString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
 function asNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function asBoolean(value: unknown): boolean | undefined {
-  return typeof value === 'boolean' ? value : undefined;
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function migrateLayout(raw: unknown): WidgetLayout {
@@ -47,9 +48,9 @@ function migrateWidget(raw: unknown): WidgetInstance {
   const o = isPlainObject(raw) ? raw : {};
   const config = isPlainObject(o.config) ? o.config : {};
   return {
-    id: asString(o.id) ?? '',
-    type: asString(o.type) ?? 'unknown',
-    title: asString(o.title) ?? '',
+    id: asString(o.id) ?? "",
+    type: asString(o.type) ?? "unknown",
+    title: asString(o.title) ?? "",
     config,
     layout: migrateLayout(o.layout),
   };
@@ -59,9 +60,9 @@ function migrateBackground(layout: Record<string, unknown>): ViewBackground | un
   const photos = Array.isArray(layout.backgroundPhotos) ? layout.backgroundPhotos : undefined;
   const background: ViewBackground = {
     ...(asString(layout.backgroundImage) ? { image: layout.backgroundImage as string } : {}),
-    ...(layout.backgroundImageSize === 'cover' ||
-    layout.backgroundImageSize === 'contain' ||
-    layout.backgroundImageSize === 'tile'
+    ...(layout.backgroundImageSize === "cover" ||
+    layout.backgroundImageSize === "contain" ||
+    layout.backgroundImageSize === "tile"
       ? { imageSize: layout.backgroundImageSize }
       : {}),
     ...(asNumber(layout.backgroundOverlayOpacity) !== undefined
@@ -77,10 +78,10 @@ function migrateBackground(layout: Record<string, unknown>): ViewBackground | un
 
 function migrateV1Background(raw: Record<string, unknown>): ViewBackground {
   const background: ViewBackground = {};
-  if ('image' in raw && typeof raw.image === 'string') {
+  if ("image" in raw && typeof raw.image === "string") {
     background.image = raw.image;
   }
-  if (raw.imageSize === 'cover' || raw.imageSize === 'contain' || raw.imageSize === 'tile') {
+  if (raw.imageSize === "cover" || raw.imageSize === "contain" || raw.imageSize === "tile") {
     background.imageSize = raw.imageSize;
   }
   if (asNumber(raw.overlayOpacity) !== undefined) {
@@ -98,57 +99,75 @@ function migrateV1Background(raw: Record<string, unknown>): ViewBackground {
 function migrateNotes(raw: unknown): StickyNote[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   return raw.filter(isPlainObject).map((n) => ({
-    id: asString(n.id) ?? '',
-    text: asString(n.text) ?? '',
+    id: asString(n.id) ?? "",
+    text: asString(n.text) ?? "",
     x: asNumber(n.x) ?? 0,
     y: asNumber(n.y) ?? 0,
-    color: asString(n.color) ?? 'yellow',
+    color: asString(n.color) ?? "yellow",
   }));
 }
 
 function migrateView(raw: unknown): View {
   const o = isPlainObject(raw) ? raw : {};
   const widgets = Array.isArray(o.widgets) ? o.widgets.map(migrateWidget) : [];
-  const hasV1Background = 'background' in o && isPlainObject(o.background);
+  const hasV1Background = "background" in o && isPlainObject(o.background);
   const v0Background = hasV1Background ? undefined : migrateBackground(o);
   const notes = migrateNotes(o.notes);
   return {
-    id: asString(o.id) ?? '',
-    name: asString(o.name) ?? 'View',
-    ...(typeof o.icon === 'string' ? { icon: o.icon } : {}),
+    id: asString(o.id) ?? "",
+    name: asString(o.name) ?? "View",
+    ...(typeof o.icon === "string" ? { icon: o.icon } : {}),
     ...(asBoolean(o.hidden) !== undefined ? { hidden: o.hidden as boolean } : {}),
     columns: asNumber(o.columns) ?? 12,
     rowHeight: asNumber(o.rowHeight) ?? 80,
     widgets,
-    ...(hasV1Background ? { background: migrateV1Background(o.background as Record<string, unknown>) } : {}),
+    ...(hasV1Background
+      ? { background: migrateV1Background(o.background as Record<string, unknown>) }
+      : {}),
     ...(v0Background ? { background: v0Background } : {}),
     ...(notes ? { notes } : {}),
   };
 }
 
+const MAX_HOUSEHOLD_MEMBERS = 12;
+
+function migrateHousehold(raw: unknown): { members: HouseholdMember[] } {
+  const source = isPlainObject(raw) && Array.isArray(raw.members) ? raw.members : [];
+  const members = source
+    .filter(isPlainObject)
+    .map((member) => ({
+      id: asString(member.id) ?? "",
+      name: asString(member.name) ?? "",
+      color: asString(member.color) ?? "",
+    }))
+    .filter((member) => member.id.length > 0 && member.name.length > 0 && member.color.length > 0)
+    .slice(0, MAX_HOUSEHOLD_MEMBERS);
+  return { members };
+}
+
 function migrateAlarms(raw: unknown): AlarmDefinition[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   return raw.filter(isPlainObject).map((a) => ({
-    id: asString(a.id) ?? '',
-    label: asString(a.label) ?? '',
+    id: asString(a.id) ?? "",
+    label: asString(a.label) ?? "",
     enabled: asBoolean(a.enabled) ?? true,
-    time: asString(a.time) ?? '00:00',
-    days: Array.isArray(a.days) ? a.days.filter((d): d is number => typeof d === 'number') : [],
+    time: asString(a.time) ?? "00:00",
+    days: Array.isArray(a.days) ? a.days.filter((d): d is number => typeof d === "number") : [],
     toneId:
-      a.toneId === 'chime' || a.toneId === 'bell' || a.toneId === 'radar' ? a.toneId : 'chime',
+      a.toneId === "chime" || a.toneId === "bell" || a.toneId === "radar" ? a.toneId : "chime",
   }));
 }
 
 export function migrateDisplayDocument(raw: unknown): DisplayDocument {
   if (!isPlainObject(raw)) {
-    throw new TypeError('Display document must be a plain object');
+    throw new TypeError("Display document must be a plain object");
   }
 
   if (raw.schemaVersion === 1 && Array.isArray(raw.views)) {
     const rotation = isPlainObject(raw.rotation) ? raw.rotation : {};
     const settings = isPlainObject(raw.settings) ? raw.settings : {};
     const v1ColorMode: ColorMode | undefined =
-      raw.colorMode === 'light' || raw.colorMode === 'dark' ? raw.colorMode : undefined;
+      raw.colorMode === "light" || raw.colorMode === "dark" ? raw.colorMode : undefined;
     const v1Holiday = asString(settings.holidayPreviewId) as HolidayId | undefined;
     const v1Alarms = migrateAlarms(raw.alarms);
     return {
@@ -176,19 +195,22 @@ export function migrateDisplayDocument(raw: unknown): DisplayDocument {
         ...(v1Holiday ? { holidayPreviewId: v1Holiday } : {}),
       },
       ...(v1Alarms ? { alarms: v1Alarms } : {}),
+      household: migrateHousehold(raw.household),
     };
   }
 
   const layouts = Array.isArray(raw.layouts) ? raw.layouts : [];
   const holidayPreviewId = asString(raw.holidayPreviewId) as HolidayId | undefined;
   const colorMode: ColorMode | undefined =
-    raw.colorMode === 'light' || raw.colorMode === 'dark' ? raw.colorMode : undefined;
+    raw.colorMode === "light" || raw.colorMode === "dark" ? raw.colorMode : undefined;
 
-  const settings: DisplayDocument['settings'] = {
+  const settings: DisplayDocument["settings"] = {
     ...(asBoolean(raw.stickyNotesEnabled) !== undefined
       ? { stickyNotesEnabled: raw.stickyNotesEnabled as boolean }
       : {}),
-    ...(asBoolean(raw.voiceEnabled) !== undefined ? { voiceEnabled: raw.voiceEnabled as boolean } : {}),
+    ...(asBoolean(raw.voiceEnabled) !== undefined
+      ? { voiceEnabled: raw.voiceEnabled as boolean }
+      : {}),
     ...(asBoolean(raw.holidayEffectsEnabled) !== undefined
       ? { holidayEffectsEnabled: raw.holidayEffectsEnabled as boolean }
       : {}),
@@ -211,5 +233,6 @@ export function migrateDisplayDocument(raw: unknown): DisplayDocument {
     ...(colorMode ? { colorMode } : {}),
     settings,
     ...(alarms ? { alarms } : {}),
+    household: migrateHousehold(raw.household),
   };
 }

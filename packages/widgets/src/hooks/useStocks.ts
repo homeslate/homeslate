@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { fetchStockQuoteCached, type StockQuote } from '../services/stocks';
-import { getNextPollDelay } from './polling';
+import { useState, useEffect, useCallback } from "react";
+import { fetchStockQuoteCached, type StockQuote } from "../services/stocks";
+import { getNextPollDelay } from "./polling";
 
 interface UseStocksOptions {
   symbols: string[];
@@ -46,10 +46,7 @@ export function useStocks({
         const quote = await fetchStockQuoteCached(symbol, apiKey);
         newQuotes.set(symbol.toUpperCase(), quote);
       } catch (err) {
-        newErrors.set(
-          symbol.toUpperCase(),
-          err instanceof Error ? err.message : 'Failed to fetch'
-        );
+        newErrors.set(symbol.toUpperCase(), err instanceof Error ? err.message : "Failed to fetch");
       }
     }
 
@@ -93,4 +90,3 @@ export function useStocks({
     refresh: fetchData,
   };
 }
-

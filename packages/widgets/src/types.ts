@@ -1,7 +1,7 @@
-import type { ComponentType } from 'react';
-import type { ZodType } from 'zod';
+import type { ComponentType } from "react";
+import type { ZodType } from "zod";
 
-export type TextAlign = 'left' | 'center' | 'right';
+export type TextAlign = "left" | "center" | "right";
 
 export type WidgetConfig = { [key: string]: unknown };
 

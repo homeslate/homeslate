@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { DEFAULT_THEME_DOCUMENTS } from "./defaults";
 import { validateThemeDocument } from "@homeslate/schema";
 import { resolveTheme } from "./resolver";
@@ -8,9 +8,7 @@ describe("DEFAULT_THEME_DOCUMENTS — validation", () => {
     it(`validates: ${doc.name}`, () => {
       const result = validateThemeDocument(doc);
       if (!result.ok) {
-        throw new Error(
-          `${doc.name} failed validation: ${JSON.stringify(result.issues, null, 2)}`,
-        );
+        throw new Error(`${doc.name} failed validation: ${JSON.stringify(result.issues, null, 2)}`);
       }
       expect(result.ok).toBe(true);
     });

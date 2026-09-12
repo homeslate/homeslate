@@ -1,24 +1,24 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 type UnknownRecord = Record<string, unknown>;
 const TOKEN_TYPES = new Set([
-  'color',
-  'dimension',
-  'fontFamily',
-  'fontWeight',
-  'duration',
-  'shadow',
-  'number',
-  'string',
+  "color",
+  "dimension",
+  "fontFamily",
+  "fontWeight",
+  "duration",
+  "shadow",
+  "number",
+  "string",
 ]);
 
 const isoDateTimeSchema = z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
-  message: 'Invalid date-time string',
+  message: "Invalid date-time string",
 });
 
 const colorTokenSchema = z
   .object({
-    $type: z.literal('color'),
+    $type: z.literal("color"),
     $value: z.string(),
     $description: z.string().optional(),
   })
@@ -26,7 +26,7 @@ const colorTokenSchema = z
 
 const dimensionTokenSchema = z
   .object({
-    $type: z.literal('dimension'),
+    $type: z.literal("dimension"),
     $value: z.string(),
     $description: z.string().optional(),
   })
@@ -34,7 +34,7 @@ const dimensionTokenSchema = z
 
 const fontFamilyTokenSchema = z
   .object({
-    $type: z.literal('fontFamily'),
+    $type: z.literal("fontFamily"),
     $value: z.string(),
     $description: z.string().optional(),
   })
@@ -42,7 +42,7 @@ const fontFamilyTokenSchema = z
 
 const fontWeightTokenSchema = z
   .object({
-    $type: z.literal('fontWeight'),
+    $type: z.literal("fontWeight"),
     $value: z.union([z.string(), z.number()]),
     $description: z.string().optional(),
   })
@@ -50,7 +50,7 @@ const fontWeightTokenSchema = z
 
 const durationTokenSchema = z
   .object({
-    $type: z.literal('duration'),
+    $type: z.literal("duration"),
     $value: z.string(),
     $description: z.string().optional(),
   })
@@ -58,7 +58,7 @@ const durationTokenSchema = z
 
 const numberTokenSchema = z
   .object({
-    $type: z.literal('number'),
+    $type: z.literal("number"),
     $value: z.number(),
     $description: z.string().optional(),
   })
@@ -66,7 +66,7 @@ const numberTokenSchema = z
 
 const stringTokenSchema = z
   .object({
-    $type: z.literal('string'),
+    $type: z.literal("string"),
     $value: z.string(),
     $description: z.string().optional(),
   })
@@ -74,7 +74,7 @@ const stringTokenSchema = z
 
 const shadowTokenSchema = z
   .object({
-    $type: z.literal('shadow'),
+    $type: z.literal("shadow"),
     $value: z.unknown(),
     $description: z.string().optional(),
   })
@@ -92,7 +92,7 @@ const tokenLeafSchema = z.union([
 ]);
 
 const tokenGroupSchema: z.ZodType<UnknownRecord> = z.lazy(() =>
-  z.record(z.string(), z.union([tokenGroupSchema, tokenLeafSchema]))
+  z.record(z.string(), z.union([tokenGroupSchema, tokenLeafSchema])),
 );
 
 const stateTripletSchema = z
@@ -127,17 +127,17 @@ const foundationTokensSchema = z
       .catchall(tokenGroupSchema),
     spacing: z
       .object({
-        '0': dimensionTokenSchema,
-        '1': dimensionTokenSchema,
-        '2': dimensionTokenSchema,
-        '3': dimensionTokenSchema,
-        '4': dimensionTokenSchema,
-        '5': dimensionTokenSchema.optional(),
-        '6': dimensionTokenSchema,
-        '8': dimensionTokenSchema,
-        '10': dimensionTokenSchema.optional(),
-        '12': dimensionTokenSchema.optional(),
-        '16': dimensionTokenSchema.optional(),
+        "0": dimensionTokenSchema,
+        "1": dimensionTokenSchema,
+        "2": dimensionTokenSchema,
+        "3": dimensionTokenSchema,
+        "4": dimensionTokenSchema,
+        "5": dimensionTokenSchema.optional(),
+        "6": dimensionTokenSchema,
+        "8": dimensionTokenSchema,
+        "10": dimensionTokenSchema.optional(),
+        "12": dimensionTokenSchema.optional(),
+        "16": dimensionTokenSchema.optional(),
       })
       .strict(),
     radius: z
@@ -166,7 +166,7 @@ const foundationTokensSchema = z
             md: dimensionTokenSchema,
             lg: dimensionTokenSchema,
             xl: dimensionTokenSchema,
-            '2xl': dimensionTokenSchema.optional(),
+            "2xl": dimensionTokenSchema.optional(),
           })
           .strict(),
         weight: z
@@ -364,10 +364,7 @@ const themeDocumentSchema = z
 
 const ALIAS_RE = /^\{([\w.]+)\}$/;
 
-function findAliasIssues(
-  doc: unknown,
-  prefix: string[] = [],
-): ThemeValidationIssue[] {
+function findAliasIssues(doc: unknown, prefix: string[] = []): ThemeValidationIssue[] {
   if (!doc || typeof doc !== "object") return [];
   const issues: ThemeValidationIssue[] = [];
   const record = doc as Record<string, unknown>;
@@ -401,22 +398,22 @@ export interface ThemeValidationResult {
 }
 
 function issuePath(path: PropertyKey[]): string {
-  if (path.length === 0) return '$';
+  if (path.length === 0) return "$";
   return path
     .map((segment) => {
-      if (typeof segment === 'number') {
+      if (typeof segment === "number") {
         return `[${segment}]`;
       }
-      if (typeof segment === 'symbol') {
+      if (typeof segment === "symbol") {
         return segment.toString();
       }
       return segment;
     })
-    .join('.');
+    .join(".");
 }
 
 function isTokenType(value: unknown): value is string {
-  return typeof value === 'string' && TOKEN_TYPES.has(value);
+  return typeof value === "string" && TOKEN_TYPES.has(value);
 }
 
 function normalizeTokenTypeCascade(value: unknown, inheritedType?: string): unknown {
@@ -424,19 +421,19 @@ function normalizeTokenTypeCascade(value: unknown, inheritedType?: string): unkn
     return value.map((item) => normalizeTokenTypeCascade(item, inheritedType));
   }
 
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return value;
   }
 
   const input = value as UnknownRecord;
   const ownType = isTokenType(input.$type) ? input.$type : undefined;
   const nextInheritedType = ownType ?? inheritedType;
-  const hasValue = Object.prototype.hasOwnProperty.call(input, '$value');
+  const hasValue = Object.prototype.hasOwnProperty.call(input, "$value");
   const output: UnknownRecord = {};
 
   for (const [key, childValue] of Object.entries(input)) {
-    if (key === '$type') continue;
-    if (key === '$value') {
+    if (key === "$type") continue;
+    if (key === "$value") {
       output.$value = childValue;
       continue;
     }
@@ -470,10 +467,10 @@ export function validateThemeDocument(input: unknown): ThemeValidationResult {
 }
 
 export function isThemeDocumentCandidate(input: unknown): input is UnknownRecord {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
     return false;
   }
 
   const record = input as UnknownRecord;
-  return 'tokens' in record || '$schema' in record;
+  return "tokens" in record || "$schema" in record;
 }

@@ -1,13 +1,13 @@
-import { randomUUID } from 'node:crypto';
-import type { DatabaseSync } from 'node:sqlite';
-import type { DisplayDocument } from '@homeslate/schema';
+import { randomUUID } from "node:crypto";
+import type { DatabaseSync } from "node:sqlite";
+import type { DisplayDocument } from "@homeslate/schema";
 import {
   DisplayNotFoundError,
   type DisplayRecord,
   type DisplayStore,
   type DisplaySummary,
-} from './types';
-import { assertValidDisplayDocument } from './validateDocument';
+} from "./types";
+import { assertValidDisplayDocument } from "./validateDocument";
 
 type DisplayRow = {
   id: string;
@@ -24,25 +24,25 @@ export class SqliteDisplayStore implements DisplayStore {
 
   async get(id: string): Promise<DisplayRecord | null> {
     const row = this.database
-      .prepare('SELECT id, public_id, document FROM displays WHERE id = ?')
+      .prepare("SELECT id, public_id, document FROM displays WHERE id = ?")
       .get(id) as DisplayRow | undefined;
     return row ? recordFromRow(row) : null;
   }
 
   async getByPublicId(publicId: string): Promise<DisplayRecord | null> {
     const row = this.database
-      .prepare('SELECT id, public_id, document FROM displays WHERE public_id = ?')
+      .prepare("SELECT id, public_id, document FROM displays WHERE public_id = ?")
       .get(publicId) as DisplayRow | undefined;
     return row ? recordFromRow(row) : null;
   }
 
   async put(id: string, document: DisplayDocument): Promise<void> {
-    const existing = this.database.prepare('SELECT id FROM displays WHERE id = ?').get(id);
+    const existing = this.database.prepare("SELECT id FROM displays WHERE id = ?").get(id);
     if (!existing) throw new DisplayNotFoundError(id);
 
     const validDocument = assertValidDisplayDocument(document);
     this.database
-      .prepare('UPDATE displays SET name = ?, document = ? WHERE id = ?')
+      .prepare("UPDATE displays SET name = ?, document = ? WHERE id = ?")
       .run(validDocument.name, JSON.stringify(validDocument), id);
   }
 
@@ -53,14 +53,14 @@ export class SqliteDisplayStore implements DisplayStore {
       document: assertValidDisplayDocument(document),
     };
     this.database
-      .prepare('INSERT INTO displays (id, public_id, name, document) VALUES (?, ?, ?, ?)')
+      .prepare("INSERT INTO displays (id, public_id, name, document) VALUES (?, ?, ?, ?)")
       .run(record.id, record.publicId, record.document.name, JSON.stringify(record.document));
     return record;
   }
 
   async list(): Promise<DisplaySummary[]> {
     const rows = this.database
-      .prepare('SELECT id, public_id, document FROM displays')
+      .prepare("SELECT id, public_id, document FROM displays")
       .all() as DisplayRow[];
     return rows
       .map(recordFromRow)
@@ -69,7 +69,7 @@ export class SqliteDisplayStore implements DisplayStore {
   }
 
   async remove(id: string): Promise<void> {
-    this.database.prepare('DELETE FROM displays WHERE id = ?').run(id);
+    this.database.prepare("DELETE FROM displays WHERE id = ?").run(id);
   }
 }
 

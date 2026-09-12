@@ -1,4 +1,4 @@
-import type { DisplayDocument, StickyNote, View, WidgetInstance } from '@homeslate/schema';
+import type { DisplayDocument, StickyNote, View, WidgetInstance } from "@homeslate/schema";
 
 function mapView(
   document: DisplayDocument,
@@ -46,9 +46,7 @@ export function patchWidgetConfig(
     return {
       ...view,
       widgets: view.widgets.map((widget) =>
-        widget.id === widgetId
-          ? { ...widget, config: { ...widget.config, ...config } }
-          : widget,
+        widget.id === widgetId ? { ...widget, config: { ...widget.config, ...config } } : widget,
       ),
     };
   });

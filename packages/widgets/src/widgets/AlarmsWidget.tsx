@@ -1,8 +1,8 @@
-import { Box, Stack, Text, Group, Switch } from '@mantine/core';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useAlarms } from '../alarms/AlarmsContext';
-import { AlarmListEditor } from '../alarms/AlarmListEditor';
-import classes from './AlarmsWidget.module.css';
+import { Box, Stack, Text, Group, Switch } from "@mantine/core";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useAlarms } from "../alarms/AlarmsContext";
+import { AlarmListEditor } from "../alarms/AlarmListEditor";
+import classes from "./AlarmsWidget.module.css";
 
 export interface AlarmsConfig extends WidgetConfig {
   transparentBackground: boolean;
@@ -13,7 +13,7 @@ export function AlarmsWidget({ widget }: WidgetProps<AlarmsConfig>) {
   const { provided, alarms, onAlarmsChange, readOnly } = useAlarms();
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {provided ? (
         <AlarmListEditor
           alarms={alarms}

@@ -1,11 +1,22 @@
-import { useEffect, useRef } from 'react';
-import { Box, Text, Stack, Switch, Button, Group, Loader, Alert, Anchor, Progress } from '@mantine/core';
-import { IconBrandGoogle, IconPhoto, IconExternalLink } from '@tabler/icons-react';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useGooglePhotos } from '../hooks/useGooglePhotos';
-import { useGoogleRuntime } from '../googleRuntime';
-import type { StoredImage } from '../services/googlePhotos';
-import classes from './GooglePhotosWidget.module.css';
+import { useEffect, useRef } from "react";
+import {
+  Box,
+  Text,
+  Stack,
+  Switch,
+  Button,
+  Group,
+  Loader,
+  Alert,
+  Anchor,
+  Progress,
+} from "@mantine/core";
+import { IconBrandGoogle, IconPhoto, IconExternalLink } from "@tabler/icons-react";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useGooglePhotos } from "../hooks/useGooglePhotos";
+import { useGoogleRuntime } from "../googleRuntime";
+import type { StoredImage } from "../services/googlePhotos";
+import classes from "./GooglePhotosWidget.module.css";
 
 export interface GooglePhotosConfig extends WidgetConfig {
   showCaption: boolean;
@@ -17,23 +28,19 @@ export interface GooglePhotosConfig extends WidgetConfig {
 export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) {
   const { refreshInterval, transparentBackground, savedImages } = widget.config;
 
-  const {
-    isAuthenticated,
-    pickerStatus,
-    error,
-    pickerUri,
-    currentPhoto,
-  } = useGooglePhotos({
+  const { isAuthenticated, pickerStatus, error, pickerUri, currentPhoto } = useGooglePhotos({
     refreshInterval: refreshInterval * 1000,
     savedImages,
   });
 
-  if (!isAuthenticated && pickerStatus === 'idle') {
+  if (!isAuthenticated && pickerStatus === "idle") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.signIn}>
           <IconBrandGoogle size={48} className={classes.googleIcon} />
-          <Text size="lg" fw={500} mb="xs">Google Photos</Text>
+          <Text size="lg" fw={500} mb="xs">
+            Google Photos
+          </Text>
           <Text size="sm" c="dimmed" ta="center">
             Sign in using the button in the header to view your photos
           </Text>
@@ -42,12 +49,14 @@ export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) 
     );
   }
 
-  if (pickerStatus === 'idle') {
+  if (pickerStatus === "idle") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconPhoto size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>No Photos Selected</Text>
+          <Text size="lg" fw={500}>
+            No Photos Selected
+          </Text>
           <Text size="sm" c="dimmed" ta="center">
             Open widget settings to pick photos from Google Photos
           </Text>
@@ -56,9 +65,9 @@ export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) 
     );
   }
 
-  if (pickerStatus === 'pending') {
+  if (pickerStatus === "pending") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
           <Loader size="lg" color="blue" />
           <Text size="sm" c="dimmed" ta="center">
@@ -74,12 +83,14 @@ export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) 
     );
   }
 
-  if (pickerStatus === 'uploading') {
+  if (pickerStatus === "uploading") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
           <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed">Saving selected photos...</Text>
+          <Text size="sm" c="dimmed">
+            Saving selected photos...
+          </Text>
         </div>
       </Box>
     );
@@ -87,7 +98,7 @@ export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) 
 
   if (error) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <Alert color="red" variant="light">
           <Text size="sm">{error}</Text>
         </Alert>
@@ -97,18 +108,22 @@ export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) 
 
   if (!currentPhoto) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconPhoto size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>No Photos</Text>
-          <Text size="sm" c="dimmed" ta="center">No images found in your selection</Text>
+          <Text size="lg" fw={500}>
+            No Photos
+          </Text>
+          <Text size="sm" c="dimmed" ta="center">
+            No images found in your selection
+          </Text>
         </div>
       </Box>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div
         className={classes.photo}
         style={{ backgroundImage: `url(${currentPhoto.objectUrl})` }}
@@ -140,11 +155,11 @@ export function GooglePhotosWidgetSettings({
   // Persist stored images to widget config once when a new selection completes.
   const savedRef = useRef(false);
   useEffect(() => {
-    if (pickerStatus === 'ready' && storedImages.length > 0 && !savedRef.current) {
+    if (pickerStatus === "ready" && storedImages.length > 0 && !savedRef.current) {
       savedRef.current = true;
       onConfigChange({ savedImages: storedImages });
     }
-    if (pickerStatus === 'idle') {
+    if (pickerStatus === "idle") {
       savedRef.current = false;
     }
   }, [pickerStatus, storedImages, onConfigChange]);
@@ -153,10 +168,14 @@ export function GooglePhotosWidgetSettings({
     <Stack gap="md">
       <Box className={classes.authSection}>
         {isAuthenticated ? (
-          <Text size="sm" c="dimmed">Connected to Google</Text>
+          <Text size="sm" c="dimmed">
+            Connected to Google
+          </Text>
         ) : (
           <Stack align="center" gap="sm">
-            <Text size="sm" c="dimmed">Sign in to select your photos</Text>
+            <Text size="sm" c="dimmed">
+              Sign in to select your photos
+            </Text>
             <Button
               leftSection={<IconBrandGoogle size={16} />}
               onClick={signIn}
@@ -172,15 +191,17 @@ export function GooglePhotosWidgetSettings({
       {isAuthenticated && (
         <>
           <Stack gap="xs">
-            <Text size="sm" fw={500}>Photo Selection</Text>
+            <Text size="sm" fw={500}>
+              Photo Selection
+            </Text>
 
             {hasSelection && (
               <Text size="sm" c="dimmed">
-                {storedImages.length} photo{storedImages.length !== 1 ? 's' : ''} saved
+                {storedImages.length} photo{storedImages.length !== 1 ? "s" : ""} saved
               </Text>
             )}
 
-            {pickerStatus === 'pending' && pickerUri && (
+            {pickerStatus === "pending" && pickerUri && (
               <Stack gap="xs">
                 <Text size="sm" c="dimmed">
                   Select photos in Google Photos, then come back here.
@@ -191,7 +212,7 @@ export function GooglePhotosWidgetSettings({
               </Stack>
             )}
 
-            {pickerStatus === 'uploading' && uploadProgress && (
+            {pickerStatus === "uploading" && uploadProgress && (
               <Stack gap="xs">
                 <Text size="sm" c="dimmed">
                   Saving photos… {uploadProgress.done}/{uploadProgress.total}
@@ -214,11 +235,13 @@ export function GooglePhotosWidgetSettings({
               <Button
                 size="sm"
                 leftSection={<IconPhoto size={16} />}
-                onClick={() => { void startPicker(); }}
-                loading={pickerStatus === 'pending' || pickerStatus === 'uploading'}
-                disabled={pickerStatus === 'pending' || pickerStatus === 'uploading'}
+                onClick={() => {
+                  void startPicker();
+                }}
+                loading={pickerStatus === "pending" || pickerStatus === "uploading"}
+                disabled={pickerStatus === "pending" || pickerStatus === "uploading"}
               >
-                {hasSelection ? 'Change Photos' : 'Pick Photos'}
+                {hasSelection ? "Change Photos" : "Pick Photos"}
               </Button>
 
               {hasSelection && (
@@ -246,20 +269,22 @@ export function GooglePhotosWidgetSettings({
           </Group>
 
           <Stack gap="xs">
-            <Text size="sm" fw={500}>Refresh Interval</Text>
+            <Text size="sm" fw={500}>
+              Refresh Interval
+            </Text>
             <Group gap="xs" wrap="wrap">
               {[
-                { value: 30, label: '30s' },
-                { value: 60, label: '1m' },
-                { value: 300, label: '5m' },
-                { value: 600, label: '10m' },
-                { value: 1800, label: '30m' },
-                { value: 3600, label: '1h' },
+                { value: 30, label: "30s" },
+                { value: 60, label: "1m" },
+                { value: 300, label: "5m" },
+                { value: 600, label: "10m" },
+                { value: 1800, label: "30m" },
+                { value: 3600, label: "1h" },
               ].map(({ value, label }) => (
                 <Button
                   key={value}
                   size="xs"
-                  variant={refreshInterval === value ? 'filled' : 'default'}
+                  variant={refreshInterval === value ? "filled" : "default"}
                   onClick={() => onConfigChange({ refreshInterval: value })}
                 >
                   {label}

@@ -2,13 +2,13 @@ const ALLOWED_PHOTO_URL = /^https:\/\/(lh\d+\.googleusercontent\.com|photos\.goo
 
 export function assertAllowedPhotoUrl(baseUrl: string): void {
   if (!ALLOWED_PHOTO_URL.test(baseUrl)) {
-    throw new Error('URL not allowed');
+    throw new Error("URL not allowed");
   }
 }
 
 export async function fetchPhotoWithAccessToken(
   accessToken: string,
-  params: { baseUrl: string; size: string }
+  params: { baseUrl: string; size: string },
 ): Promise<Uint8Array> {
   assertAllowedPhotoUrl(params.baseUrl);
   const res = await fetch(`${params.baseUrl}=${params.size}`, {

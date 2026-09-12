@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,7 +25,8 @@ describe("widget CSS theme tokens", () => {
   });
 
   it("keeps widget color styling on theme-provided tokens", () => {
-    const literalColorPattern = /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*(?!var\(--token-)[^)]+\)|(?:^|[\s,(])(?:white|black)(?=[\s,);]|$)/g;
+    const literalColorPattern =
+      /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*(?!var\(--token-)[^)]+\)|(?:^|[\s,(])(?:white|black)(?=[\s,);]|$)/g;
 
     const offenders = cssFiles.flatMap((file) => {
       const css = stripComments(readFileSync(join(widgetsDir, file), "utf8"));

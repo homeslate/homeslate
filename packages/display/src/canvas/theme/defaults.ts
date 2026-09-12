@@ -453,8 +453,7 @@ function buildDocument(seed: ThemeSeed): ThemeDocument {
   } as ThemeDocument;
 }
 
-export const DEFAULT_THEME_DOCUMENTS: ThemeDocument[] =
-  SEEDS.map(buildDocument);
+export const DEFAULT_THEME_DOCUMENTS: ThemeDocument[] = SEEDS.map(buildDocument);
 
 export const THEME_PRESET_OPTIONS = DEFAULT_THEME_DOCUMENTS.map((doc) => ({
   value: doc.id,
@@ -462,10 +461,7 @@ export const THEME_PRESET_OPTIONS = DEFAULT_THEME_DOCUMENTS.map((doc) => ({
 }));
 
 export function getPresetById(id: string): ThemeDocument {
-  return (
-    DEFAULT_THEME_DOCUMENTS.find((doc) => doc.id === id) ??
-    DEFAULT_THEME_DOCUMENTS[0]
-  );
+  return DEFAULT_THEME_DOCUMENTS.find((doc) => doc.id === id) ?? DEFAULT_THEME_DOCUMENTS[0];
 }
 
 export function pickActiveDocument(

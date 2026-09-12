@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState, useCallback, type JSX } from 'react';
-import { loadStoredImage } from '@homeslate/widgets';
-import type { View } from '@homeslate/schema';
-import type { Photo } from '@homeslate/widgets';
+import { useEffect, useMemo, useRef, useState, useCallback, type JSX } from "react";
+import { loadStoredImage } from "@homeslate/widgets";
+import type { View } from "@homeslate/schema";
+import type { Photo } from "@homeslate/widgets";
 
 interface BackgroundSlideshowProps {
   view: View;
@@ -10,10 +10,10 @@ interface BackgroundSlideshowProps {
 function asPhotos(value: unknown[] | undefined): Photo[] {
   if (!value) return [];
   return value.filter((photo): photo is Photo => {
-    if (typeof photo !== 'object' || photo === null || !('type' in photo)) return false;
+    if (typeof photo !== "object" || photo === null || !("type" in photo)) return false;
     const typed = photo as { type?: unknown; url?: unknown; key?: unknown };
-    if (typed.type === 'url') return typeof typed.url === 'string';
-    if (typed.type === 'stored') return typeof typed.key === 'string';
+    if (typed.type === "url") return typeof typed.url === "string";
+    if (typed.type === "stored") return typeof typed.key === "string";
     return false;
   });
 }
@@ -30,7 +30,7 @@ function asPhotos(value: unknown[] | undefined): Photo[] {
 export function BackgroundSlideshow({ view }: BackgroundSlideshowProps): JSX.Element | null {
   const background = view.background ?? {};
   const image = background.image;
-  const imageSize = background.imageSize ?? 'cover';
+  const imageSize = background.imageSize ?? "cover";
   const overlayOpacity = background.overlayOpacity ?? 0.5;
   const photos = useMemo(() => asPhotos(view.background?.photos), [view.background?.photos]);
   const intervalSeconds = background.intervalSeconds ?? 10;
@@ -50,7 +50,7 @@ export function BackgroundSlideshow({ view }: BackgroundSlideshowProps): JSX.Ele
       const map = new Map<string, string>();
       await Promise.all(
         photos.map(async (photo) => {
-          if (photo.type === 'url') {
+          if (photo.type === "url") {
             map.set(photo.url, photo.url);
           } else {
             const cached = blobUrlsRef.current.get(photo.key);
@@ -66,13 +66,15 @@ export function BackgroundSlideshow({ view }: BackgroundSlideshowProps): JSX.Ele
               // skip failed loads
             }
           }
-        })
+        }),
       );
       if (!cancelled) setResolvedUrls(map);
     };
 
     void resolve();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [photos, hasPhotos]);
 
   useEffect(() => {
@@ -102,42 +104,42 @@ export function BackgroundSlideshow({ view }: BackgroundSlideshowProps): JSX.Ele
     return () => clearInterval(timer);
   }, [hasPhotos, photos.length, intervalSeconds, advance]);
 
-  const sizeValue = imageSize === 'tile' ? 'auto' : imageSize;
-  const repeatValue = imageSize === 'tile' ? 'repeat' : 'no-repeat';
+  const sizeValue = imageSize === "tile" ? "auto" : imageSize;
+  const repeatValue = imageSize === "tile" ? "repeat" : "no-repeat";
 
   const overlayStyle: React.CSSProperties = {
-    position: 'absolute',
+    position: "absolute",
     inset: 0,
     background: `rgba(0,0,0,${overlayOpacity})`,
-    pointerEvents: 'none',
+    pointerEvents: "none",
   };
 
   const baseLayerStyle: React.CSSProperties = {
-    position: 'absolute',
+    position: "absolute",
     inset: 0,
     backgroundSize: sizeValue,
     backgroundRepeat: repeatValue,
-    backgroundPosition: 'center',
-    transition: 'opacity 0.6s ease',
+    backgroundPosition: "center",
+    transition: "opacity 0.6s ease",
   };
 
   const wrapperStyle: React.CSSProperties = {
-    position: 'absolute',
+    position: "absolute",
     inset: 0,
     zIndex: 0,
-    pointerEvents: 'none',
+    pointerEvents: "none",
   };
 
   const fillStyle = (src: string | undefined, opacity: number): React.CSSProperties => ({
     ...baseLayerStyle,
-    background: src ? `url(${src}) center / ${sizeValue} ${repeatValue}` : 'none',
+    background: src ? `url(${src}) center / ${sizeValue} ${repeatValue}` : "none",
     opacity,
   });
 
   if (hasPhotos) {
     const currentPhoto = photos[currentIndex];
     const src = currentPhoto
-      ? currentPhoto.type === 'url'
+      ? currentPhoto.type === "url"
         ? resolvedUrls.get(currentPhoto.url)
         : resolvedUrls.get(currentPhoto.key)
       : undefined;

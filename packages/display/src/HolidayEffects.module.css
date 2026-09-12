@@ -116,24 +116,96 @@
   text-shadow: 0 0 9px rgba(74, 222, 128, 0.64);
 }
 
-.sparkle:nth-child(1) { left: 4%; animation-delay: -1s; animation-duration: 9s; }
-.sparkle:nth-child(2) { left: 11%; animation-delay: -4s; animation-duration: 10s; }
-.sparkle:nth-child(3) { left: 18%; animation-delay: -2s; animation-duration: 11s; }
-.sparkle:nth-child(4) { left: 25%; animation-delay: -8s; animation-duration: 9.5s; }
-.sparkle:nth-child(5) { left: 33%; animation-delay: -5s; animation-duration: 12s; }
-.sparkle:nth-child(6) { left: 41%; animation-delay: -7s; animation-duration: 10.5s; }
-.sparkle:nth-child(7) { left: 49%; animation-delay: -3s; animation-duration: 9.2s; }
-.sparkle:nth-child(8) { left: 56%; animation-delay: -6s; animation-duration: 11.4s; }
-.sparkle:nth-child(9) { left: 64%; animation-delay: -2.5s; animation-duration: 10.2s; }
-.sparkle:nth-child(10) { left: 72%; animation-delay: -7.8s; animation-duration: 12.3s; }
-.sparkle:nth-child(11) { left: 79%; animation-delay: -1.8s; animation-duration: 9.8s; }
-.sparkle:nth-child(12) { left: 86%; animation-delay: -5.5s; animation-duration: 11.8s; }
-.sparkle:nth-child(13) { left: 92%; animation-delay: -3.8s; animation-duration: 10.8s; }
-.sparkle:nth-child(14) { left: 96%; animation-delay: -6.8s; animation-duration: 9.3s; }
-.sparkle:nth-child(15) { left: 14%; animation-delay: -9.2s; animation-duration: 12.8s; }
-.sparkle:nth-child(16) { left: 58%; animation-delay: -4.9s; animation-duration: 13.2s; }
-.sparkle:nth-child(17) { left: 76%; animation-delay: -2.7s; animation-duration: 12.6s; }
-.sparkle:nth-child(18) { left: 88%; animation-delay: -8.4s; animation-duration: 11.6s; }
+.sparkle:nth-child(1) {
+  left: 4%;
+  animation-delay: -1s;
+  animation-duration: 9s;
+}
+.sparkle:nth-child(2) {
+  left: 11%;
+  animation-delay: -4s;
+  animation-duration: 10s;
+}
+.sparkle:nth-child(3) {
+  left: 18%;
+  animation-delay: -2s;
+  animation-duration: 11s;
+}
+.sparkle:nth-child(4) {
+  left: 25%;
+  animation-delay: -8s;
+  animation-duration: 9.5s;
+}
+.sparkle:nth-child(5) {
+  left: 33%;
+  animation-delay: -5s;
+  animation-duration: 12s;
+}
+.sparkle:nth-child(6) {
+  left: 41%;
+  animation-delay: -7s;
+  animation-duration: 10.5s;
+}
+.sparkle:nth-child(7) {
+  left: 49%;
+  animation-delay: -3s;
+  animation-duration: 9.2s;
+}
+.sparkle:nth-child(8) {
+  left: 56%;
+  animation-delay: -6s;
+  animation-duration: 11.4s;
+}
+.sparkle:nth-child(9) {
+  left: 64%;
+  animation-delay: -2.5s;
+  animation-duration: 10.2s;
+}
+.sparkle:nth-child(10) {
+  left: 72%;
+  animation-delay: -7.8s;
+  animation-duration: 12.3s;
+}
+.sparkle:nth-child(11) {
+  left: 79%;
+  animation-delay: -1.8s;
+  animation-duration: 9.8s;
+}
+.sparkle:nth-child(12) {
+  left: 86%;
+  animation-delay: -5.5s;
+  animation-duration: 11.8s;
+}
+.sparkle:nth-child(13) {
+  left: 92%;
+  animation-delay: -3.8s;
+  animation-duration: 10.8s;
+}
+.sparkle:nth-child(14) {
+  left: 96%;
+  animation-delay: -6.8s;
+  animation-duration: 9.3s;
+}
+.sparkle:nth-child(15) {
+  left: 14%;
+  animation-delay: -9.2s;
+  animation-duration: 12.8s;
+}
+.sparkle:nth-child(16) {
+  left: 58%;
+  animation-delay: -4.9s;
+  animation-duration: 13.2s;
+}
+.sparkle:nth-child(17) {
+  left: 76%;
+  animation-delay: -2.7s;
+  animation-duration: 12.6s;
+}
+.sparkle:nth-child(18) {
+  left: 88%;
+  animation-delay: -8.4s;
+  animation-duration: 11.6s;
+}
 
 @keyframes drift {
   0% {

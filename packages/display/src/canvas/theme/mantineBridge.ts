@@ -1,24 +1,9 @@
 import type { MantineColorsTuple, MantineThemeOverride } from "@mantine/core";
 import type { ResolvedTheme } from "./resolvedTypes";
 
-function spreadHexShadesFrom(
-  palette: Record<string, string>,
-): MantineColorsTuple {
-  const ordered = [
-    "50",
-    "100",
-    "200",
-    "300",
-    "400",
-    "500",
-    "600",
-    "700",
-    "800",
-    "900",
-  ];
-  const shades = ordered
-    .map((k) => palette[k])
-    .filter((v): v is string => typeof v === "string");
+function spreadHexShadesFrom(palette: Record<string, string>): MantineColorsTuple {
+  const ordered = ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"];
+  const shades = ordered.map((k) => palette[k]).filter((v): v is string => typeof v === "string");
   if (shades.length === 10) return shades as unknown as MantineColorsTuple;
 
   const seed = palette["500"] ?? Object.values(palette)[0] ?? "#6366f1";
@@ -28,9 +13,7 @@ function spreadHexShadesFrom(
   ) as unknown as MantineColorsTuple;
 }
 
-export function mantineThemeFromResolved(
-  resolved: ResolvedTheme,
-): MantineThemeOverride {
+export function mantineThemeFromResolved(resolved: ResolvedTheme): MantineThemeOverride {
   return {
     primaryColor: "brand",
     colors: {
@@ -45,8 +28,7 @@ export function mantineThemeFromResolved(
     },
     headings: {
       fontFamily:
-        resolved.foundation.typography.family.display ??
-        resolved.foundation.typography.family.base,
+        resolved.foundation.typography.family.display ?? resolved.foundation.typography.family.base,
     },
   };
 }

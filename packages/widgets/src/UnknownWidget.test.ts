@@ -1,13 +1,13 @@
-import { describe, expect, it } from 'vitest';
-import { getWidgetByType } from './registry';
-import { unknownWidgetLabel } from './UnknownWidget';
+import { describe, expect, it } from "vite-plus/test";
+import { getWidgetByType } from "./registry";
+import { unknownWidgetLabel } from "./UnknownWidget";
 
-describe('unknown widgets', () => {
-  it('does not resolve an unregistered type', () => {
-    expect(getWidgetByType('mystery-widget')).toBeUndefined();
+describe("unknown widgets", () => {
+  it("does not resolve an unregistered type", () => {
+    expect(getWidgetByType("mystery-widget")).toBeUndefined();
   });
 
-  it('labels the missing type', () => {
-    expect(unknownWidgetLabel('mystery-widget')).toBe('Unknown widget type: mystery-widget');
+  it("labels the missing type", () => {
+    expect(unknownWidgetLabel("mystery-widget")).toBe("Unknown widget type: mystery-widget");
   });
 });

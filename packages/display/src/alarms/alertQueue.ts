@@ -1,9 +1,6 @@
-import type { AlertQueueItem } from './alertTypes';
+import type { AlertQueueItem } from "./alertTypes";
 
-export function dedupeEnqueue(
-  queue: AlertQueueItem[],
-  items: AlertQueueItem[],
-): AlertQueueItem[] {
+export function dedupeEnqueue(queue: AlertQueueItem[], items: AlertQueueItem[]): AlertQueueItem[] {
   const ids = new Set(queue.map((item) => item.id));
   const next = [...queue];
 

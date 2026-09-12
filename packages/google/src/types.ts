@@ -46,7 +46,7 @@ export type GoogleClient = {
   listCalendars(accountId: string): Promise<CalendarListItem[]>;
   listEvents(
     accountId: string,
-    params: { calendarIds: string[]; timeMin: string; timeMax: string }
+    params: { calendarIds: string[]; timeMin: string; timeMax: string },
   ): Promise<CalendarEvent[]>;
   fetchPhoto(accountId: string, params: { baseUrl: string; size: string }): Promise<Uint8Array>;
 };

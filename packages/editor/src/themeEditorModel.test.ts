@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { getPresetById } from "@homeslate/display/canvas";
 import {
   buildReferenceOptions,
@@ -33,7 +33,7 @@ describe("theme editor model", () => {
           referencePath: "components.widget.background",
           value: expect.stringContaining("rgba("),
         }),
-      ])
+      ]),
     );
   });
 
@@ -55,23 +55,29 @@ describe("theme editor model", () => {
           label: "Foundation / Color / Red / 500 (oklch(63.7% 0.237 25.331))",
           value: "{foundation.color.red.500}",
         }),
-      ])
+      ]),
     );
     expect(options).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ value: "{semantic.text.link}" }),
         expect.objectContaining({ value: "{modes.light.semantic.surface.card}" }),
-      ])
+      ]),
     );
   });
 
   it("updates a color token value without mutating the original document", () => {
     const doc = getPresetById("theme_cosmos");
-    const updated = setColorTokenValue(doc, ["tokens", "modes", "dark", "semantic", "text", "link"], "#ff00aa");
+    const updated = setColorTokenValue(
+      doc,
+      ["tokens", "modes", "dark", "semantic", "text", "link"],
+      "#ff00aa",
+    );
 
     expect(updated.tokens.modes.dark.semantic.text.link.$value).toBe("#ff00aa");
     expect(doc.tokens.modes.dark.semantic.text.link.$value).toBe("{foundation.color.brand.500}");
-    expect(updated.tokens.modes.light.semantic.text.link.$value).toBe("{foundation.color.brand.500}");
+    expect(updated.tokens.modes.light.semantic.text.link.$value).toBe(
+      "{foundation.color.brand.500}",
+    );
   });
 
   it("lists editable font family and dimension tokens", () => {
@@ -98,13 +104,18 @@ describe("theme editor model", () => {
           referencePath: "components.widget.borderWidth",
           value: "1px",
         }),
-      ])
+      ]),
     );
   });
 
   it("builds type-aware reference options", () => {
     const doc = getPresetById("theme_cosmos");
-    const dimensionOptions = buildReferenceOptions(doc, "dark", "dimension", "components.widget.radius");
+    const dimensionOptions = buildReferenceOptions(
+      doc,
+      "dark",
+      "dimension",
+      "components.widget.radius",
+    );
     const fontOptions = buildReferenceOptions(doc, "dark", "fontFamily");
 
     expect(dimensionOptions).toEqual(
@@ -113,29 +124,43 @@ describe("theme editor model", () => {
           label: "Foundation / Radius / Md (10px)",
           value: "{foundation.radius.md}",
         }),
-      ])
+      ]),
     );
     expect(dimensionOptions).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ value: "{components.widget.radius}" }),
         expect.objectContaining({ value: "{foundation.typography.family.base}" }),
-      ])
+      ]),
     );
     expect(fontOptions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ value: "{foundation.typography.family.base}" }),
-      ])
+      ]),
     );
   });
 
   it("updates non-color token values without mutating the original document", () => {
     const doc = getPresetById("theme_cosmos");
-    const withFont = setTokenValue(doc, ["tokens", "foundation", "typography", "family", "base"], "'Aptos', sans-serif", "fontFamily");
-    const withRadius = setTokenValue(doc, ["tokens", "modes", "dark", "components", "widget", "radius"], "{foundation.radius.lg}", "dimension");
+    const withFont = setTokenValue(
+      doc,
+      ["tokens", "foundation", "typography", "family", "base"],
+      "'Aptos', sans-serif",
+      "fontFamily",
+    );
+    const withRadius = setTokenValue(
+      doc,
+      ["tokens", "modes", "dark", "components", "widget", "radius"],
+      "{foundation.radius.lg}",
+      "dimension",
+    );
 
     expect(withFont.tokens.foundation.typography.family.base.$value).toBe("'Aptos', sans-serif");
-    expect(doc.tokens.foundation.typography.family.base.$value).toBe("'Outfit', 'Inter', sans-serif");
-    expect(withRadius.tokens.modes.dark.components?.widget?.radius?.$value).toBe("{foundation.radius.lg}");
+    expect(doc.tokens.foundation.typography.family.base.$value).toBe(
+      "'Outfit', 'Inter', sans-serif",
+    );
+    expect(withRadius.tokens.modes.dark.components?.widget?.radius?.$value).toBe(
+      "{foundation.radius.lg}",
+    );
     expect(doc.tokens.modes.dark.components?.widget?.radius?.$value).toBe("12px");
   });
 

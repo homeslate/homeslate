@@ -1,12 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-const cssPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "ClockWidget.module.css",
-);
+const cssPath = join(dirname(fileURLToPath(import.meta.url)), "ClockWidget.module.css");
 
 const css = readFileSync(cssPath, "utf8");
 

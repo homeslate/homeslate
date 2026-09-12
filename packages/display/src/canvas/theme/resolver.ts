@@ -39,10 +39,7 @@ function getPath(root: Record<string, Json>, path: string[]): Json {
   return cur;
 }
 
-function deepMerge<T extends Record<string, Json>>(
-  target: T,
-  source: Record<string, Json>,
-): T {
+function deepMerge<T extends Record<string, Json>>(target: T, source: Record<string, Json>): T {
   const out = { ...target } as Record<string, Json>;
   for (const [key, value] of Object.entries(source)) {
     if (value === undefined) continue;
@@ -77,29 +74,16 @@ function resolveAlias(
 
   const targetPath = m[1].split(".");
   if (trace.includes(expression)) {
-    throw new ThemeResolutionError(reportingPath, "cycle", [
-      ...trace,
-      expression,
-    ]);
+    throw new ThemeResolutionError(reportingPath, "cycle", [...trace, expression]);
   }
 
-  if (
-    targetPath[0] === "modes" &&
-    targetPath[1] &&
-    targetPath[1] !== ctx.mode
-  ) {
-    throw new ThemeResolutionError(reportingPath, "cross-mode", [
-      ...trace,
-      expression,
-    ]);
+  if (targetPath[0] === "modes" && targetPath[1] && targetPath[1] !== ctx.mode) {
+    throw new ThemeResolutionError(reportingPath, "cross-mode", [...trace, expression]);
   }
 
   let targetNode: Json;
   if (targetPath[0] === "foundation") {
-    targetNode = getPath(
-      ctx.doc.tokens.foundation as Record<string, Json>,
-      targetPath.slice(1),
-    );
+    targetNode = getPath(ctx.doc.tokens.foundation as Record<string, Json>, targetPath.slice(1));
   } else if (targetPath[0] === "modes") {
     targetNode = getPath(ctx.modeBlock, targetPath.slice(2));
   } else if (targetPath[0] === "semantic" || targetPath[0] === "components") {
@@ -109,10 +93,7 @@ function resolveAlias(
   }
 
   if (targetNode === undefined) {
-    throw new ThemeResolutionError(reportingPath, "missing", [
-      ...trace,
-      expression,
-    ]);
+    throw new ThemeResolutionError(reportingPath, "missing", [...trace, expression]);
   }
 
   if (isPlainObject(targetNode) && "$value" in targetNode) {
@@ -137,11 +118,7 @@ function unwrap(node: Json, ctx: ResolveContext, reportingPath: string): Json {
   }
   const out: Record<string, Json> = {};
   for (const [key, value] of Object.entries(node)) {
-    out[key] = unwrap(
-      value,
-      ctx,
-      reportingPath ? `${reportingPath}.${key}` : key,
-    );
+    out[key] = unwrap(value, ctx, reportingPath ? `${reportingPath}.${key}` : key);
   }
   return out;
 }
@@ -151,18 +128,12 @@ export function resolveTheme(
   mode: ColorMode,
   overrides?: ThemeOverride[],
 ): ResolvedTheme {
-  const baseModeBlock = doc.tokens.modes[mode] as unknown as Record<
-    string,
-    Json
-  >;
+  const baseModeBlock = doc.tokens.modes[mode] as unknown as Record<string, Json>;
 
   let modeBlock = baseModeBlock;
   if (overrides && overrides.length > 0) {
     for (const override of overrides) {
-      modeBlock = deepMerge(
-        modeBlock,
-        override as unknown as Record<string, Json>,
-      );
+      modeBlock = deepMerge(modeBlock, override as unknown as Record<string, Json>);
     }
   }
 
@@ -173,17 +144,9 @@ export function resolveTheme(
     ctx,
     "foundation",
   ) as ResolvedTheme["foundation"];
-  const semantic = unwrap(
-    modeBlock.semantic,
-    ctx,
-    "semantic",
-  ) as ResolvedTheme["semantic"];
+  const semantic = unwrap(modeBlock.semantic, ctx, "semantic") as ResolvedTheme["semantic"];
   const components = modeBlock.components
-    ? (unwrap(
-        modeBlock.components,
-        ctx,
-        "components",
-      ) as ResolvedTheme["components"])
+    ? (unwrap(modeBlock.components, ctx, "components") as ResolvedTheme["components"])
     : undefined;
 
   return {

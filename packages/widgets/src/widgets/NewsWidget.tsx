@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   Box,
   Text,
@@ -9,13 +9,13 @@ import {
   MultiSelect,
   NumberInput,
   Anchor,
-} from '@mantine/core';
-import { IconNews, IconRefresh, IconExternalLink } from '@tabler/icons-react';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useNews } from '../hooks/useNews';
-import { WidgetDataStatus } from '../chrome/WidgetDataStatus';
-import { popularFeeds, type RSSFeed } from '../services/news';
-import classes from './NewsWidget.module.css';
+} from "@mantine/core";
+import { IconNews, IconRefresh, IconExternalLink } from "@tabler/icons-react";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useNews } from "../hooks/useNews";
+import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { popularFeeds, type RSSFeed } from "../services/news";
+import classes from "./NewsWidget.module.css";
 
 export interface NewsConfig extends WidgetConfig {
   feedUrls: string[];
@@ -30,7 +30,7 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
 
   const feeds: RSSFeed[] = useMemo(() => {
     return feedUrls
-      .map(url => popularFeeds.find(f => f.url === url))
+      .map((url) => popularFeeds.find((f) => f.url === url))
       .filter((f): f is RSSFeed => f !== undefined);
   }, [feedUrls]);
 
@@ -42,10 +42,12 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
   // No feeds configured
   if (feedUrls.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconNews size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>No News Feeds</Text>
+          <Text size="lg" fw={500}>
+            No News Feeds
+          </Text>
           <Text size="sm" c="dimmed">
             Select news sources in widget settings
           </Text>
@@ -57,10 +59,12 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
   // Loading state
   if (isLoading && items.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
           <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed" mt="sm">Loading news...</Text>
+          <Text size="sm" c="dimmed" mt="sm">
+            Loading news...
+          </Text>
         </div>
       </Box>
     );
@@ -69,9 +73,11 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
   // Error state
   if (error && items.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.error}>
-          <Text size="sm" c="red">{error}</Text>
+          <Text size="sm" c="red">
+            {error}
+          </Text>
           <Button
             variant="light"
             color="blue"
@@ -99,7 +105,7 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
   };
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.header}>
         <Text className={classes.title}>
           <IconNews size={18} />
@@ -155,7 +161,7 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
 export function NewsWidgetSettings({ widget, onConfigChange }: WidgetProps<NewsConfig>) {
   const { feedUrls, maxItems, showSource, showDescription } = widget.config;
 
-  const feedOptions = popularFeeds.map(feed => ({
+  const feedOptions = popularFeeds.map((feed) => ({
     value: feed.url,
     label: feed.name,
   }));
@@ -205,4 +211,3 @@ export function NewsWidgetSettings({ widget, onConfigChange }: WidgetProps<NewsC
     </Stack>
   );
 }
-

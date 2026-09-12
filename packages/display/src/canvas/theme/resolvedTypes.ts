@@ -94,9 +94,7 @@ export interface ResolvedTheme {
   meta: { id: string; name: string; mode: ColorMode };
 }
 
-type DeepPartial<T> = T extends object
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : T;
+type DeepPartial<T> = T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
 /** Override applied during theme resolution. Foundation tokens are global and not overridable. */
 export type ThemeOverride = DeepPartial<{

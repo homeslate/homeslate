@@ -1,14 +1,14 @@
-import { useMemo, useEffect, useRef, useState, useCallback, type JSX } from 'react';
-import GridLayout from 'react-grid-layout/legacy';
-import { v4 as uuidv4 } from 'uuid';
-import { getWidgetByType, getWidgetTypes } from '@homeslate/widgets';
-import type { StickyNote, View } from '@homeslate/schema';
-import { WidgetWrapper, type WidgetRegistryApi } from './WidgetWrapper';
-import { StickyNote as StickyNoteWidget } from './StickyNote';
-import { useElementSize } from '@mantine/hooks';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
-import classes from './DocumentCanvas.module.css';
+import { useMemo, useEffect, useRef, useState, useCallback, type JSX } from "react";
+import GridLayout from "react-grid-layout/legacy";
+import { v4 as uuidv4 } from "uuid";
+import { getWidgetByType, getWidgetTypes } from "@homeslate/widgets";
+import type { StickyNote, View } from "@homeslate/schema";
+import { WidgetWrapper, type WidgetRegistryApi } from "./WidgetWrapper";
+import { StickyNote as StickyNoteWidget } from "./StickyNote";
+import { useElementSize } from "@mantine/hooks";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import classes from "./DocumentCanvas.module.css";
 
 export type { WidgetRegistryApi };
 
@@ -62,7 +62,7 @@ export function DocumentCanvas(props: {
   const handleAddNote = useCallback(() => {
     const note: StickyNote = {
       id: uuidv4(),
-      text: '',
+      text: "",
       x: 10 + Math.random() * 60,
       y: 10 + Math.random() * 60,
       color: NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)],
@@ -102,27 +102,26 @@ export function DocumentCanvas(props: {
     newLayout: readonly { i: string; x: number; y: number; w: number; h: number }[],
   ) => {
     if (!isEditing) return;
-    const clamped = newLayout.map((l: { i: string; x: number; y: number; w: number; h: number }) => {
-      const x = Math.max(0, Math.min(l.x, COLS - 1));
-      const y = Math.max(0, Math.min(l.y, MAX_ROWS - 1));
-      const w = Math.max(1, Math.min(l.w, COLS - x));
-      const h = Math.max(1, Math.min(l.h, MAX_ROWS - y));
-      return { i: l.i, x, y, w, h };
-    });
+    const clamped = newLayout.map(
+      (l: { i: string; x: number; y: number; w: number; h: number }) => {
+        const x = Math.max(0, Math.min(l.x, COLS - 1));
+        const y = Math.max(0, Math.min(l.y, MAX_ROWS - 1));
+        const w = Math.max(1, Math.min(l.w, COLS - x));
+        const h = Math.max(1, Math.min(l.h, MAX_ROWS - y));
+        return { i: l.i, x, y, w, h };
+      },
+    );
     onLayoutChange?.(clamped);
   };
 
   return (
-    <div ref={ref} className={`${classes.container} ${isFading ? classes.fadeIn : ''}`}>
+    <div ref={ref} className={`${classes.container} ${isFading ? classes.fadeIn : ""}`}>
       {view.widgets.length === 0 ? (
         <div className={classes.empty} />
       ) : (
-        <div
-          className={classes.gridWrapper}
-          style={{ width: availableWidth, height: gridHeight }}
-        >
+        <div className={classes.gridWrapper} style={{ width: availableWidth, height: gridHeight }}>
           <GridLayout
-            className={`${classes.grid} ${isEditing ? classes.editing : ''}`}
+            className={`${classes.grid} ${isEditing ? classes.editing : ""}`}
             layout={gridLayout}
             cols={COLS}
             rowHeight={rowHeight}
@@ -136,7 +135,7 @@ export function DocumentCanvas(props: {
             preventCollision={false}
             isBounded={true}
             margin={[MARGIN_X, MARGIN_Y]}
-            resizeHandles={['se', 'sw', 'ne', 'nw', 'e', 'w', 's', 'n']}
+            resizeHandles={["se", "sw", "ne", "nw", "e", "w", "s", "n"]}
           >
             {view.widgets.map((widget) => (
               <div key={widget.id} className={classes.widgetContainer}>
@@ -181,4 +180,4 @@ const MAX_ROWS = 12;
 const CONTAINER_PADDING_X = 32;
 const CONTAINER_PADDING_Y = 64;
 
-const NOTE_COLORS: StickyNote['color'][] = ['yellow', 'pink', 'blue', 'green'];
+const NOTE_COLORS: StickyNote["color"][] = ["yellow", "pink", "blue", "green"];

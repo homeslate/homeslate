@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useGoogleRuntime } from '../googleRuntime';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useGoogleRuntime } from "../googleRuntime";
 import {
   createPickerSession,
   getPickerSession,
@@ -11,14 +11,14 @@ import {
   type PickerSession,
   type PickedMediaItem,
   type StoredImage,
-} from '../services/googlePhotos';
+} from "../services/googlePhotos";
 
 export type CollagePickerStatus =
-  | 'idle'      // no photos stored
-  | 'pending'   // picker session open, waiting for user
-  | 'uploading' // fetching picked items and uploading to Blobs
-  | 'ready'     // displaying stored photos
-  | 'error';
+  | "idle" // no photos stored
+  | "pending" // picker session open, waiting for user
+  | "uploading" // fetching picked items and uploading to Blobs
+  | "ready" // displaying stored photos
+  | "error";
 
 export interface CollagePhoto {
   objectUrl: string;
@@ -72,15 +72,15 @@ export function useGooglePhotoCollage({
   const { accessToken, isAuthenticated } = useGoogleRuntime();
 
   const [pickerStatus, setPickerStatus] = useState<CollagePickerStatus>(
-    savedImages.length > 0 ? 'ready' : 'idle'
+    savedImages.length > 0 ? "ready" : "idle",
   );
-  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [pickerUri, setPickerUri] = useState<string | null>(null);
   const [storedImages, setStoredImages] = useState<StoredImage[]>(savedImages);
-  const [slots, setSlots] = useState<(CollagePhoto | null)[]>(
-    Array(slotCount).fill(null)
-  );
+  const [slots, setSlots] = useState<(CollagePhoto | null)[]>(Array(slotCount).fill(null));
   const [transitioningSlot, setTransitioningSlot] = useState<number | null>(null);
 
   const sessionRef = useRef<PickerSession | null>(null);
@@ -123,38 +123,35 @@ export function useGooglePhotoCollage({
 
   // ── Pre-fetch logic ───────────────────────────────────────────────────────
 
-  const prefetchNext = useCallback(
-    (images: StoredImage[], count: number) => {
-      if (images.length === 0) return;
+  const prefetchNext = useCallback((images: StoredImage[], count: number) => {
+    if (images.length === 0) return;
 
-      const occupied = new Set<number>([
-        ...slotItemIndexRef.current.filter((i): i is number => i !== null),
-        ...prefetchCacheRef.current.keys(),
-        ...prefetchingRef.current,
-      ]);
+    const occupied = new Set<number>([
+      ...slotItemIndexRef.current.filter((i): i is number => i !== null),
+      ...prefetchCacheRef.current.keys(),
+      ...prefetchingRef.current,
+    ]);
 
-      let fetched = 0;
-      const shuffled = [...Array(images.length).keys()].sort(() => Math.random() - 0.5);
+    let fetched = 0;
+    const shuffled = [...Array(images.length).keys()].sort(() => Math.random() - 0.5);
 
-      for (const idx of shuffled) {
-        if (fetched >= count) break;
-        if (occupied.has(idx)) continue;
+    for (const idx of shuffled) {
+      if (fetched >= count) break;
+      if (occupied.has(idx)) continue;
 
-        prefetchingRef.current.add(idx);
-        fetched++;
+      prefetchingRef.current.add(idx);
+      fetched++;
 
-        void loadStoredImage(images[idx].key)
-          .then((url) => {
-            prefetchingRef.current.delete(idx);
-            prefetchCacheRef.current.set(idx, url);
-          })
-          .catch(() => {
-            prefetchingRef.current.delete(idx);
-          });
-      }
-    },
-    []
-  );
+      void loadStoredImage(images[idx].key)
+        .then((url) => {
+          prefetchingRef.current.delete(idx);
+          prefetchCacheRef.current.set(idx, url);
+        })
+        .catch(() => {
+          prefetchingRef.current.delete(idx);
+        });
+    }
+  }, []);
 
   // ── Assign a slot from cache (instant) or fetch (fallback) ───────────────
 
@@ -164,7 +161,7 @@ export function useGooglePhotoCollage({
 
       const currentIdx = slotItemIndexRef.current[slotIdx];
       const inUse = new Set<number>(
-        slotItemIndexRef.current.filter((i): i is number => i !== null)
+        slotItemIndexRef.current.filter((i): i is number => i !== null),
       );
 
       let chosenIdx: number | null = null;
@@ -204,7 +201,7 @@ export function useGooglePhotoCollage({
 
       prefetchNext(images, 1);
     },
-    [revokeBlobAtSlot, prefetchNext]
+    [revokeBlobAtSlot, prefetchNext],
   );
 
   // ── Fill all slots in parallel ────────────────────────────────────────────
@@ -212,12 +209,10 @@ export function useGooglePhotoCollage({
   const fillAllSlots = useCallback(
     async (images: StoredImage[], count: number) => {
       if (images.length === 0) return;
-      await Promise.all(
-        Array.from({ length: count }, (_, i) => loadItemIntoSlot(i, images))
-      );
+      await Promise.all(Array.from({ length: count }, (_, i) => loadItemIntoSlot(i, images)));
       prefetchNext(images, PREFETCH_AHEAD);
     },
-    [loadItemIntoSlot, prefetchNext]
+    [loadItemIntoSlot, prefetchNext],
   );
 
   // ── Polling helpers ──────────────────────────────────────────────────────
@@ -240,35 +235,35 @@ export function useGooglePhotoCollage({
       setUploadProgress({ done: 0, total: images.length });
 
       for (const item of images) {
-        const key = await storeImage(item.mediaFile.baseUrl, token, 'w800-h600');
+        const key = await storeImage(item.mediaFile.baseUrl, token, "w800-h600");
         results.push({ key, filename: item.mediaFile.filename, createTime: item.createTime });
-        setUploadProgress((prev) => prev ? { ...prev, done: prev.done + 1 } : null);
+        setUploadProgress((prev) => (prev ? { ...prev, done: prev.done + 1 } : null));
       }
 
       setUploadProgress(null);
       return results;
     },
-    []
+    [],
   );
 
   const fetchItemsAndFinish = useCallback(
     async (session: PickerSession, token: string) => {
-      setPickerStatus('uploading');
+      setPickerStatus("uploading");
       try {
         const items = await listPickedMediaItems(token, session.id);
         const stored = await uploadPickedItems(items, token);
         setStoredImages(stored);
         await fillAllSlots(stored, slotCount);
-        setPickerStatus('ready');
+        setPickerStatus("ready");
         setPickerUri(null);
         void deletePickerSession(token, session.id);
         sessionRef.current = null;
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to retrieve photos');
-        setPickerStatus('error');
+        setError(err instanceof Error ? err.message : "Failed to retrieve photos");
+        setPickerStatus("error");
       }
     },
-    [uploadPickedItems, fillAllSlots, slotCount]
+    [uploadPickedItems, fillAllSlots, slotCount],
   );
 
   const pollSession = useCallback(
@@ -292,11 +287,11 @@ export function useGooglePhotoCollage({
         }, pollIntervalMs);
       } catch (err) {
         stopPolling();
-        setError(err instanceof Error ? err.message : 'Polling error');
-        setPickerStatus('error');
+        setError(err instanceof Error ? err.message : "Polling error");
+        setPickerStatus("error");
       }
     },
-    [stopPolling, fetchItemsAndFinish]
+    [stopPolling, fetchItemsAndFinish],
   );
 
   // ── Public actions ───────────────────────────────────────────────────────
@@ -304,7 +299,7 @@ export function useGooglePhotoCollage({
   const startPicker = useCallback(async () => {
     if (!accessToken) return;
     setError(null);
-    setPickerStatus('pending');
+    setPickerStatus("pending");
 
     try {
       const session = await createPickerSession(accessToken);
@@ -319,8 +314,8 @@ export function useGooglePhotoCollage({
         void pollSession(session, accessToken);
       }, pollIntervalMs);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start photo picker');
-      setPickerStatus('error');
+      setError(err instanceof Error ? err.message : "Failed to start photo picker");
+      setPickerStatus("error");
     }
   }, [accessToken, pollSession]);
 
@@ -339,7 +334,7 @@ export function useGooglePhotoCollage({
     setSlots(Array(slotCount).fill(null));
     setTransitioningSlot(null);
     setPickerUri(null);
-    setPickerStatus('idle');
+    setPickerStatus("idle");
     setUploadProgress(null);
     setError(null);
   }, [accessToken, stopPolling, revokeAllBlobs, evictCache, slotCount]);
@@ -350,12 +345,12 @@ export function useGooglePhotoCollage({
   // often resizes to show many more. Without this, newly added slots stay blank.
   useEffect(() => {
     const images = storedImages.length > 0 ? storedImages : savedImages;
-    if (images.length === 0 || pickerStatus !== 'ready') return;
+    if (images.length === 0 || pickerStatus !== "ready") return;
     if (lastFilledSlotCountRef.current === slotCount) return;
     lastFilledSlotCountRef.current = slotCount;
     void fillAllSlots(images, slotCount).catch(() => {
-      setError('Failed to load stored photos');
-      setPickerStatus('error');
+      setError("Failed to load stored photos");
+      setPickerStatus("error");
     });
   }, [savedImages, storedImages, pickerStatus, slotCount, fillAllSlots]);
 
@@ -364,7 +359,7 @@ export function useGooglePhotoCollage({
   useEffect(() => {
     if (rotationTimerRef.current) clearInterval(rotationTimerRef.current);
 
-    if (pickerStatus === 'ready' && storedImages.length > 1) {
+    if (pickerStatus === "ready" && storedImages.length > 1) {
       rotationTimerRef.current = setInterval(() => {
         const slotIdx = Math.floor(Math.random() * slotCount);
         setTransitioningSlot(slotIdx);

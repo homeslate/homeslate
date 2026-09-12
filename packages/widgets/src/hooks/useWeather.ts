@@ -1,15 +1,12 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  fetchWeatherCached, 
-  type WeatherData,
-} from '../services/weather';
-import { sliceHourlyFromNow } from '../services/hourlyForecast';
-import { getNextPollDelay } from './polling';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { fetchWeatherCached, type WeatherData } from "../services/weather";
+import { sliceHourlyFromNow } from "../services/hourlyForecast";
+import { getNextPollDelay } from "./polling";
 
 interface UseWeatherOptions {
   latitude: number | null;
   longitude: number | null;
-  units: 'imperial' | 'metric';
+  units: "imperial" | "metric";
   locationInfo?: { name: string; country: string; admin1?: string };
   refreshInterval?: number; // in milliseconds
 }
@@ -71,17 +68,12 @@ export function useWeather({
     setError(null);
 
     try {
-      const weatherData = await fetchWeatherCached(
-        latitude,
-        longitude,
-        units,
-        locationInfo
-      );
+      const weatherData = await fetchWeatherCached(latitude, longitude, units, locationInfo);
       setRawData(weatherData);
       setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch weather');
+      setError(err instanceof Error ? err.message : "Failed to fetch weather");
       setConsecutiveFailures((prev) => prev + 1);
     } finally {
       setIsLoading(false);
@@ -120,10 +112,7 @@ export function useWeather({
     return () => clearTimeout(timeoutId);
   }, [rawData]);
 
-  const data = useMemo(
-    () => (rawData ? withHourlySlice(rawData, now) : null),
-    [rawData, now],
-  );
+  const data = useMemo(() => (rawData ? withHourlySlice(rawData, now) : null), [rawData, now]);
 
   return {
     data,
@@ -133,4 +122,3 @@ export function useWeather({
     refresh: fetchData,
   };
 }
-

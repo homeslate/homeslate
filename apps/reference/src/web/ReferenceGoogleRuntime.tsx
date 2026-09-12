@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { GoogleRuntimeProvider, type GoogleRuntime } from '@homeslate/widgets';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { GoogleRuntimeProvider, type GoogleRuntime } from "@homeslate/widgets";
 
 export function ReferenceGoogleRuntime({
   displayId,
@@ -15,7 +15,7 @@ export function ReferenceGoogleRuntime({
 
   const refreshAccessToken = useCallback(async () => {
     try {
-      const response = await fetch('/api/google/session');
+      const response = await fetch("/api/google/session");
       const body = (await response.json()) as { accessToken?: string | null };
       const next = body.accessToken ?? null;
       setAccessToken(next);
@@ -38,12 +38,12 @@ export function ReferenceGoogleRuntime({
       isAuthenticated: Boolean(accessToken),
       isLoading,
       signIn: () => {
-        window.location.href = '/api/google/connect';
+        window.location.href = "/api/google/connect";
       },
       refreshAccessToken,
       displayId,
       isPreview,
-      kioskFetchBaseUrl: '/api',
+      kioskFetchBaseUrl: "/api",
     }),
     [accessToken, displayId, isLoading, isPreview, refreshAccessToken],
   );

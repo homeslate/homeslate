@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import {
   TAILWIND_COLOR_PALETTES,
   TAILWIND_COMPACT_COLOR_SWATCHES,

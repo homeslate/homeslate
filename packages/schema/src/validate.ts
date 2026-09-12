@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { migrateDisplayDocument } from './migrate';
-import { validateThemeDocument } from './themeDocumentValidation';
-import type { DisplayDocument } from './types';
+import { z } from "zod";
+import { migrateDisplayDocument } from "./migrate";
+import { validateThemeDocument } from "./themeDocumentValidation";
+import type { DisplayDocument } from "./types";
 
 export type DisplayValidationError = { path: string; message: string };
 
@@ -20,14 +20,14 @@ export function clearWidgetConfigSchemas(): void {
 }
 
 const holidayIdSchema = z.enum([
-  'new-years-day',
-  'valentines-day',
-  'st-patricks-day',
-  'independence-day',
-  'halloween',
-  'thanksgiving',
-  'christmas',
-  'new-years-eve',
+  "new-years-day",
+  "valentines-day",
+  "st-patricks-day",
+  "independence-day",
+  "halloween",
+  "thanksgiving",
+  "christmas",
+  "new-years-eve",
 ]);
 
 const widgetLayoutSchema = z.object({
@@ -60,7 +60,7 @@ const viewSchema = z.object({
   background: z
     .object({
       image: z.string().optional(),
-      imageSize: z.enum(['cover', 'contain', 'tile']).optional(),
+      imageSize: z.enum(["cover", "contain", "tile"]).optional(),
       overlayOpacity: z.number().optional(),
       photos: z.array(z.unknown()).optional(),
       intervalSeconds: z.number().optional(),
@@ -74,7 +74,7 @@ const viewSchema = z.object({
         x: z.number(),
         y: z.number(),
         color: z.string().min(1),
-      })
+      }),
     )
     .optional(),
 });
@@ -90,7 +90,7 @@ const displayDocumentSchema = z.object({
   }),
   themes: z.array(z.unknown()),
   activeThemeId: z.string().nullable(),
-  colorMode: z.enum(['light', 'dark']).optional(),
+  colorMode: z.enum(["light", "dark"]).optional(),
   settings: z.object({
     stickyNotesEnabled: z.boolean().optional(),
     voiceEnabled: z.boolean().optional(),
@@ -105,21 +105,32 @@ const displayDocumentSchema = z.object({
         enabled: z.boolean(),
         time: z.string(),
         days: z.array(z.number().int().min(0).max(6)),
-        toneId: z.enum(['chime', 'bell', 'radar']),
-      })
+        toneId: z.enum(["chime", "bell", "radar"]),
+      }),
     )
+    .optional(),
+  household: z
+    .object({
+      members: z.array(
+        z.object({
+          id: z.string().min(1),
+          name: z.string().min(1),
+          color: z.string().min(1),
+        }),
+      ),
+    })
     .optional(),
 });
 
 function flattenZod(error: z.ZodError): DisplayValidationError[] {
   return error.issues.map((issue) => ({
-    path: issue.path.join('.') || '$',
+    path: issue.path.join(".") || "$",
     message: issue.message,
   }));
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function validateDisplayDocument(raw: unknown): DisplayValidationResult {
@@ -129,14 +140,14 @@ export function validateDisplayDocument(raw: unknown): DisplayValidationResult {
   } catch (err) {
     return {
       ok: false,
-      errors: [{ path: '$', message: err instanceof Error ? err.message : 'Invalid document' }],
+      errors: [{ path: "$", message: err instanceof Error ? err.message : "Invalid document" }],
     };
   }
 
-  if (isPlainObject(raw) && 'schemaVersion' in raw && raw.schemaVersion !== 1) {
+  if (isPlainObject(raw) && "schemaVersion" in raw && raw.schemaVersion !== 1) {
     return {
       ok: false,
-      errors: [{ path: 'schemaVersion', message: 'Unsupported schema version' }],
+      errors: [{ path: "schemaVersion", message: "Unsupported schema version" }],
     };
   }
 
@@ -156,9 +167,9 @@ export function validateDisplayDocument(raw: unknown): DisplayValidationResult {
       if (!configParsed.success) {
         extra.push(
           ...flattenZod(configParsed.error).map((e) => ({
-            path: `views.${viewIndex}.widgets.${widgetIndex}.config.${e.path}`.replace(/\.$/, ''),
+            path: `views.${viewIndex}.widgets.${widgetIndex}.config.${e.path}`.replace(/\.$/, ""),
             message: e.message,
-          }))
+          })),
         );
       }
     });
@@ -171,22 +182,22 @@ export function validateDisplayDocument(raw: unknown): DisplayValidationResult {
       ...validation.issues.map((issue) => ({
         path: `themes.${index}.${issue.path}`,
         message: issue.message,
-      }))
+      })),
     );
   });
 
-  if (typeof parsed.data.activeThemeId === 'string') {
+  if (typeof parsed.data.activeThemeId === "string") {
     const ids = parsed.data.themes
       .map((document) =>
-        typeof document === 'object' && document && 'id' in document
+        typeof document === "object" && document && "id" in document
           ? (document as { id?: unknown }).id
-          : undefined
+          : undefined,
       )
-      .filter((id): id is string => typeof id === 'string');
+      .filter((id): id is string => typeof id === "string");
     if (!ids.includes(parsed.data.activeThemeId)) {
       extra.push({
-        path: 'activeThemeId',
-        message: 'activeThemeId must exist in themes',
+        path: "activeThemeId",
+        message: "activeThemeId must exist in themes",
       });
     }
   }

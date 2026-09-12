@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { GoogleCalendar, ParsedCalendarEvent } from '../services/googleCalendar';
+import { create } from "zustand";
+import type { GoogleCalendar, ParsedCalendarEvent } from "../services/googleCalendar";
 
 export interface CalendarCacheEntry {
   calendars: GoogleCalendar[];
@@ -18,8 +18,7 @@ interface CalendarCacheState {
 export const useCalendarCacheStore = create<CalendarCacheState>()((set, get) => ({
   cache: {},
 
-  setEntry: (key, entry) =>
-    set((state) => ({ cache: { ...state.cache, [key]: entry } })),
+  setEntry: (key, entry) => set((state) => ({ cache: { ...state.cache, [key]: entry } })),
 
   getEntry: (key) => get().cache[key],
 
@@ -33,5 +32,5 @@ export const useCalendarCacheStore = create<CalendarCacheState>()((set, get) => 
 
 /** Stable cache key for a given set of calendar IDs + daysAhead. */
 export function calendarCacheKey(selectedCalendarIds: string[], daysAhead: number): string {
-  return [...selectedCalendarIds].sort().join(',') + '|' + daysAhead;
+  return [...selectedCalendarIds].sort().join(",") + "|" + daysAhead;
 }

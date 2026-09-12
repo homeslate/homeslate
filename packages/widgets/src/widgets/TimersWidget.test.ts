@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { getWidgetByType } from '@homeslate/widgets';
-import { coerceTimerPresets } from './TimersWidget';
+import { describe, expect, it } from "vite-plus/test";
+import { getWidgetByType } from "@homeslate/widgets";
+import { coerceTimerPresets } from "./TimersWidget";
 
-describe('Timers widget', () => {
-  it('registers default timer settings', () => {
-    expect(getWidgetByType('timers')).toMatchObject({
-      type: 'timers',
+describe("Timers widget", () => {
+  it("registers default timer settings", () => {
+    expect(getWidgetByType("timers")).toMatchObject({
+      type: "timers",
       defaultConfig: {
         presets: [],
         transparentBackground: false,
@@ -13,19 +13,19 @@ describe('Timers widget', () => {
     });
   });
 
-  it('removes invalid timer presets and defaults invalid tones before rendering', () => {
+  it("removes invalid timer presets and defaults invalid tones before rendering", () => {
     expect(
       coerceTimerPresets([
-        { id: 'one', label: 'Tea', durationSeconds: 300, toneId: 'chime' },
-        { id: '', label: 'Missing ID', durationSeconds: 300, toneId: 'chime' },
-        { id: 'bad-duration', label: 'Broken', durationSeconds: 0, toneId: 'chime' },
-        { id: 'bad-tone', label: 'Broken', durationSeconds: 300, toneId: 'unknown' },
-        { id: 'missing-tone', label: 'Broken', durationSeconds: 300 },
+        { id: "one", label: "Tea", durationSeconds: 300, toneId: "chime" },
+        { id: "", label: "Missing ID", durationSeconds: 300, toneId: "chime" },
+        { id: "bad-duration", label: "Broken", durationSeconds: 0, toneId: "chime" },
+        { id: "bad-tone", label: "Broken", durationSeconds: 300, toneId: "unknown" },
+        { id: "missing-tone", label: "Broken", durationSeconds: 300 },
       ]),
     ).toEqual([
-      { id: 'one', label: 'Tea', durationSeconds: 300, toneId: 'chime' },
-      { id: 'bad-tone', label: 'Broken', durationSeconds: 300, toneId: 'chime' },
-      { id: 'missing-tone', label: 'Broken', durationSeconds: 300, toneId: 'chime' },
+      { id: "one", label: "Tea", durationSeconds: 300, toneId: "chime" },
+      { id: "bad-tone", label: "Broken", durationSeconds: 300, toneId: "chime" },
+      { id: "missing-tone", label: "Broken", durationSeconds: 300, toneId: "chime" },
     ]);
   });
 });

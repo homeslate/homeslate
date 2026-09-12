@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { validateThemeDocument } from "./themeDocumentValidation";
 
 function minimalDoc(): unknown {
@@ -203,8 +203,7 @@ describe("validateThemeDocument", () => {
         };
       };
     };
-    doc.tokens.modes.dark.semantic.text.primary.$value =
-      "{foundation.color.neutral.500}";
+    doc.tokens.modes.dark.semantic.text.primary.$value = "{foundation.color.neutral.500}";
     const result = validateThemeDocument(doc);
     expect(result.ok).toBe(true);
   });
@@ -226,8 +225,7 @@ describe("validateThemeDocument", () => {
     doc.tokens.foundation.color.sky = {
       "950": { $type: "color", $value: "oklch(29.3% 0.066 243.157)" },
     };
-    doc.tokens.modes.dark.semantic.text.primary.$value =
-      "{foundation.color.red.500}";
+    doc.tokens.modes.dark.semantic.text.primary.$value = "{foundation.color.red.500}";
 
     const result = validateThemeDocument(doc);
 
@@ -242,13 +240,10 @@ describe("validateThemeDocument", () => {
         };
       };
     };
-    doc.tokens.modes.dark.semantic.text.primary.$value =
-      "{foundation.color.neutral.500";
+    doc.tokens.modes.dark.semantic.text.primary.$value = "{foundation.color.neutral.500";
     const result = validateThemeDocument(doc);
     expect(result.ok).toBe(false);
-    expect(result.issues.some((i) => i.path.includes("text.primary"))).toBe(
-      true,
-    );
+    expect(result.issues.some((i) => i.path.includes("text.primary"))).toBe(true);
   });
 
   it("rejects an empty alias path", () => {

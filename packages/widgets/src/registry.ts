@@ -1,5 +1,5 @@
-import { registerWidgetConfigSchema } from '@homeslate/schema';
-import type { WidgetConfig, WidgetRegistryEntry } from './types';
+import { registerWidgetConfigSchema } from "@homeslate/schema";
+import type { WidgetConfig, WidgetRegistryEntry } from "./types";
 
 const widgetRegistry = new Map<string, WidgetRegistryEntry<WidgetConfig>>();
 

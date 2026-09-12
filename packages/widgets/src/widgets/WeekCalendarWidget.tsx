@@ -1,27 +1,41 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
-  Text, Stack, Select, Group, MultiSelect, Paper, Button, NumberInput, Badge,
-  Modal, TextInput, Textarea, Switch, Alert, ActionIcon, ScrollArea,
-} from '@mantine/core';
-import { IconBrandGoogle, IconPlus, IconCheck } from '@tabler/icons-react';
-import { GoogleCalendarEmptyState } from '../chrome/GoogleCalendarEmptyState';
-import { displayCalendarEmptyDetail } from './googleCalendarError';
-import dayjs from 'dayjs';
-import type { WidgetProps, WidgetConfig } from '../types';
-import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { useDisplayCalendar } from '../hooks/useDisplayCalendar';
-import { useGoogleRuntime } from '../googleRuntime';
-import type { ParsedCalendarEvent, CalendarEventInput } from '../services/googleCalendar';
-import classes from './WeekCalendarWidget.module.css';
+  Text,
+  Stack,
+  Select,
+  Group,
+  MultiSelect,
+  Paper,
+  Button,
+  NumberInput,
+  Badge,
+  Modal,
+  TextInput,
+  Textarea,
+  Switch,
+  Alert,
+  ActionIcon,
+  ScrollArea,
+} from "@mantine/core";
+import { IconBrandGoogle, IconPlus, IconCheck } from "@tabler/icons-react";
+import { GoogleCalendarEmptyState } from "../chrome/GoogleCalendarEmptyState";
+import { displayCalendarEmptyDetail } from "./googleCalendarError";
+import dayjs from "dayjs";
+import type { WidgetProps, WidgetConfig } from "../types";
+import { useGoogleCalendar } from "../hooks/useGoogleCalendar";
+import { useDisplayCalendar } from "../hooks/useDisplayCalendar";
+import { useGoogleRuntime } from "../googleRuntime";
+import type { ParsedCalendarEvent, CalendarEventInput } from "../services/googleCalendar";
+import classes from "./WeekCalendarWidget.module.css";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
 export interface WeekCalendarConfig extends WidgetConfig {
   selectedCalendarIds: string[];
-  viewMode: 'calendar-week' | 'rolling-7';
+  viewMode: "calendar-week" | "rolling-7";
   weekStartsOn: 0 | 1; // 0 = Sunday, 1 = Monday
-  startHour: number;   // e.g. 7
-  endHour: number;     // e.g. 21
+  startHour: number; // e.g. 7
+  endHour: number; // e.g. 21
   transparentBackground: boolean;
 }
 
@@ -32,12 +46,12 @@ const HOUR_HEIGHT = 60; // px per hour
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getWeekDays(
-  viewMode: 'calendar-week' | 'rolling-7',
+  viewMode: "calendar-week" | "rolling-7",
   weekStartsOn: 0 | 1,
-  today: dayjs.Dayjs
+  today: dayjs.Dayjs,
 ): dayjs.Dayjs[] {
-  if (viewMode === 'rolling-7') {
-    return Array.from({ length: 7 }, (_, i) => today.add(i, 'day'));
+  if (viewMode === "rolling-7") {
+    return Array.from({ length: 7 }, (_, i) => today.add(i, "day"));
   }
   // Find the start of the current calendar week
   const dow = today.day(); // 0=Sun … 6=Sat
@@ -49,38 +63,38 @@ function getWeekDays(
     // Sunday-start
     offset = -dow;
   }
-  const weekStart = today.add(offset, 'day');
-  return Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day'));
+  const weekStart = today.add(offset, "day");
+  return Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day"));
 }
 
 function formatHour(hour: number): string {
-  if (hour === 0) return '12a';
-  if (hour === 12) return '12p';
+  if (hour === 0) return "12a";
+  if (hour === 12) return "12p";
   return hour < 12 ? `${hour}a` : `${hour - 12}p`;
 }
 
 function formatEventTime(event: ParsedCalendarEvent): string {
   const start = dayjs(event.start);
-  return start.format(start.minute() === 0 ? 'h a' : 'h:mm a');
+  return start.format(start.minute() === 0 ? "h a" : "h:mm a");
 }
 
 function formatEventDetailTime(event: ParsedCalendarEvent): string {
-  if (event.allDay) return 'All day';
+  if (event.allDay) return "All day";
   const start = dayjs(event.start);
   const end = dayjs(event.end);
-  if (start.format('A') === end.format('A')) {
-    return `${start.format('h:mm')} - ${end.format('h:mm A')}`;
+  if (start.format("A") === end.format("A")) {
+    return `${start.format("h:mm")} - ${end.format("h:mm A")}`;
   }
-  return `${start.format('h:mm A')} - ${end.format('h:mm A')}`;
+  return `${start.format("h:mm A")} - ${end.format("h:mm A")}`;
 }
 
 function formatEventDetailDate(event: ParsedCalendarEvent): string {
   const start = dayjs(event.start);
   const end = dayjs(event.end);
-  if (start.isSame(end, 'day')) {
-    return start.format('dddd, MMM D');
+  if (start.isSame(end, "day")) {
+    return start.format("dddd, MMM D");
   }
-  return `${start.format('ddd, MMM D')} - ${end.format('ddd, MMM D')}`;
+  return `${start.format("ddd, MMM D")} - ${end.format("ddd, MMM D")}`;
 }
 
 interface PositionedEvent extends ParsedCalendarEvent {
@@ -95,15 +109,15 @@ function positionEvents(
   events: ParsedCalendarEvent[],
   startHour: number,
   endHour: number,
-  dayStart: dayjs.Dayjs
+  dayStart: dayjs.Dayjs,
 ): PositionedEvent[] {
   const totalMins = (endHour - startHour) * 60;
 
   const timed = events
     .filter((e) => !e.allDay)
     .map((e) => {
-      const rawStart = dayjs(e.start).diff(dayStart, 'minute');
-      const rawEnd = dayjs(e.end).diff(dayStart, 'minute');
+      const rawStart = dayjs(e.start).diff(dayStart, "minute");
+      const rawEnd = dayjs(e.end).diff(dayStart, "minute");
       const startMins = Math.max(rawStart, startHour * 60);
       const endMins = Math.min(rawEnd, endHour * 60);
       return { event: e, startMins, endMins };
@@ -126,11 +140,9 @@ function positionEvents(
 
   // For each event, laneCount = number of events it overlaps with (incl. itself)
   return withLanes.map(({ event, startMins, endMins, lane }) => {
-    const overlaps = withLanes.filter(
-      (o) => o.startMins < endMins && o.endMins > startMins
-    ).length;
+    const overlaps = withLanes.filter((o) => o.startMins < endMins && o.endMins > startMins).length;
     const topPct = ((startMins - startHour * 60) / totalMins) * 100;
-    const heightPct = Math.max(((endMins - startMins) / totalMins) * 100, 100 / totalMins * 24);
+    const heightPct = Math.max(((endMins - startMins) / totalMins) * 100, (100 / totalMins) * 24);
     return { ...event, topPct, heightPct, lane, laneCount: overlaps };
   });
 }
@@ -153,19 +165,19 @@ function roundToNext30(date: Date): string {
   const rounded = Math.ceil(total / 30) * 30;
   const h = Math.floor(rounded / 60) % 24;
   const m = rounded % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function addMinutesToTime(time: string, minutes: number): string {
-  const [h, m] = time.split(':').map(Number);
+  const [h, m] = time.split(":").map(Number);
   const total = (h * 60 + m + minutes) % (24 * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
 function formDataToEventInput(data: EventFormData): CalendarEventInput {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   if (data.allDay) {
-    const nextDay = dayjs(data.date).add(1, 'day').format('YYYY-MM-DD');
+    const nextDay = dayjs(data.date).add(1, "day").format("YYYY-MM-DD");
     return {
       summary: data.title.trim(),
       ...(data.description ? { description: data.description } : {}),
@@ -186,24 +198,29 @@ function formDataToEventInput(data: EventFormData): CalendarEventInput {
 // ── Main Component ──────────────────────────────────────────────────────────
 
 export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) {
-  const { selectedCalendarIds, viewMode, weekStartsOn, startHour, endHour, transparentBackground } = widget.config;
+  const { selectedCalendarIds, viewMode, weekStartsOn, startHour, endHour, transparentBackground } =
+    widget.config;
   const { displayId, isPreview, isAuthenticated } = useGoogleRuntime();
   const isDisplayMode = !!displayId && !isPreview;
   const displayData = useDisplayCalendar({ displayId, selectedCalendarIds, daysAhead: 14 });
-  const googleData = useGoogleCalendar({ selectedCalendarIds, daysAhead: 14, enabled: !isDisplayMode });
+  const googleData = useGoogleCalendar({
+    selectedCalendarIds,
+    daysAhead: 14,
+    enabled: !isDisplayMode,
+  });
   const { events, calendars, addEvent } = isDisplayMode ? displayData : googleData;
 
   // ── Create-event form state ──
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState<EventFormData>({
-    title: '',
-    calendarId: '',
-    date: dayjs().format('YYYY-MM-DD'),
+    title: "",
+    calendarId: "",
+    date: dayjs().format("YYYY-MM-DD"),
     allDay: false,
-    startTime: '09:00',
-    endTime: '10:00',
-    location: '',
-    description: '',
+    startTime: "09:00",
+    endTime: "10:00",
+    location: "",
+    description: "",
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -213,38 +230,50 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
     () =>
       calendars.map((cal) => ({
         value: cal.id,
-        label: cal.summary + (cal.primary ? ' (Primary)' : ''),
-        color: cal.backgroundColor ?? '#4285f4',
+        label: cal.summary + (cal.primary ? " (Primary)" : ""),
+        color: cal.backgroundColor ?? "#4285f4",
       })),
-    [calendars]
+    [calendars],
   );
 
   const openCreateModal = useCallback(
     (date: dayjs.Dayjs) => {
       const start = roundToNext30(new Date());
       setFormData({
-        title: '',
-        calendarId: selectedCalendarIds[0] ?? calendars[0]?.id ?? '',
-        date: date.format('YYYY-MM-DD'),
+        title: "",
+        calendarId: selectedCalendarIds[0] ?? calendars[0]?.id ?? "",
+        date: date.format("YYYY-MM-DD"),
         allDay: false,
         startTime: start,
         endTime: addMinutesToTime(start, 60),
-        location: '',
-        description: '',
+        location: "",
+        description: "",
       });
       setFormError(null);
       setFormOpen(true);
     },
-    [selectedCalendarIds, calendars]
+    [selectedCalendarIds, calendars],
   );
 
   const handleFormSubmit = useCallback(async () => {
-    if (!formData.title.trim()) { setFormError('Title is required'); return; }
-    if (!formData.calendarId) { setFormError('Please select a calendar'); return; }
+    if (!formData.title.trim()) {
+      setFormError("Title is required");
+      return;
+    }
+    if (!formData.calendarId) {
+      setFormError("Please select a calendar");
+      return;
+    }
     if (!formData.allDay) {
-      const startMins = parseInt(formData.startTime.split(':')[0]) * 60 + parseInt(formData.startTime.split(':')[1]);
-      const endMins = parseInt(formData.endTime.split(':')[0]) * 60 + parseInt(formData.endTime.split(':')[1]);
-      if (endMins <= startMins) { setFormError('End time must be after start time'); return; }
+      const startMins =
+        parseInt(formData.startTime.split(":")[0]) * 60 +
+        parseInt(formData.startTime.split(":")[1]);
+      const endMins =
+        parseInt(formData.endTime.split(":")[0]) * 60 + parseInt(formData.endTime.split(":")[1]);
+      if (endMins <= startMins) {
+        setFormError("End time must be after start time");
+        return;
+      }
     }
     setFormLoading(true);
     setFormError(null);
@@ -252,7 +281,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
       await addEvent(formData.calendarId, formDataToEventInput(formData));
       setFormOpen(false);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to create event');
+      setFormError(err instanceof Error ? err.message : "Failed to create event");
     } finally {
       setFormLoading(false);
     }
@@ -272,11 +301,11 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
     return () => clearInterval(t);
   }, []);
 
-  const today = now.startOf('day');
+  const today = now.startOf("day");
   const days = useMemo(
     () => getWeekDays(viewMode, weekStartsOn, today),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viewMode, weekStartsOn, today.format('YYYY-MM-DD')]
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    [viewMode, weekStartsOn, today.format("YYYY-MM-DD")],
   );
 
   const totalMins = (endHour - startHour) * 60;
@@ -292,23 +321,19 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
   const dayData = useMemo(
     () =>
       days.map((day) => {
-        const dayStart = day.startOf('day');
-        const dayEnd = day.endOf('day');
+        const dayStart = day.startOf("day");
+        const dayEnd = day.endOf("day");
         const dayEvents = events.filter(
-          (e) => dayjs(e.start).isBefore(dayEnd) && dayjs(e.end).isAfter(dayStart)
+          (e) => dayjs(e.start).isBefore(dayEnd) && dayjs(e.end).isAfter(dayStart),
         );
-        const allDay = dayEvents.filter(
-          (e) => e.allDay || !dayjs(e.start).isSame(day, 'day')
-        );
-        const timed = dayEvents.filter(
-          (e) => !e.allDay && dayjs(e.start).isSame(day, 'day')
-        );
+        const allDay = dayEvents.filter((e) => e.allDay || !dayjs(e.start).isSame(day, "day"));
+        const timed = dayEvents.filter((e) => !e.allDay && dayjs(e.start).isSame(day, "day"));
         return {
           allDay,
           timed: positionEvents(timed, startHour, endHour, dayStart),
         };
       }),
-    [events, days, startHour, endHour]
+    [events, days, startHour, endHour],
   );
 
   const hasAllDay = dayData.some((d) => d.allDay.length > 0);
@@ -318,7 +343,10 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
   const scrolled = useRef(false);
   useEffect(() => {
     if (scrolled.current || !scrollRef.current) return;
-    const target = Math.max(0, (currentTimePct / 100) * gridHeight - scrollRef.current.clientHeight / 3);
+    const target = Math.max(
+      0,
+      (currentTimePct / 100) * gridHeight - scrollRef.current.clientHeight / 3,
+    );
     scrollRef.current.scrollTop = target;
     scrolled.current = true;
   });
@@ -327,7 +355,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
 
   if (!isAuthenticated && !isDisplayMode) {
     return (
-      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="signIn" className={classes.emptyState} />
       </div>
     );
@@ -335,7 +363,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
 
   if (isDisplayMode && displayData.error && !displayData.isLoading && events.length === 0) {
     return (
-      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState
           variant="displayError"
           className={classes.emptyState}
@@ -347,7 +375,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
 
   if (selectedCalendarIds.length === 0) {
     return (
-      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="noCalendars" className={classes.emptyState} />
       </div>
     );
@@ -356,28 +384,25 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {/* Day headers */}
       <div className={classes.dayHeaders}>
         <div className={classes.timeGutterHead} />
         {days.map((day, i) => {
-          const isToday = day.isSame(today, 'day');
-          const isPast = day.isBefore(today, 'day');
+          const isToday = day.isSame(today, "day");
+          const isPast = day.isBefore(today, "day");
           return (
-            <div
-              key={i}
-              className={`${classes.dayHead} ${isPast ? classes.dayHeadPast : ''}`}
-            >
-              <span className={classes.dayName}>{day.format('ddd')}</span>
-              <span className={`${classes.dayNum} ${isToday ? classes.dayNumToday : ''}`}>
-                {day.format('D')}
+            <div key={i} className={`${classes.dayHead} ${isPast ? classes.dayHeadPast : ""}`}>
+              <span className={classes.dayName}>{day.format("ddd")}</span>
+              <span className={`${classes.dayNum} ${isToday ? classes.dayNumToday : ""}`}>
+                {day.format("D")}
               </span>
               <ActionIcon
                 variant="subtle"
                 size={14}
                 className={classes.dayAddBtn}
                 onClick={() => openCreateModal(day)}
-                title={`Add event on ${day.format('ddd MMM D')}`}
+                title={`Add event on ${day.format("ddd MMM D")}`}
               >
                 <IconPlus size={9} />
               </ActionIcon>
@@ -396,13 +421,13 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
                 <div
                   key={event.id}
                   className={classes.allDayEvent}
-                  style={{ backgroundColor: event.color + 'cc' }}
+                  style={{ backgroundColor: event.color + "cc" }}
                   title={event.title}
                   role="button"
                   tabIndex={0}
                   onClick={() => openEventDetails(event)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       openEventDetails(event);
                     }
@@ -441,12 +466,20 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
             required
             data={calendarOptions}
             value={formData.calendarId}
-            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? '' }))}
+            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? "" }))}
             renderOption={({ option }) => {
               const cal = calendars.find((c) => c.id === option.value);
               return (
                 <Group gap="xs">
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: cal?.backgroundColor ?? '#4285f4', flexShrink: 0 }} />
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: cal?.backgroundColor ?? "#4285f4",
+                      flexShrink: 0,
+                    }}
+                  />
                   <Text size="sm">{option.label}</Text>
                 </Group>
               );
@@ -526,7 +559,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
       <Modal
         opened={!!detailEvent}
         onClose={closeEventDetails}
-        title={detailEvent?.title ?? 'Event details'}
+        title={detailEvent?.title ?? "Event details"}
         size="sm"
         centered
       >
@@ -539,18 +572,12 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
               {formatEventDetailTime(detailEvent)}
             </Text>
             {detailEvent.calendarName && (
-              <Text size="sm">
-                Calendar: {detailEvent.calendarName}
-              </Text>
+              <Text size="sm">Calendar: {detailEvent.calendarName}</Text>
             )}
-            {detailEvent.location && (
-              <Text size="sm">
-                Location: {detailEvent.location}
-              </Text>
-            )}
+            {detailEvent.location && <Text size="sm">Location: {detailEvent.location}</Text>}
             {detailEvent.description && (
-              <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {detailEvent.description.replace(/<[^>]*>/g, '').trim()}
+              <Text size="sm" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {detailEvent.description.replace(/<[^>]*>/g, "").trim()}
               </Text>
             )}
           </Stack>
@@ -575,22 +602,19 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
 
           {/* Full-width current time line */}
           {showCurrentTime && (
-            <div
-              className={classes.currentTimeLine}
-              style={{ top: `${currentTimePct}%` }}
-            >
+            <div className={classes.currentTimeLine} style={{ top: `${currentTimePct}%` }}>
               <div className={classes.currentTimeDot} />
             </div>
           )}
 
           {/* Day columns */}
           {days.map((day, i) => {
-            const isToday = day.isSame(today, 'day');
-            const isPast = day.isBefore(today, 'day');
+            const isToday = day.isSame(today, "day");
+            const isPast = day.isBefore(today, "day");
             return (
               <div
                 key={i}
-                className={`${classes.dayColumn} ${isToday ? classes.dayColumnToday : ''} ${isPast ? classes.dayColumnPast : ''}`}
+                className={`${classes.dayColumn} ${isToday ? classes.dayColumnToday : ""} ${isPast ? classes.dayColumnPast : ""}`}
               >
                 {/* Hour + half-hour lines */}
                 {hours.map((h) => (
@@ -616,7 +640,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
                     tabIndex={0}
                     onClick={() => openEventDetails(event)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         openEventDetails(event);
                       }
@@ -626,7 +650,7 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
                       height: `${event.heightPct}%`,
                       left: `${(event.lane / event.laneCount) * 100}%`,
                       width: `${(1 / event.laneCount) * 98}%`,
-                      backgroundColor: event.color + 'b0',
+                      backgroundColor: event.color + "b0",
                       borderLeftColor: event.color,
                       zIndex: 2,
                     }}
@@ -637,8 +661,6 @@ export function WeekCalendarWidget({ widget }: WidgetProps<WeekCalendarConfig>) 
                     )}
                   </div>
                 ))}
-
-
               </div>
             );
           })}
@@ -660,7 +682,7 @@ export function WeekCalendarWidgetSettings({
 
   const calendarOptions = calendars.map((cal) => ({
     value: cal.id,
-    label: cal.summary + (cal.primary ? ' (Primary)' : ''),
+    label: cal.summary + (cal.primary ? " (Primary)" : ""),
   }));
 
   return (
@@ -668,7 +690,9 @@ export function WeekCalendarWidgetSettings({
       <Paper p="sm">
         {isAuthenticated ? (
           <>
-            <Badge color="green" variant="light" mb="sm">Connected to Google</Badge>
+            <Badge color="green" variant="light" mb="sm">
+              Connected to Google
+            </Badge>
             <MultiSelect
               label="Select Calendars"
               placeholder="Choose calendars to display..."
@@ -680,7 +704,9 @@ export function WeekCalendarWidgetSettings({
           </>
         ) : (
           <Stack align="center" gap="sm">
-            <Text size="sm" c="dimmed">Sign in to select your calendars</Text>
+            <Text size="sm" c="dimmed">
+              Sign in to select your calendars
+            </Text>
             <Button
               leftSection={<IconBrandGoogle size={16} />}
               onClick={signIn}
@@ -696,19 +722,19 @@ export function WeekCalendarWidgetSettings({
       <Select
         label="View mode"
         data={[
-          { value: 'calendar-week', label: 'Calendar week' },
-          { value: 'rolling-7', label: 'Today + 6 upcoming days' },
+          { value: "calendar-week", label: "Calendar week" },
+          { value: "rolling-7", label: "Today + 6 upcoming days" },
         ]}
         value={viewMode}
-        onChange={(v) => v && onConfigChange({ viewMode: v as WeekCalendarConfig['viewMode'] })}
+        onChange={(v) => v && onConfigChange({ viewMode: v as WeekCalendarConfig["viewMode"] })}
       />
 
-      {viewMode === 'calendar-week' && (
+      {viewMode === "calendar-week" && (
         <Select
           label="Week starts on"
           data={[
-            { value: '0', label: 'Sunday' },
-            { value: '1', label: 'Monday' },
+            { value: "0", label: "Sunday" },
+            { value: "1", label: "Monday" },
           ]}
           value={String(weekStartsOn)}
           onChange={(v) => v && onConfigChange({ weekStartsOn: Number(v) as 0 | 1 })}

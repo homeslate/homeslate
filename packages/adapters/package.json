@@ -2,28 +2,34 @@
   "name": "@homeslate/adapters",
   "version": "0.1.1",
   "license": "MIT",
-  "type": "module",
-  "engines": { "node": ">=22.13" },
-  "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/homeslate/homeslate.git"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.json && node -e \"import fs from 'node:fs'; const p='dist/index.js'; fs.writeFileSync(p, fs.readFileSync(p,'utf8').replaceAll('from \\\"sqlite\\\"','from \\\"node:sqlite\\\"'));\"",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@homeslate/google": "0.1.1",
-    "@homeslate/schema": "0.1.1",
-    "@homeslate/widgets": "0.1.1",
+    "@homeslate/google": "workspace:*",
+    "@homeslate/schema": "workspace:*",
+    "@homeslate/widgets": "workspace:*",
     "uuid": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=22.13"
   }
 }

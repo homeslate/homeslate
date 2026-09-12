@@ -1,6 +1,6 @@
-import { GoogleAuthError } from './errors';
+import { GoogleAuthError } from "./errors";
 
-const TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 export type TokenGrant = {
   accessToken: string;
@@ -14,9 +14,9 @@ async function parseGoogleTokenError(res: Response): Promise<string> {
   try {
     const data = JSON.parse(text) as { error?: string; error_description?: string };
     const parts = [data.error, data.error_description].filter(
-      (part): part is string => typeof part === 'string' && part.length > 0
+      (part): part is string => typeof part === "string" && part.length > 0,
     );
-    return parts.length > 0 ? parts.join(': ') : text;
+    return parts.length > 0 ? parts.join(": ") : text;
   } catch {
     return text;
   }
@@ -24,20 +24,20 @@ async function parseGoogleTokenError(res: Response): Promise<string> {
 
 export function googleAuthErrorFromDetail(detail: string): GoogleAuthError {
   if (/expired or revoked/i.test(detail)) {
-    return new GoogleAuthError('token_revoked', `Refresh token exchange failed: ${detail}`);
+    return new GoogleAuthError("token_revoked", `Refresh token exchange failed: ${detail}`);
   }
   if (/invalid_grant/i.test(detail)) {
-    return new GoogleAuthError('invalid_grant', `Refresh token exchange failed: ${detail}`);
+    return new GoogleAuthError("invalid_grant", `Refresh token exchange failed: ${detail}`);
   }
-  return new GoogleAuthError('refresh_failed', `Refresh token exchange failed: ${detail}`);
+  return new GoogleAuthError("refresh_failed", `Refresh token exchange failed: ${detail}`);
 }
 
 function toGrant(
   data: { access_token?: string; refresh_token?: string; expires_in?: number },
-  nowMs: number
+  nowMs: number,
 ): TokenGrant {
   if (!data.access_token) {
-    throw new GoogleAuthError('refresh_failed', 'Token response missing access_token');
+    throw new GoogleAuthError("refresh_failed", "Token response missing access_token");
   }
   const expiresIn = data.expires_in ?? 3600;
   const refreshToken = data.refresh_token?.trim();
@@ -51,8 +51,8 @@ function toGrant(
 
 async function postToken(body: URLSearchParams): Promise<Response> {
   return fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
   });
 }
@@ -70,8 +70,8 @@ export async function exchangeAuthorizationCode(opts: {
       client_id: opts.clientId,
       client_secret: opts.clientSecret,
       redirect_uri: opts.redirectUri,
-      grant_type: 'authorization_code',
-    })
+      grant_type: "authorization_code",
+    }),
   );
   if (!res.ok) {
     const detail = await parseGoogleTokenError(res);
@@ -96,8 +96,8 @@ export async function refreshAccessToken(opts: {
       client_id: opts.clientId,
       client_secret: opts.clientSecret,
       refresh_token: opts.refreshToken,
-      grant_type: 'refresh_token',
-    })
+      grant_type: "refresh_token",
+    }),
   );
   if (!res.ok) {
     const detail = await parseGoogleTokenError(res);

@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, Text, Stack, TextInput, Switch, Group, ActionIcon } from '@mantine/core';
-import { IconCheck, IconPlus, IconX } from '@tabler/icons-react';
-import { v4 as uuidv4 } from 'uuid';
-import type { WidgetProps, WidgetConfig } from '../types';
-import classes from './TodoWidget.module.css';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Box, Text, Stack, TextInput, Switch, Group, ActionIcon } from "@mantine/core";
+import { IconCheck, IconPlus, IconX } from "@tabler/icons-react";
+import { v4 as uuidv4 } from "uuid";
+import type { WidgetProps, WidgetConfig } from "../types";
+import classes from "./TodoWidget.module.css";
 
 export interface TodoItem {
   id: string;
@@ -34,7 +34,7 @@ function saveLocalChecked(widgetId: string, checked: Set<string>) {
 export function TodoWidget({ widget, isEditing, onConfigChange }: WidgetProps<TodoConfig>) {
   const { items, hideCompleted, transparentBackground } = widget.config;
   const [localChecked, setLocalChecked] = useState<Set<string>>(() => getLocalChecked(widget.id));
-  const [newItemText, setNewItemText] = useState('');
+  const [newItemText, setNewItemText] = useState("");
   const itemsRef = useRef(items);
   useEffect(() => {
     itemsRef.current = items;
@@ -68,35 +68,37 @@ export function TodoWidget({ widget, isEditing, onConfigChange }: WidgetProps<To
         });
       }
     },
-    [isEditing, onConfigChange, widget.id]
+    [isEditing, onConfigChange, widget.id],
   );
 
   const handleAddItem = useCallback(() => {
     const text = newItemText.trim();
     if (!text) return;
     onConfigChange({ items: [...itemsRef.current, { id: uuidv4(), text, checked: false }] });
-    setNewItemText('');
+    setNewItemText("");
   }, [newItemText, onConfigChange]);
 
   const handleRemoveItem = useCallback(
     (id: string) => {
       onConfigChange({ items: itemsRef.current.filter((i) => i.id !== id) });
     },
-    [onConfigChange]
+    [onConfigChange],
   );
 
   const allDone = items.length > 0 && items.every((i) => localChecked.has(i.id));
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ''}`}>
+    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <Stack gap={4} className={classes.list}>
         {displayItems.map((item) => (
           <div key={item.id} className={classes.itemRow}>
             <button
-              className={`${classes.item} ${item.checked ? classes.itemChecked : ''}`}
+              className={`${classes.item} ${item.checked ? classes.itemChecked : ""}`}
               onClick={() => handleToggle(item.id)}
             >
-              <span className={`${classes.checkbox} ${item.checked ? classes.checkboxChecked : ''}`}>
+              <span
+                className={`${classes.checkbox} ${item.checked ? classes.checkboxChecked : ""}`}
+              >
                 {item.checked && <IconCheck size={11} strokeWidth={3} />}
               </span>
               <Text className={classes.itemText} size="sm">
@@ -124,10 +126,15 @@ export function TodoWidget({ widget, isEditing, onConfigChange }: WidgetProps<To
             placeholder="Add item..."
             value={newItemText}
             onChange={(e) => setNewItemText(e.currentTarget.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+            onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
             style={{ flex: 1 }}
           />
-          <ActionIcon variant="light" size="md" onClick={handleAddItem} disabled={!newItemText.trim()}>
+          <ActionIcon
+            variant="light"
+            size="md"
+            onClick={handleAddItem}
+            disabled={!newItemText.trim()}
+          >
             <IconPlus size={14} />
           </ActionIcon>
         </Group>

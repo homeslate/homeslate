@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { pickActiveDocument, DEFAULT_THEME_DOCUMENTS } from "./defaults";
 
 const A = { ...DEFAULT_THEME_DOCUMENTS[0], id: "doc_a" };

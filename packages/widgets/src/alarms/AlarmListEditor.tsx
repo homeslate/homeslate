@@ -1,30 +1,33 @@
-import { useCallback, useEffect, useState, type ChangeEvent } from 'react';
-import { Stack, Group, Switch, TextInput, Select, ActionIcon, Text, Paper } from '@mantine/core';
-import { TimeInput, type TimeInputProps } from '@mantine/dates';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
-import { v4 as uuidv4 } from 'uuid';
-import type { AlarmDefinition, AlarmToneId } from '@homeslate/schema';
-import { isValidTime } from './isValidTime';
-import { ALARM_TONE_OPTIONS } from './tones';
-import classes from './AlarmListEditor.module.css';
+import { useCallback, useEffect, useState, type ChangeEvent } from "react";
+import { Stack, Group, Switch, TextInput, Select, ActionIcon, Text, Paper } from "@mantine/core";
+import { TimeInput, type TimeInputProps } from "@mantine/dates";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { v4 as uuidv4 } from "uuid";
+import type { AlarmDefinition, AlarmToneId } from "@homeslate/schema";
+import { isValidTime } from "./isValidTime";
+import { ALARM_TONE_OPTIONS } from "./tones";
+import classes from "./AlarmListEditor.module.css";
 
-const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function summarizeDays(days: number[]): string {
-  if (days.length === 7) return 'Every day';
-  if (days.length === 0) return 'Never';
+  if (days.length === 7) return "Every day";
+  if (days.length === 0) return "Never";
   return [...days]
     .sort((a, b) => a - b)
     .map((d) => DAY_NAMES_SHORT[d])
-    .join(', ');
+    .join(", ");
 }
 
 function AlarmTimeInput({
   value,
   onChange,
   ...props
-}: { value: string; onChange: (time: string) => void } & Omit<TimeInputProps, 'value' | 'onChange'>) {
+}: { value: string; onChange: (time: string) => void } & Omit<
+  TimeInputProps,
+  "value" | "onChange"
+>) {
   const [draft, setDraft] = useState(value);
 
   useEffect(() => {
@@ -51,11 +54,11 @@ function AlarmTimeInput({
 function createAlarm(): AlarmDefinition {
   return {
     id: uuidv4(),
-    label: 'Alarm',
+    label: "Alarm",
     enabled: true,
-    time: '07:00',
+    time: "07:00",
     days: [0, 1, 2, 3, 4, 5, 6],
-    toneId: 'chime',
+    toneId: "chime",
   };
 }
 
@@ -70,7 +73,7 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
     (id: string, patch: Partial<AlarmDefinition>) => {
       onChange(alarms.map((a) => (a.id === id ? { ...a, ...patch } : a)));
     },
-    [alarms, onChange]
+    [alarms, onChange],
   );
 
   const toggleDay = useCallback(
@@ -82,7 +85,7 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
         : [...alarm.days, day].sort((a, b) => a - b);
       updateAlarm(id, { days: nextDays });
     },
-    [alarms, updateAlarm]
+    [alarms, updateAlarm],
   );
 
   const handleAdd = useCallback(() => {
@@ -93,7 +96,7 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
     (id: string) => {
       onChange(alarms.filter((a) => a.id !== id));
     },
-    [alarms, onChange]
+    [alarms, onChange],
   );
 
   if (alarms.length === 0) {
@@ -125,13 +128,18 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
             <Group justify="space-between" wrap="nowrap" align="flex-start">
               <Stack gap={2}>
                 <Text size="sm" fw={600}>
-                  {alarm.label || 'Alarm'}
+                  {alarm.label || "Alarm"}
                 </Text>
                 <Text size="xs" c="dimmed">
                   {alarm.time} · {summarizeDays(alarm.days)}
                 </Text>
               </Stack>
-              <Switch checked={alarm.enabled} readOnly disabled aria-label={`${alarm.label || 'Alarm'} enabled`} />
+              <Switch
+                checked={alarm.enabled}
+                readOnly
+                disabled
+                aria-label={`${alarm.label || "Alarm"} enabled`}
+              />
             </Group>
           ) : (
             <Stack gap="xs">
@@ -169,7 +177,9 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
                 <Select
                   data={ALARM_TONE_OPTIONS}
                   value={alarm.toneId}
-                  onChange={(value) => value && updateAlarm(alarm.id, { toneId: value as AlarmToneId })}
+                  onChange={(value) =>
+                    value && updateAlarm(alarm.id, { toneId: value as AlarmToneId })
+                  }
                   size="sm"
                   aria-label="Alarm tone"
                   allowDeselect={false}
@@ -183,7 +193,7 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
                     <button
                       key={idx}
                       type="button"
-                      className={`${classes.dayChip} ${active ? classes.dayChipActive : ''}`}
+                      className={`${classes.dayChip} ${active ? classes.dayChipActive : ""}`}
                       onClick={() => toggleDay(alarm.id, idx)}
                       aria-pressed={active}
                       aria-label={DAY_NAMES_SHORT[idx]}
@@ -198,7 +208,13 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
         </Paper>
       ))}
       {!readOnly && (
-        <ActionIcon variant="light" size="lg" onClick={handleAdd} aria-label="Add alarm" className={classes.addBtn}>
+        <ActionIcon
+          variant="light"
+          size="lg"
+          onClick={handleAdd}
+          aria-label="Add alarm"
+          className={classes.addBtn}
+        >
           <IconPlus size={18} />
         </ActionIcon>
       )}

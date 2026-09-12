@@ -2,13 +2,14 @@
   "name": "@homeslate/display",
   "version": "0.1.2",
   "license": "MIT",
-  "type": "module",
-  "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/homeslate/homeslate.git"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -19,17 +20,21 @@
       "import": "./dist/canvas/index.js"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts src/canvas/index.ts --format esm --dts --clean --tsconfig ../../tsconfig.app.json --config ../../tsup.config.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@homeslate/schema": "0.1.1",
-    "@homeslate/widgets": "0.1.2",
+    "@homeslate/schema": "workspace:*",
+    "@homeslate/widgets": "workspace:*",
     "@mantine/core": "^8.3.10",
     "@mantine/hooks": "^8.3.10",
     "@tabler/icons-react": "^3.35.0",
     "react-grid-layout": "^2.0.0",
+    "react-resizable": "^3.2.0",
     "uuid": "^13.0.0"
   },
   "peerDependencies": {

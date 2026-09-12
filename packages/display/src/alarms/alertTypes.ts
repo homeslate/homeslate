@@ -1,6 +1,6 @@
-import type { AlarmToneId } from './types';
+import type { AlarmToneId } from "./types";
 
-export type AlertKind = 'alarm' | 'timer';
+export type AlertKind = "alarm" | "timer";
 
 export interface AlertQueueItem {
   kind: AlertKind;

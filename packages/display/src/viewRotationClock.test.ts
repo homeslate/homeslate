@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createViewRotationClock } from './viewRotationClock';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { createViewRotationClock } from "./viewRotationClock";
 
-describe('createViewRotationClock', () => {
+describe("createViewRotationClock", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -10,7 +10,7 @@ describe('createViewRotationClock', () => {
     vi.useRealTimers();
   });
 
-  it('rotates when the interval elapses', () => {
+  it("rotates when the interval elapses", () => {
     const onRotate = vi.fn();
     const clock = createViewRotationClock();
     clock.sync({ enabled: true, intervalMs: 60_000, visibleCount: 2, onRotate });
@@ -22,7 +22,7 @@ describe('createViewRotationClock', () => {
     expect(onRotate).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the original deadline when resynced with a new callback (display config poll)', () => {
+  it("keeps the original deadline when resynced with a new callback (display config poll)", () => {
     const first = vi.fn();
     const second = vi.fn();
     const clock = createViewRotationClock();
@@ -44,7 +44,7 @@ describe('createViewRotationClock', () => {
     expect(second).toHaveBeenCalledTimes(1);
   });
 
-  it('restarts the countdown on an explicit reset', () => {
+  it("restarts the countdown on an explicit reset", () => {
     const onRotate = vi.fn();
     const clock = createViewRotationClock();
     clock.sync({ enabled: true, intervalMs: 30_000, visibleCount: 2, onRotate });
@@ -60,7 +60,7 @@ describe('createViewRotationClock', () => {
     expect(onRotate).toHaveBeenCalledTimes(1);
   });
 
-  it('restarts when the rotation interval changes', () => {
+  it("restarts when the rotation interval changes", () => {
     const onRotate = vi.fn();
     const clock = createViewRotationClock();
     clock.sync({ enabled: true, intervalMs: 30_000, visibleCount: 2, onRotate });
@@ -76,7 +76,7 @@ describe('createViewRotationClock', () => {
     expect(onRotate).toHaveBeenCalledTimes(1);
   });
 
-  it('does not rotate when disabled or only one view is visible', () => {
+  it("does not rotate when disabled or only one view is visible", () => {
     const onRotate = vi.fn();
     const clock = createViewRotationClock();
 

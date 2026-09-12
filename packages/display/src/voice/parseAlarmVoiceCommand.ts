@@ -1,10 +1,8 @@
-import { SNOOZE_MINUTES, type SnoozeMinutes } from '../alarms/types';
+import { SNOOZE_MINUTES, type SnoozeMinutes } from "../alarms/types";
 
-export type AlarmVoiceCommand =
-  | { type: 'dismiss' }
-  | { type: 'snooze'; minutes: SnoozeMinutes };
+export type AlarmVoiceCommand = { type: "dismiss" } | { type: "snooze"; minutes: SnoozeMinutes };
 
-const DISMISS_PHRASES = ['turn off', 'dismiss', 'cancel', 'stop'] as const;
+const DISMISS_PHRASES = ["turn off", "dismiss", "cancel", "stop"] as const;
 
 function isSnoozeMinutes(n: number): n is SnoozeMinutes {
   return (SNOOZE_MINUTES as readonly number[]).includes(n);
@@ -26,7 +24,7 @@ export function parseAlarmVoiceCommand(transcript: string): AlarmVoiceCommand | 
     if (isSnoozeMinutes(mins)) {
       candidates.push({
         index: snoozeWithNum.index,
-        command: { type: 'snooze', minutes: mins },
+        command: { type: "snooze", minutes: mins },
       });
     }
   } else {
@@ -34,7 +32,7 @@ export function parseAlarmVoiceCommand(transcript: string): AlarmVoiceCommand | 
     if (snoozeBare && snoozeBare.index !== undefined) {
       candidates.push({
         index: snoozeBare.index,
-        command: { type: 'snooze', minutes: 5 },
+        command: { type: "snooze", minutes: 5 },
       });
     }
   }
@@ -42,7 +40,7 @@ export function parseAlarmVoiceCommand(transcript: string): AlarmVoiceCommand | 
   for (const phrase of DISMISS_PHRASES) {
     const index = text.indexOf(phrase);
     if (index >= 0) {
-      candidates.push({ index, command: { type: 'dismiss' } });
+      candidates.push({ index, command: { type: "dismiss" } });
       break;
     }
   }

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { themeToVars, hexToRgb } from "./utils";
 import { resolveTheme } from "./resolver";
 import { DEFAULT_THEME_DOCUMENTS } from "./defaults";
@@ -75,9 +75,7 @@ describe("themeToVars — optional groups omitted when not present", () => {
   it("does not emit shadow vars for a theme without foundation.shadow", () => {
     const resolved = resolveTheme(cosmos, "dark");
     const vars = themeToVars(resolved);
-    const shadowKeys = Object.keys(vars).filter((k) =>
-      k.startsWith("--token-shadow-"),
-    );
+    const shadowKeys = Object.keys(vars).filter((k) => k.startsWith("--token-shadow-"));
     expect(shadowKeys).toHaveLength(0);
   });
 });

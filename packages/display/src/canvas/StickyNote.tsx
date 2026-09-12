@@ -1,6 +1,6 @@
-import { useRef, useCallback, useState, useEffect } from 'react';
-import type { StickyNote as StickyNoteType } from '@homeslate/schema';
-import classes from './StickyNote.module.css';
+import { useRef, useCallback, useState, useEffect } from "react";
+import type { StickyNote as StickyNoteType } from "@homeslate/schema";
+import classes from "./StickyNote.module.css";
 
 interface Props {
   note: StickyNoteType;
@@ -10,16 +10,16 @@ interface Props {
 }
 
 const PRESET_COLORS: Record<string, string> = {
-  yellow: '#fef08a',
-  pink: '#fbcfe8',
-  blue: '#bfdbfe',
-  green: '#bbf7d0',
+  yellow: "#fef08a",
+  pink: "#fbcfe8",
+  blue: "#bfdbfe",
+  green: "#bbf7d0",
 };
 
 const PRESET_NAMES = Object.keys(PRESET_COLORS) as string[];
 
 function resolveColor(color: string): string {
-  if (color.startsWith('#')) return color;
+  if (color.startsWith("#")) return color;
   return PRESET_COLORS[color] ?? PRESET_COLORS.yellow;
 }
 
@@ -50,10 +50,10 @@ export function StickyNote({ note, containerRef, onUpdate, onRemove }: Props) {
     (e: React.PointerEvent<HTMLDivElement>) => {
       // Don't intercept clicks on textarea, toolbar buttons, or color picker
       if (
-        (e.target as HTMLElement).tagName === 'TEXTAREA' ||
-        (e.target as HTMLElement).closest('button') ||
+        (e.target as HTMLElement).tagName === "TEXTAREA" ||
+        (e.target as HTMLElement).closest("button") ||
         (e.target as HTMLElement).closest(`.${classes.colorPicker}`) ||
-        (e.target as HTMLElement).closest('label')
+        (e.target as HTMLElement).closest("label")
       )
         return;
 
@@ -83,21 +83,23 @@ export function StickyNote({ note, containerRef, onUpdate, onRemove }: Props) {
         if (noteRef.current) {
           try {
             noteRef.current.releasePointerCapture(ev.pointerId);
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
         const dx = ev.clientX - startX;
         const dy = ev.clientY - startY;
         const newX = Math.max(0, Math.min(90, startPctX + (dx / containerRect.width) * 100));
         const newY = Math.max(0, Math.min(90, startPctY + (dy / containerRect.height) * 100));
         onUpdate({ x: newX, y: newY });
-        window.removeEventListener('pointermove', onMove);
-        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
       };
 
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
     },
-    [note.x, note.y, containerRef, onUpdate]
+    [note.x, note.y, containerRef, onUpdate],
   );
 
   return (
@@ -115,7 +117,10 @@ export function StickyNote({ note, containerRef, onUpdate, onRemove }: Props) {
       <div className={classes.toolbar}>
         <button
           className={classes.colorToggle}
-          onClick={(e) => { e.stopPropagation(); setShowColors((v) => !v); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowColors((v) => !v);
+          }}
           title="Change color"
         >
           <span className={classes.colorDot} style={{ background: bg }} />
@@ -125,7 +130,7 @@ export function StickyNote({ note, containerRef, onUpdate, onRemove }: Props) {
             {PRESET_NAMES.map((c) => (
               <button
                 key={c}
-                className={`${classes.swatch} ${!note.color.startsWith('#') && note.color === c ? classes.swatchActive : ''}`}
+                className={`${classes.swatch} ${!note.color.startsWith("#") && note.color === c ? classes.swatchActive : ""}`}
                 style={{ background: PRESET_COLORS[c] }}
                 title={c}
                 onClick={(e) => {

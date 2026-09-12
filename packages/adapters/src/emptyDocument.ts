@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
-import type { DisplayDocument } from '@homeslate/schema';
+import { randomUUID } from "node:crypto";
+import type { DisplayDocument } from "@homeslate/schema";
 
-export function createEmptyDisplayDocument(name = 'Homeslate'): DisplayDocument {
+export function createEmptyDisplayDocument(name = "Homeslate"): DisplayDocument {
   const viewId = randomUUID();
   return {
     schemaVersion: 1,
@@ -9,7 +9,7 @@ export function createEmptyDisplayDocument(name = 'Homeslate'): DisplayDocument 
     views: [
       {
         id: viewId,
-        name: 'Main',
+        name: "Main",
         columns: 12,
         rowHeight: 80,
         widgets: [],
@@ -20,5 +20,6 @@ export function createEmptyDisplayDocument(name = 'Homeslate'): DisplayDocument 
     themes: [],
     activeThemeId: null,
     settings: {},
+    household: { members: [] },
   };
 }

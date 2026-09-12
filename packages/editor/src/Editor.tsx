@@ -1,8 +1,23 @@
-import { useCallback, useMemo, useRef, useState, type CSSProperties, type JSX, type ReactNode } from 'react';
-import { Group, Button, Modal, Stack } from '@mantine/core';
-import { IconSettings } from '@tabler/icons-react';
-import type { DisplayDocument, StickyNote, ThemeDocument, ViewBackground } from '@homeslate/schema';
-import { AlarmsProvider, TimersProvider, getWidgetByType, getWidgetTypes } from '@homeslate/widgets';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type JSX,
+  type ReactNode,
+} from "react";
+import { Group, Button, Modal, Stack } from "@mantine/core";
+import { IconSettings, IconUsers } from "@tabler/icons-react";
+import type { DisplayDocument, StickyNote, ThemeDocument, ViewBackground } from "@homeslate/schema";
+import {
+  AlarmsProvider,
+  HouseholdEditor,
+  HouseholdProvider,
+  TimersProvider,
+  getWidgetByType,
+  getWidgetTypes,
+} from "@homeslate/widgets";
 import {
   BackgroundSlideshow,
   DocumentCanvas,
@@ -13,9 +28,9 @@ import {
   removeWidget,
   resolveDisplayThemeVars,
   type WidgetRegistryApi,
-} from '@homeslate/display/canvas';
-import { BgSettings, WidgetPanel } from './WidgetPanel';
-import classes from './Editor.module.css';
+} from "@homeslate/display/canvas";
+import { BgSettings, WidgetPanel } from "./WidgetPanel";
+import classes from "./Editor.module.css";
 
 const DEFAULT_WIDGET_REGISTRY: WidgetRegistryApi = { getWidgetByType, getWidgetTypes };
 
@@ -42,6 +57,7 @@ export function Editor(props: EditorProps): JSX.Element {
     actions,
   } = props;
   const [bgSettingsOpen, setBgSettingsOpen] = useState(false);
+  const [householdOpen, setHouseholdOpen] = useState(false);
   const documentRef = useRef(document);
   // eslint-disable-next-line react-hooks/refs -- keeps the ref current for edits that land in the same tick
   documentRef.current = document;
@@ -53,7 +69,7 @@ export function Editor(props: EditorProps): JSX.Element {
       resolveDisplayThemeVars(
         document.themes as ThemeDocument[],
         document.activeThemeId,
-        document.colorMode ?? 'dark',
+        document.colorMode ?? "dark",
       ),
     [document.themes, document.activeThemeId, document.colorMode],
   );
@@ -114,7 +130,13 @@ export function Editor(props: EditorProps): JSX.Element {
     (noteId: string) => {
       const current = documentRef.current;
       const notes = current.views.find((item) => item.id === viewId)?.notes ?? [];
-      emit(patchViewNotes(current, viewId, notes.filter((note) => note.id !== noteId)));
+      emit(
+        patchViewNotes(
+          current,
+          viewId,
+          notes.filter((note) => note.id !== noteId),
+        ),
+      );
     },
     [emit, viewId],
   );
@@ -145,6 +167,13 @@ export function Editor(props: EditorProps): JSX.Element {
           >
             Background Settings
           </Button>
+          <Button
+            variant="default"
+            leftSection={<IconUsers size={16} />}
+            onClick={() => setHouseholdOpen(true)}
+          >
+            Household
+          </Button>
           {actions}
         </Group>
       </div>
@@ -159,28 +188,49 @@ export function Editor(props: EditorProps): JSX.Element {
         <main className={classes.main} style={tokenVars as CSSProperties}>
           {view && <BackgroundSlideshow view={view} />}
           <TimersProvider>
-            <AlarmsProvider
-              alarms={document.alarms ?? []}
-              onAlarmsChange={(next) => emit({ ...documentRef.current, alarms: next })}
+            <HouseholdProvider
+              members={document.household?.members ?? []}
+              onMembersChange={(members) =>
+                emit({ ...documentRef.current, household: { members } })
+              }
             >
-              {view && (
-                <DocumentCanvas
-                  view={view}
-                  isEditing
-                  stickyNotesEnabled={document.settings.stickyNotesEnabled ?? false}
-                  widgetRegistry={widgetRegistry}
-                  onLayoutChange={handleLayoutChange}
-                  onWidgetConfigChange={handleWidgetConfigChange}
-                  onRemoveWidget={handleRemoveWidget}
-                  onAddNote={handleAddNote}
-                  onRemoveNote={handleRemoveNote}
-                  onUpdateNote={handleUpdateNote}
-                />
-              )}
-            </AlarmsProvider>
+              <AlarmsProvider
+                alarms={document.alarms ?? []}
+                onAlarmsChange={(next) => emit({ ...documentRef.current, alarms: next })}
+              >
+                {view && (
+                  <DocumentCanvas
+                    view={view}
+                    isEditing
+                    stickyNotesEnabled={document.settings.stickyNotesEnabled ?? false}
+                    widgetRegistry={widgetRegistry}
+                    onLayoutChange={handleLayoutChange}
+                    onWidgetConfigChange={handleWidgetConfigChange}
+                    onRemoveWidget={handleRemoveWidget}
+                    onAddNote={handleAddNote}
+                    onRemoveNote={handleRemoveNote}
+                    onUpdateNote={handleUpdateNote}
+                  />
+                )}
+              </AlarmsProvider>
+            </HouseholdProvider>
           </TimersProvider>
         </main>
       </div>
+      <Modal
+        opened={householdOpen}
+        onClose={() => setHouseholdOpen(false)}
+        title="Household"
+        size="md"
+      >
+        <Stack gap="md">
+          <HouseholdEditor
+            members={document.household?.members ?? []}
+            onChange={(members) => emit({ ...documentRef.current, household: { members } })}
+          />
+          <Button onClick={() => setHouseholdOpen(false)}>Done</Button>
+        </Stack>
+      </Modal>
       <Modal
         opened={bgSettingsOpen}
         onClose={() => setBgSettingsOpen(false)}
