@@ -227,6 +227,36 @@ export const announcementConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+export const commuteConfigSchema = z.object({
+  routes: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        origin: z.string(),
+        destination: z.string(),
+      }),
+    )
+    .optional(),
+  units: z.enum(["imperial", "metric"]).optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const weatherAlertsConfigSchema = z.object({
+  location: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  maxAlerts: z.number().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const embedConfigSchema = z.object({
+  url: z.string().optional(),
+  refreshSeconds: z.number().optional(),
+  allowInteraction: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   clock: clockConfigSchema,
   calendar: calendarConfigSchema,
@@ -248,6 +278,9 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   grocery: groceryConfigSchema,
   countdown: countdownConfigSchema,
   announcement: announcementConfigSchema,
+  commute: commuteConfigSchema,
+  "weather-alerts": weatherAlertsConfigSchema,
+  embed: embedConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

@@ -10,11 +10,17 @@ import {
 } from "@homeslate/adapters";
 import { createGoogleClient, isGoogleAuthError, type GoogleClient } from "@homeslate/google";
 import {
+  COMMUTE_MISSING_KEY_COPY,
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
+  parseCommuteQuery,
+  type CommuteEstimate,
+  type WeatherAlertsResponse,
 } from "@homeslate/widgets/server";
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { estimateCommute } from "./commute";
+import { fetchWeatherAlerts, parseWeatherAlertPoint } from "./weatherAlerts";
 import {
   DEFAULT_REFERENCE_PUBLIC_BASE_URL,
   GOOGLE_OAUTH_STATE_COOKIE,
@@ -25,6 +31,7 @@ import {
   isMatchingOAuthState,
 } from "./google";
 import { referenceDatabasePath, referenceTokensPath } from "./paths";
+import { createTtlCache } from "./ttlCache";
 
 export const REFERENCE_LOCAL_ACCOUNT_ID = "local";
 
@@ -33,6 +40,7 @@ export type ReferenceAppOptions = {
   googleClientId?: string;
   googleClientSecret?: string;
   publicBaseUrl?: string;
+  openRouteServiceApiKey?: string;
 };
 
 export function createReferenceApp(opts: ReferenceAppOptions): Hono {
@@ -53,10 +61,54 @@ export function createReferenceApp(opts: ReferenceAppOptions): Hono {
         })
       : null;
   const app = new Hono();
+  const commuteCache = createTtlCache<CommuteEstimate>();
+  const weatherAlertsCache = createTtlCache<WeatherAlertsResponse>();
 
   app.get("/", (c) => c.redirect(`${publicBaseUrl.replace(/\/+$/, "")}/`));
 
   app.get("/api/displays", async (c) => c.json(await displays.list()));
+
+  app.get("/api/commute", async (c) => {
+    const parsed = parseCommuteQuery({
+      origin: c.req.query("origin"),
+      destination: c.req.query("destination"),
+      units: c.req.query("units"),
+    });
+    if (!parsed.ok) return c.json({ error: "Invalid origin, destination, or units" }, 400);
+    const apiKey = opts.openRouteServiceApiKey?.trim() ?? "";
+    if (!apiKey) return c.json({ error: COMMUTE_MISSING_KEY_COPY }, 501);
+
+    try {
+      const estimate = await estimateCommute({
+        apiKey,
+        origin: parsed.origin,
+        destination: parsed.destination,
+        units: parsed.units,
+        cache: commuteCache,
+        now: Date.now(),
+      });
+      return c.json(estimate);
+    } catch {
+      return c.json({ error: "Commute provider failed" }, 502);
+    }
+  });
+
+  app.get("/api/weather/alerts", async (c) => {
+    const point = parseWeatherAlertPoint(c.req.query("lat"), c.req.query("lon"));
+    if (!point) return c.json({ error: "Invalid lat or lon" }, 400);
+
+    try {
+      const payload = await fetchWeatherAlerts({
+        lat: point.lat,
+        lon: point.lon,
+        cache: weatherAlertsCache,
+        now: Date.now(),
+      });
+      return c.json(payload);
+    } catch {
+      return c.json({ error: "Weather alerts provider failed" }, 502);
+    }
+  });
 
   app.post("/api/displays", async (c) => {
     try {

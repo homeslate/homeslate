@@ -60,8 +60,10 @@ describe("built-in widget config schemas", () => {
         "calendar",
         "chores",
         "clock",
+        "commute",
         "countdown",
         "daily-routine",
+        "embed",
         "grocery",
         "google-calendar",
         "google-calendar-day",
@@ -75,6 +77,7 @@ describe("built-in widget config schemas", () => {
         "todo",
         "weather",
         "week-calendar",
+        "weather-alerts",
       ].sort(),
     );
   });
