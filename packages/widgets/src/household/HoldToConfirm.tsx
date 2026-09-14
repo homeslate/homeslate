@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Button } from "@mantine/core";
+import { Button } from "@var-ui/react";
 
 export function HoldToConfirm({
   label,
@@ -7,7 +7,7 @@ export function HoldToConfirm({
   ariaLabel,
   holdMs = 1500,
   onConfirm,
-  size = "xs",
+  size = "sm",
 }: {
   label: string;
   holdingLabel?: string;
@@ -16,6 +16,7 @@ export function HoldToConfirm({
   onConfirm: () => void;
   size?: "xs" | "sm" | "md";
 }) {
+  const buttonSize = size === "xs" ? "sm" : size;
   const [holding, setHolding] = useState(false);
   const timerRef = useRef<number | null>(null);
 
@@ -38,8 +39,8 @@ export function HoldToConfirm({
 
   return (
     <Button
-      variant="subtle"
-      size={size}
+      appearance="ghost"
+      size={buttonSize}
       aria-label={ariaLabel ?? label}
       onPointerDown={start}
       onPointerUp={cancel}

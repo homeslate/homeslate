@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Text, Stack, TextInput, Switch, Group, ActionIcon } from "@mantine/core";
+import { HStack, IconButton, Stack, Switch, Text, TextField } from "@var-ui/react";
 import { IconCheck, IconPlus, IconX } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { WidgetProps, WidgetConfig } from "../types";
@@ -40,7 +40,6 @@ export function TodoWidget({ widget, isEditing, onConfigChange }: WidgetProps<To
     itemsRef.current = items;
   }, [items]);
 
-  // Re-read localStorage whenever items change externally (poll/config update)
   useEffect(() => {
     setLocalChecked(getLocalChecked(widget.id));
   }, [widget.id, items]);
@@ -88,8 +87,8 @@ export function TodoWidget({ widget, isEditing, onConfigChange }: WidgetProps<To
   const allDone = items.length > 0 && items.every((i) => localChecked.has(i.id));
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
-      <Stack gap={4} className={classes.list}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <Stack gap="xs" className={classes.list}>
         {displayItems.map((item) => (
           <div key={item.id} className={classes.itemRow}>
             <button
@@ -105,46 +104,44 @@ export function TodoWidget({ widget, isEditing, onConfigChange }: WidgetProps<To
                 {item.text}
               </Text>
             </button>
-            <ActionIcon
-              variant="subtle"
-              color="red"
+            <IconButton
+              name="close"
+              icon={<IconX size={14} />}
+              appearance="ghost"
+              tone="danger"
               size="sm"
               className={classes.deleteBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveItem(item.id);
-              }}
+              onPress={() => handleRemoveItem(item.id)}
               aria-label="Delete item"
-            >
-              <IconX size={14} />
-            </ActionIcon>
+            />
           </div>
         ))}
-        <Group gap="xs" wrap="nowrap" className={classes.addRow}>
-          <TextInput
-            size="xs"
+        <HStack gap="xs" className={classes.addRow}>
+          <TextField
+            size="sm"
+            aria-label="Add item"
             placeholder="Add item..."
             value={newItemText}
-            onChange={(e) => setNewItemText(e.currentTarget.value)}
+            onChange={setNewItemText}
             onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
             style={{ flex: 1 }}
           />
-          <ActionIcon
-            variant="light"
-            size="md"
-            onClick={handleAddItem}
-            disabled={!newItemText.trim()}
-          >
-            <IconPlus size={14} />
-          </ActionIcon>
-        </Group>
+          <IconButton
+            name="check"
+            icon={<IconPlus size={14} />}
+            appearance="subtle"
+            aria-label="Add item"
+            onPress={handleAddItem}
+            isDisabled={!newItemText.trim()}
+          />
+        </HStack>
       </Stack>
       {allDone && displayItems.length === 0 && (
-        <Text size="sm" c="dimmed" ta="center" mt="xs">
+        <Text size="sm" tone="secondary" style={{ textAlign: "center", marginTop: "0.5rem" }}>
           All done! ✓
         </Text>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -153,25 +150,27 @@ export function TodoWidgetSettings({ widget, onConfigChange }: WidgetProps<TodoC
 
   return (
     <Stack gap="md">
-      <Text size="xs" c="dimmed">
+      <Text size="xs" tone="secondary">
         Add, remove, and check off items directly on the display.
       </Text>
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Hide completed items</Text>
         <Switch
-          checked={hideCompleted}
-          onChange={(e) => onConfigChange({ hideCompleted: e.currentTarget.checked })}
+          aria-label="Hide completed items"
+          isSelected={hideCompleted}
+          onChange={(value) => onConfigChange({ hideCompleted: value })}
         />
-      </Group>
+      </HStack>
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(e) => onConfigChange({ transparentBackground: e.currentTarget.checked })}
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

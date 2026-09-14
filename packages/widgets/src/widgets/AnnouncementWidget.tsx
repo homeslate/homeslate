@@ -1,5 +1,8 @@
-import { Box, Group, Select, Stack, Switch, Text, Textarea, TextInput } from "@mantine/core";
+import { DateTimeInput, HStack, Select, Stack, Switch, Text, TextAreaField } from "@var-ui/react";
+import type { CalendarDateTime } from "@internationalized/date";
 import type { TextAlign, WidgetConfig, WidgetProps } from "../types";
+import { dateTimeFromLocalInput, localInputFromDateTime } from "../dateValue";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { isAnnouncementVisible } from "./announcement";
 import * as classes from "./listWidget.styles";
 
@@ -11,6 +14,18 @@ export interface AnnouncementConfig extends WidgetConfig {
   showUntil?: string;
   transparentBackground: boolean;
 }
+
+const SIZE_OPTIONS = [
+  { id: "md", label: "Medium" },
+  { id: "lg", label: "Large" },
+  { id: "xl", label: "Extra large" },
+];
+
+const ALIGN_OPTIONS = [
+  { id: "left", label: "Left" },
+  { id: "center", label: "Center" },
+  { id: "right", label: "Right" },
+];
 
 export function AnnouncementWidget({ widget, isEditing }: WidgetProps<AnnouncementConfig>) {
   const {
@@ -27,25 +42,25 @@ export function AnnouncementWidget({ widget, isEditing }: WidgetProps<Announceme
 
   if (!isEditing && (!body.trim() || !visible)) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`} />
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`} />
     );
   }
 
   return (
-    <Box
+    <div
       className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}
       style={{ textAlign }}
     >
       {!body.trim() ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Write the announcement.
           </Text>
         </div>
       ) : (
         <>
           {!visible && (
-            <Text size="xs" c="dimmed">
+            <Text size="xs" tone="secondary">
               Hidden on kiosk {showFrom && new Date() < new Date(showFrom) ? "until" : "after"} the
               scheduled window.
             </Text>
@@ -53,7 +68,7 @@ export function AnnouncementWidget({ widget, isEditing }: WidgetProps<Announceme
           <div className={`${classes.announcement} ${sizeClass}`}>{body}</div>
         </>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -69,64 +84,63 @@ export function AnnouncementWidgetSettings({
     showUntil = "",
     transparentBackground,
   } = widget.config;
+  const portalContainer = useOverlayPortalContainer();
 
   return (
     <Stack gap="md">
-      <Textarea
+      <TextAreaField
         label="Announcement"
-        minRows={3}
         value={body}
-        onChange={(event) => onConfigChange({ body: event.currentTarget.value })}
+        onChange={(value) => onConfigChange({ body: value })}
       />
       <Select
         label="Size"
-        data={[
-          { value: "md", label: "Medium" },
-          { value: "lg", label: "Large" },
-          { value: "xl", label: "Extra large" },
-        ]}
-        value={size}
-        onChange={(value) => {
-          if (value === "md" || value === "lg" || value === "xl") {
-            onConfigChange({ size: value });
+        options={SIZE_OPTIONS}
+        selectedKey={size}
+        onSelectionChange={(key) => {
+          if (key === "md" || key === "lg" || key === "xl") {
+            onConfigChange({ size: key });
           }
         }}
+        portalContainer={portalContainer}
       />
       <Select
         label="Align"
-        data={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Center" },
-          { value: "right", label: "Right" },
-        ]}
-        value={textAlign}
-        onChange={(value) => {
-          if (value === "left" || value === "center" || value === "right") {
-            onConfigChange({ textAlign: value });
+        options={ALIGN_OPTIONS}
+        selectedKey={textAlign}
+        onSelectionChange={(key) => {
+          if (key === "left" || key === "center" || key === "right") {
+            onConfigChange({ textAlign: key });
           }
         }}
+        portalContainer={portalContainer}
       />
-      <TextInput
+      <DateTimeInput
         label="Show from"
-        type="datetime-local"
-        value={showFrom}
-        onChange={(event) => onConfigChange({ showFrom: event.currentTarget.value || undefined })}
+        value={dateTimeFromLocalInput(showFrom)}
+        onChange={(value) =>
+          onConfigChange({
+            showFrom: localInputFromDateTime(value as CalendarDateTime | null),
+          })
+        }
       />
-      <TextInput
+      <DateTimeInput
         label="Show until"
-        type="datetime-local"
-        value={showUntil}
-        onChange={(event) => onConfigChange({ showUntil: event.currentTarget.value || undefined })}
+        value={dateTimeFromLocalInput(showUntil)}
+        onChange={(value) =>
+          onConfigChange({
+            showUntil: localInputFromDateTime(value as CalendarDateTime | null),
+          })
+        }
       />
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

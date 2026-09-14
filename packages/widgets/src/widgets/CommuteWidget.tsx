@@ -1,15 +1,14 @@
 import {
-  Box,
   Button,
-  Group,
-  Loader,
-  Paper,
+  HStack,
+  Spinner,
+  Surface,
   Select,
   Stack,
   Switch,
   Text,
-  TextInput,
-} from "@mantine/core";
+  TextField,
+} from "@var-ui/react";
 import { IconCar, IconPlus, IconRefresh, IconTrash } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
@@ -22,9 +21,15 @@ import {
   formatCommuteDuration,
   type CommuteUnits,
 } from "./commute";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import * as classes from "./CommuteWidget.styles";
 
 const EMPTY_ROUTES: CommuteRoute[] = [];
+
+const UNIT_OPTIONS = [
+  { id: "imperial", label: "Imperial (miles)" },
+  { id: "metric", label: "Metric (kilometers)" },
+];
 
 export interface CommuteRoute {
   id: string;
@@ -64,44 +69,40 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
 
   if (routes.length === 0) {
     return (
-      <Box className={containerClass}>
+      <div className={containerClass}>
         <div className={classes.empty}>
           <IconCar size={40} className={classes.emptyIcon} />
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             {COMMUTE_EMPTY_COPY}
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={containerClass}>
+    <div className={containerClass}>
       <div className={classes.header}>
         <Text className={classes.title}>
           <IconCar size={18} />
           Commute
         </Text>
-        {isLoading && <Loader size="xs" />}
+        {isLoading && <Spinner size="sm" />}
       </div>
 
       {hasMissingKey && (
-        <Paper className={classes.settingsNotice} p="sm">
+        <Surface className={classes.settingsNotice} padding="sm">
           <Text size="sm">{COMMUTE_MISSING_KEY_COPY}</Text>
-        </Paper>
+        </Surface>
       )}
 
       {wholeWidgetError ? (
         <div className={classes.error}>
-          <Text size="sm" c="red">
+          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
             {wholeWidgetError}
           </Text>
-          <Button
-            variant="light"
-            size="xs"
-            leftSection={<IconRefresh size={14} />}
-            onClick={refresh}
-          >
+          <Button appearance="subtle" size="sm" onPress={refresh}>
+            <IconRefresh size={14} />
             Retry
           </Button>
         </div>
@@ -110,8 +111,8 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
           {routes.map((route) => {
             const result = results.get(route.id);
             return (
-              <Paper key={route.id} className={classes.route} p="sm">
-                <Text size="sm" fw={600} className={classes.label}>
+              <Surface key={route.id} className={classes.route} padding="sm">
+                <Text size="sm" weight="semibold" className={classes.label}>
                   {route.label}
                 </Text>
                 {result?.estimate && (
@@ -119,18 +120,18 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
                     <Text className={classes.duration}>
                       {formatCommuteDuration(result.estimate.durationSeconds)}
                     </Text>
-                    <Text size="sm" c="dimmed">
+                    <Text size="sm" tone="secondary">
                       {formatCommuteDistance(result.estimate.distanceMeters, units)}
                     </Text>
                   </div>
                 )}
                 {result?.error && !result.estimate && result.status !== 501 && (
-                  <Text size="xs" c="red">
+                  <Text size="xs" style={{ color: "var(--var-ui-color-danger)" }}>
                     {result.error}
                   </Text>
                 )}
-                {!result && <Loader size="xs" />}
-              </Paper>
+                {!result && <Spinner size="sm" />}
+              </Surface>
             );
           })}
         </div>
@@ -144,7 +145,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
           isLoading={isLoading}
         />
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -152,6 +153,7 @@ export function CommuteWidgetSettings({ widget, onConfigChange }: WidgetProps<Co
   const routes = widget.config.routes ?? EMPTY_ROUTES;
   const units = widget.config.units ?? "imperial";
   const transparentBackground = widget.config.transparentBackground;
+  const portalContainer = useOverlayPortalContainer();
 
   const updateRoute = (id: string, patch: Partial<CommuteRoute>) => {
     onConfigChange({
@@ -172,78 +174,69 @@ export function CommuteWidgetSettings({ widget, onConfigChange }: WidgetProps<Co
 
   return (
     <Stack gap="md">
-      <Text size="xs" c="dimmed">
+      <Text size="xs" tone="secondary">
         Origin and destination can be a street address or lat,lon.
       </Text>
 
       {routes.map((route, index) => (
-        <Paper key={route.id} p="sm" withBorder>
+        <Surface key={route.id} padding="sm">
           <Stack gap="xs">
-            <Group justify="space-between">
-              <Text size="sm" fw={600}>
+            <HStack justify="between">
+              <Text size="sm" weight="semibold">
                 Route {index + 1}
               </Text>
               <Button
-                variant="subtle"
-                color="red"
-                size="xs"
-                leftSection={<IconTrash size={14} />}
-                onClick={() => removeRoute(route.id)}
+                appearance="ghost"
+                tone="danger"
+                size="sm"
+                onPress={() => removeRoute(route.id)}
               >
+                <IconTrash size={14} />
                 Remove
               </Button>
-            </Group>
-            <TextInput
+            </HStack>
+            <TextField
               label="Label"
               value={route.label}
-              onChange={(event) => updateRoute(route.id, { label: event.currentTarget.value })}
+              onChange={(value) => updateRoute(route.id, { label: value })}
             />
-            <TextInput
+            <TextField
               label="Origin"
               value={route.origin}
-              onChange={(event) => updateRoute(route.id, { origin: event.currentTarget.value })}
+              onChange={(value) => updateRoute(route.id, { origin: value })}
             />
-            <TextInput
+            <TextField
               label="Destination"
               value={route.destination}
-              onChange={(event) =>
-                updateRoute(route.id, { destination: event.currentTarget.value })
-              }
+              onChange={(value) => updateRoute(route.id, { destination: value })}
             />
           </Stack>
-        </Paper>
+        </Surface>
       ))}
 
-      <Button
-        variant="light"
-        leftSection={<IconPlus size={14} />}
-        onClick={addRoute}
-        disabled={routes.length >= 4}
-      >
+      <Button appearance="subtle" onPress={addRoute} isDisabled={routes.length >= 4}>
+        <IconPlus size={14} />
         Add route
       </Button>
 
       <Select
         label="Units"
-        data={[
-          { value: "imperial", label: "Imperial (miles)" },
-          { value: "metric", label: "Metric (kilometers)" },
-        ]}
-        value={units}
-        onChange={(value) =>
-          onConfigChange({ units: (value as CommuteUnits | null) ?? "imperial" })
+        options={UNIT_OPTIONS}
+        selectedKey={units}
+        onSelectionChange={(key) =>
+          onConfigChange({ units: key === "metric" ? "metric" : "imperial" })
         }
+        portalContainer={portalContainer}
       />
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

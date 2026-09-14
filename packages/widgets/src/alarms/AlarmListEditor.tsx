@@ -1,15 +1,32 @@
-import { useCallback, useEffect, useState, type ChangeEvent } from "react";
-import { Stack, Group, Switch, TextInput, Select, ActionIcon, Text, Paper } from "@mantine/core";
-import { TimeInput, type TimeInputProps } from "@mantine/dates";
+import { useCallback } from "react";
+import {
+  HStack,
+  IconButton,
+  Select,
+  Stack,
+  Surface,
+  Switch,
+  Text,
+  TextField,
+  TimeInput,
+} from "@var-ui/react";
+import type { Time } from "@internationalized/date";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { AlarmDefinition, AlarmToneId } from "@homeslate/schema";
 import { isValidTime } from "./isValidTime";
 import { ALARM_TONE_OPTIONS } from "./tones";
+import { hhMmFromTime, timeFromHhMm } from "../dateValue";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import * as classes from "./AlarmListEditor.styles";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const TONE_OPTIONS = ALARM_TONE_OPTIONS.map((option) => ({
+  id: option.value,
+  label: option.label,
+}));
 
 function summarizeDays(days: number[]): string {
   if (days.length === 7) return "Every day";
@@ -24,31 +41,24 @@ function AlarmTimeInput({
   value,
   onChange,
   ...props
-}: { value: string; onChange: (time: string) => void } & Omit<
-  TimeInputProps,
-  "value" | "onChange"
->) {
-  const [draft, setDraft] = useState(value);
+}: {
+  value: string;
+  onChange: (time: string) => void;
+  "aria-label"?: string;
+  className?: string;
+}) {
+  const timeValue = timeFromHhMm(value);
 
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const next = e.currentTarget.value;
-    setDraft(next);
-    if (isValidTime(next)) {
-      onChange(next);
-    }
-  };
-
-  const handleBlur = () => {
-    if (!isValidTime(draft)) {
-      setDraft(value);
-    }
-  };
-
-  return <TimeInput value={draft} onChange={handleChange} onBlur={handleBlur} {...props} />;
+  return (
+    <TimeInput
+      {...props}
+      value={timeValue}
+      onChange={(next: Time | null) => {
+        const hhmm = hhMmFromTime(next);
+        if (isValidTime(hhmm)) onChange(hhmm);
+      }}
+    />
+  );
 }
 
 function createAlarm(): AlarmDefinition {
@@ -69,6 +79,7 @@ interface AlarmListEditorProps {
 }
 
 export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmListEditorProps) {
+  const portalContainer = useOverlayPortalContainer();
   const updateAlarm = useCallback(
     (id: string, patch: Partial<AlarmDefinition>) => {
       onChange(alarms.map((a) => (a.id === id ? { ...a, ...patch } : a)));
@@ -102,19 +113,19 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
   if (alarms.length === 0) {
     return (
       <Stack gap="sm" className={classes.list}>
-        <Text size="sm" c="dimmed">
+        <Text size="sm" tone="secondary">
           No alarms set.
         </Text>
         {!readOnly && (
-          <ActionIcon
-            variant="light"
+          <IconButton
+            name="check"
+            icon={<IconPlus size={18} />}
+            appearance="subtle"
             size="lg"
-            onClick={handleAdd}
+            onPress={handleAdd}
             aria-label="Add alarm"
             className={classes.addBtn}
-          >
-            <IconPlus size={18} />
-          </ActionIcon>
+          />
         )}
       </Stack>
     );
@@ -123,70 +134,67 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
   return (
     <Stack gap="sm" className={classes.list}>
       {alarms.map((alarm) => (
-        <Paper key={alarm.id} className={classes.card} withBorder p="sm" radius="md">
+        <Surface key={alarm.id} padding="sm" className={classes.card}>
           {readOnly ? (
-            <Group justify="space-between" wrap="nowrap" align="flex-start">
-              <Stack gap={2}>
-                <Text size="sm" fw={600}>
+            <HStack justify="between" align="start">
+              <Stack gap="xs">
+                <Text size="sm" weight="semibold">
                   {alarm.label || "Alarm"}
                 </Text>
-                <Text size="xs" c="dimmed">
+                <Text size="xs" tone="secondary">
                   {alarm.time} · {summarizeDays(alarm.days)}
                 </Text>
               </Stack>
               <Switch
-                checked={alarm.enabled}
-                readOnly
-                disabled
+                isSelected={alarm.enabled}
+                isDisabled
                 aria-label={`${alarm.label || "Alarm"} enabled`}
               />
-            </Group>
+            </HStack>
           ) : (
             <Stack gap="xs">
-              <Group justify="space-between" wrap="nowrap" gap="xs">
-                <TextInput
+              <HStack justify="between" gap="xs">
+                <TextField
                   value={alarm.label}
-                  onChange={(e) => updateAlarm(alarm.id, { label: e.currentTarget.value })}
+                  onChange={(label) => updateAlarm(alarm.id, { label })}
                   placeholder="Alarm"
                   size="sm"
                   style={{ flex: 1, minWidth: 0 }}
                   aria-label="Alarm label"
                 />
                 <Switch
-                  checked={alarm.enabled}
-                  onChange={(e) => updateAlarm(alarm.id, { enabled: e.currentTarget.checked })}
+                  isSelected={alarm.enabled}
+                  onChange={(enabled) => updateAlarm(alarm.id, { enabled })}
                   aria-label="Alarm enabled"
                 />
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  onClick={() => handleDelete(alarm.id)}
+                <IconButton
+                  name="close"
+                  icon={<IconTrash size={16} />}
+                  appearance="ghost"
+                  tone="danger"
+                  onPress={() => handleDelete(alarm.id)}
                   aria-label="Delete alarm"
-                >
-                  <IconTrash size={16} />
-                </ActionIcon>
-              </Group>
-              <Group gap="xs" wrap="wrap">
+                />
+              </HStack>
+              <HStack gap="xs" wrap>
                 <AlarmTimeInput
                   value={alarm.time}
                   onChange={(time) => updateAlarm(alarm.id, { time })}
-                  size="sm"
                   aria-label="Alarm time"
                   className={classes.timeInput}
                 />
                 <Select
-                  data={ALARM_TONE_OPTIONS}
-                  value={alarm.toneId}
-                  onChange={(value) =>
-                    value && updateAlarm(alarm.id, { toneId: value as AlarmToneId })
+                  options={TONE_OPTIONS}
+                  selectedKey={alarm.toneId}
+                  onSelectionChange={(key) =>
+                    key != null && updateAlarm(alarm.id, { toneId: String(key) as AlarmToneId })
                   }
-                  size="sm"
                   aria-label="Alarm tone"
-                  allowDeselect={false}
                   className={classes.toneSelect}
+                  portalContainer={portalContainer}
                 />
-              </Group>
-              <Group gap={4} className={classes.dayRow}>
+              </HStack>
+              <HStack gap="xs" className={classes.dayRow}>
                 {DAY_LABELS.map((label, idx) => {
                   const active = alarm.days.includes(idx);
                   return (
@@ -202,21 +210,21 @@ export function AlarmListEditor({ alarms, onChange, readOnly = false }: AlarmLis
                     </button>
                   );
                 })}
-              </Group>
+              </HStack>
             </Stack>
           )}
-        </Paper>
+        </Surface>
       ))}
       {!readOnly && (
-        <ActionIcon
-          variant="light"
+        <IconButton
+          name="check"
+          icon={<IconPlus size={18} />}
+          appearance="subtle"
           size="lg"
-          onClick={handleAdd}
+          onPress={handleAdd}
           aria-label="Add alarm"
           className={classes.addBtn}
-        >
-          <IconPlus size={18} />
-        </ActionIcon>
+        />
       )}
     </Stack>
   );

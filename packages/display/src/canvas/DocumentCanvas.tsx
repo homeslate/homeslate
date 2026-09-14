@@ -5,7 +5,7 @@ import { getWidgetByType, getWidgetTypes } from "@homeslate/widgets";
 import type { StickyNote, View } from "@homeslate/schema";
 import { WidgetWrapper, type WidgetRegistryApi } from "./WidgetWrapper";
 import { StickyNote as StickyNoteWidget } from "./StickyNote";
-import { useElementSize } from "@mantine/hooks";
+import { useElementSize } from "@var-ui/react";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import * as classes from "./DocumentCanvas.styles";
@@ -28,6 +28,7 @@ export function DocumentCanvas(props: {
   ) => void;
   onRemoveWidget?: (widgetId: string) => void;
   widgetRegistry?: WidgetRegistryApi;
+  portalContainer?: Element;
 }): JSX.Element {
   const {
     view,
@@ -41,6 +42,7 @@ export function DocumentCanvas(props: {
     onLayoutChange,
     onRemoveWidget,
     widgetRegistry = DEFAULT_WIDGET_REGISTRY,
+    portalContainer,
   } = props;
   const { ref, width, height } = useElementSize();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -143,6 +145,7 @@ export function DocumentCanvas(props: {
                   widget={widget}
                   isEditing={isEditing}
                   widgetRegistry={widgetRegistry}
+                  portalContainer={portalContainer}
                   onConfigChange={(config) => onWidgetConfigChange?.(widget.id, config)}
                   onRemove={() => onRemoveWidget?.(widget.id)}
                 />

@@ -177,11 +177,13 @@ export const textarea = styles.class("themeeditor-textarea", {
 });
 
 export const editorTabsList = styles.class("themeeditor-editorTabsList", {
-  position: "sticky",
-  top: "0",
-  zIndex: "1",
-  background: "var(--mantine-color-body)",
-  paddingTop: "0.15rem",
+  "& [role=tablist]": {
+    position: "sticky",
+    top: "0",
+    zIndex: "1",
+    background: "var(--var-ui-color-background-surface, var(--mantine-color-body))",
+    paddingTop: "0.15rem",
+  },
 });
 
 export const colorTokenGrid = styles.class("themeeditor-colorTokenGrid", {

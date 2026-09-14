@@ -14,7 +14,7 @@ const source = readFileSync(new URL("./ThemeEditor.tsx", import.meta.url), "utf8
 describe("ThemeEditor markup", () => {
   it("does not render the dirty badge inside a paragraph", () => {
     expect(source).toMatch(
-      /<Text\s+size="sm"\s+c="dimmed"\s+component="div">[\s\S]*?<Badge\s+ml="xs"\s+size="xs"\s+color="orange"\s+variant="light">/,
+      /<Text\s+size="sm"\s+tone="secondary"\s+as="div">[\s\S]*?<Badge[\s\S]*?tone="warning"/,
     );
   });
 

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Box, NumberInput, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
+import { NumberInput, Select, Stack, Switch, Text, TextField } from "@var-ui/react";
 import { IconAppWindow } from "@tabler/icons-react";
 import type { WidgetConfig, WidgetProps } from "../types";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import {
   EMBED_EMPTY_COPY,
   EMBED_INVALID_COPY,
@@ -12,6 +13,14 @@ import {
 import * as classes from "./EmbedWidget.styles";
 
 const REFRESH_PRESETS = new Set([0, 60, 300, 900]);
+
+const REFRESH_OPTIONS = [
+  { id: "0", label: "Off" },
+  { id: "60", label: "1 minute" },
+  { id: "300", label: "5 minutes" },
+  { id: "900", label: "15 minutes" },
+  { id: "custom", label: "Custom" },
+];
 
 export interface EmbedConfig extends WidgetConfig {
   url: string;
@@ -76,31 +85,31 @@ export function EmbedWidget({ widget }: WidgetProps<EmbedConfig>) {
 
   if (!trimmed) {
     return (
-      <Box className={`${containerClass} ${classes.padded}`}>
+      <div className={`${containerClass} ${classes.padded}`}>
         <div className={classes.empty}>
           <IconAppWindow size={48} className={classes.emptyIcon} />
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             {EMBED_EMPTY_COPY}
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (!parsed.ok) {
     return (
-      <Box className={`${containerClass} ${classes.padded}`}>
+      <div className={`${containerClass} ${classes.padded}`}>
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             {EMBED_INVALID_COPY}
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={containerClass}>
+    <div className={containerClass}>
       <iframe
         key={embedIframeKey(frameKey, allowInteraction, parsed.href)}
         className={`${classes.frame} ${allowInteraction ? "" : classes.noPointer}`}
@@ -109,7 +118,7 @@ export function EmbedWidget({ widget }: WidgetProps<EmbedConfig>) {
         referrerPolicy="no-referrer"
         title="Embedded page"
       />
-    </Box>
+    </div>
   );
 }
 
@@ -120,6 +129,7 @@ export function EmbedWidgetSettings({ widget, onConfigChange }: WidgetProps<Embe
     allowInteraction = false,
     transparentBackground,
   } = widget.config;
+  const portalContainer = useOverlayPortalContainer();
   const clampedRefresh = clampRefreshSeconds(refreshSeconds);
   const [customMode, setCustomMode] = useState(
     clampedRefresh > 0 && !REFRESH_PRESETS.has(clampedRefresh),
@@ -129,24 +139,19 @@ export function EmbedWidgetSettings({ widget, onConfigChange }: WidgetProps<Embe
 
   return (
     <Stack gap="md">
-      <TextInput
+      <TextField
         label="URL"
         placeholder="https://"
         value={url}
-        onChange={(event) => onConfigChange({ url: event.currentTarget.value })}
+        onChange={(value) => onConfigChange({ url: value })}
       />
 
       <Select
         label="Refresh"
-        data={[
-          { value: "0", label: "Off" },
-          { value: "60", label: "1 minute" },
-          { value: "300", label: "5 minutes" },
-          { value: "900", label: "15 minutes" },
-          { value: "custom", label: "Custom" },
-        ]}
-        value={selectValue}
-        onChange={(value) => {
+        options={REFRESH_OPTIONS}
+        selectedKey={selectValue}
+        onSelectionChange={(key) => {
+          const value = key == null ? "0" : String(key);
           if (value === "custom") {
             setCustomMode(true);
             if (REFRESH_PRESETS.has(clampedRefresh)) {
@@ -154,39 +159,47 @@ export function EmbedWidgetSettings({ widget, onConfigChange }: WidgetProps<Embe
             }
           } else {
             setCustomMode(false);
-            onConfigChange({ refreshSeconds: Number(value ?? 0) });
+            onConfigChange({ refreshSeconds: Number(value) });
           }
         }}
+        portalContainer={portalContainer}
       />
 
       {selectValue === "custom" && (
         <NumberInput
           label="Refresh seconds"
-          min={1}
-          max={3600}
+          minValue={1}
+          maxValue={3600}
           value={Math.min(3600, Math.max(1, clampedRefresh || 1))}
           onChange={(value) =>
             onConfigChange({
-              refreshSeconds: typeof value === "number" ? Math.min(3600, Math.max(1, value)) : 1,
+              refreshSeconds:
+                typeof value === "number" && Number.isFinite(value)
+                  ? Math.min(3600, Math.max(1, value))
+                  : 1,
             })
           }
         />
       )}
 
       <Switch
-        label="Allow interaction"
-        description="Home Assistant and other interactive apps need this. The embedded origin can run JavaScript."
-        checked={allowInteraction}
-        onChange={(event) => onConfigChange({ allowInteraction: event.currentTarget.checked })}
-      />
+        isSelected={allowInteraction}
+        onChange={(value) => onConfigChange({ allowInteraction: value })}
+      >
+        Allow interaction
+      </Switch>
+      <Text size="xs" tone="secondary">
+        Home Assistant and other interactive apps need this. The embedded origin can run JavaScript.
+      </Text>
 
       <Switch
-        label="Transparent background"
-        checked={transparentBackground}
-        onChange={(event) => onConfigChange({ transparentBackground: event.currentTarget.checked })}
-      />
+        isSelected={transparentBackground}
+        onChange={(value) => onConfigChange({ transparentBackground: value })}
+      >
+        Transparent background
+      </Switch>
 
-      <Text size="xs" c="dimmed">
+      <Text size="xs" tone="secondary">
         If the frame is blank, the other site may send X-Frame-Options or CSP frame-ancestors. That
         is their policy, not a Homeslate bug.
       </Text>

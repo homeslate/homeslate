@@ -1,15 +1,14 @@
 import { useMemo } from "react";
 import {
-  Box,
   Text,
   Stack,
-  Loader,
+  Spinner,
   Button,
-  Paper,
-  MultiSelect,
+  Surface,
+  MultiSelector,
   NumberInput,
-  Anchor,
-} from "@mantine/core";
+  Link,
+} from "@var-ui/react";
 import { IconNews, IconRefresh, IconExternalLink } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig } from "../types";
 import { useNews } from "../hooks/useNews";
@@ -39,57 +38,48 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
     maxItems,
   });
 
-  // No feeds configured
   if (feedUrls.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconNews size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             No News Feeds
           </Text>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Select news sources in widget settings
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
-  // Loading state
   if (isLoading && items.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
-          <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed" mt="sm">
+          <Spinner size="lg" />
+          <Text size="sm" tone="secondary">
             Loading news...
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
-  // Error state
   if (error && items.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.error}>
-          <Text size="sm" c="red">
+          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
             {error}
           </Text>
-          <Button
-            variant="light"
-            color="blue"
-            size="xs"
-            mt="sm"
-            leftSection={<IconRefresh size={14} />}
-            onClick={refresh}
-          >
+          <Button appearance="subtle" size="sm" onPress={refresh}>
+            <IconRefresh size={14} />
             Retry
           </Button>
         </div>
-      </Box>
+      </div>
     );
   }
 
@@ -105,13 +95,13 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
   };
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.header}>
         <Text className={classes.title}>
           <IconNews size={18} />
           News
         </Text>
-        {isLoading && <Loader size="xs" color="blue" />}
+        {isLoading && <Spinner size="sm" />}
       </div>
       <WidgetDataStatus
         widgetId={widget.id}
@@ -123,20 +113,20 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
       <div className={classes.newsList}>
         <Stack gap="xs">
           {items.map((item, index) => (
-            <Paper key={index} className={classes.newsItem} p="xs">
-              <Anchor
+            <Surface key={index} className={classes.newsItem} padding="sm">
+              <Link
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={classes.newsLink}
               >
-                <Text size="sm" fw={500} className={classes.newsTitle} lineClamp={2}>
+                <Text size="sm" weight="medium" className={classes.newsTitle} lineClamp={2}>
                   {item.title}
                 </Text>
                 <IconExternalLink size={12} className={classes.externalIcon} />
-              </Anchor>
+              </Link>
               {showDescription && item.description && (
-                <Text size="xs" c="dimmed" lineClamp={2} mt={4}>
+                <Text size="xs" tone="secondary" lineClamp={2}>
                   {item.description}
                 </Text>
               )}
@@ -146,15 +136,15 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
                     {item.source}
                   </Text>
                 )}
-                <Text size="xs" c="dimmed">
+                <Text size="xs" tone="secondary">
                   {formatTime(item.pubDate)}
                 </Text>
               </div>
-            </Paper>
+            </Surface>
           ))}
         </Stack>
       </div>
-    </Box>
+    </div>
   );
 }
 
@@ -162,27 +152,25 @@ export function NewsWidgetSettings({ widget, onConfigChange }: WidgetProps<NewsC
   const { feedUrls, maxItems, showSource, showDescription } = widget.config;
 
   const feedOptions = popularFeeds.map((feed) => ({
-    value: feed.url,
+    id: feed.url,
     label: feed.name,
   }));
 
   return (
     <Stack gap="md">
-      <MultiSelect
+      <MultiSelector
         label="News Sources"
         placeholder="Select news feeds..."
-        data={feedOptions}
-        value={feedUrls}
-        onChange={(value) => onConfigChange({ feedUrls: value })}
-        searchable
-        maxValues={5}
         description="Select up to 5 news sources"
+        options={feedOptions}
+        value={feedUrls}
+        onChange={(value) => onConfigChange({ feedUrls: value.slice(0, 5) })}
       />
 
       <NumberInput
         label="Maximum Articles"
-        min={3}
-        max={20}
+        minValue={3}
+        maxValue={20}
         value={maxItems}
         onChange={(value) => onConfigChange({ maxItems: Number(value) || 10 })}
       />

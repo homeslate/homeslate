@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Group, Stack, Switch, Text, TextInput } from "@mantine/core";
+import { Button, HStack, IconButton, Stack, Switch, Text, TextField } from "@var-ui/react";
 import { IconCheck, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -50,10 +50,10 @@ export function GroceryWidget({ widget, isEditing, onConfigChange }: WidgetProps
   let lastAisle: string | undefined;
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {items.length === 0 ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             List is empty. Add milk from here or in the editor.
           </Text>
         </div>
@@ -79,18 +79,18 @@ export function GroceryWidget({ widget, isEditing, onConfigChange }: WidgetProps
                     </span>
                     <span className={classes.label}>{item.text}</span>
                   </button>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
+                  <IconButton
+                    name="close"
+                    icon={<IconTrash size={14} />}
+                    appearance="ghost"
+                    tone="danger"
                     aria-label={`Delete ${item.text}`}
-                    onClick={() => {
+                    onPress={() => {
                       if (isEditing || window.confirm(`Delete ${item.text}?`)) {
                         remove(item.id);
                       }
                     }}
-                  >
-                    <IconTrash size={14} />
-                  </ActionIcon>
+                  />
                 </div>
               </div>
             );
@@ -98,27 +98,33 @@ export function GroceryWidget({ widget, isEditing, onConfigChange }: WidgetProps
         </div>
       )}
       <div className={classes.addRow}>
-        <TextInput
-          size="xs"
+        <TextField
+          size="sm"
+          aria-label="Add item"
           placeholder="Add item..."
           value={draft}
-          onChange={(event) => setDraft(event.currentTarget.value)}
+          onChange={setDraft}
           onKeyDown={(event) => event.key === "Enter" && add()}
           style={{ flex: 1 }}
         />
-        <ActionIcon variant="light" onClick={add} disabled={!draft.trim()} aria-label="Add item">
-          <IconPlus size={14} />
-        </ActionIcon>
+        <IconButton
+          name="check"
+          icon={<IconPlus size={14} />}
+          appearance="subtle"
+          onPress={add}
+          isDisabled={!draft.trim()}
+          aria-label="Add item"
+        />
       </div>
       {items.some((item) => item.checked) &&
         (isEditing ? (
-          <Button size="xs" variant="subtle" onClick={clearChecked}>
+          <Button size="sm" appearance="ghost" onPress={clearChecked}>
             Clear checked
           </Button>
         ) : (
           <HoldToConfirm label="Clear checked" onConfirm={clearChecked} />
         ))}
-    </Box>
+    </div>
   );
 }
 
@@ -128,59 +134,56 @@ export function GroceryWidgetSettings({ widget, onConfigChange }: WidgetProps<Gr
   return (
     <Stack gap="md">
       {items.map((item) => (
-        <Group key={item.id} gap="xs" wrap="nowrap">
-          <TextInput
-            size="xs"
+        <HStack key={item.id} gap="xs">
+          <TextField
+            size="sm"
             value={item.text}
-            onChange={(event) =>
+            onChange={(value) =>
               onConfigChange({
-                items: items.map((row) =>
-                  row.id === item.id ? { ...row, text: event.currentTarget.value } : row,
-                ),
+                items: items.map((row) => (row.id === item.id ? { ...row, text: value } : row)),
               })
             }
             style={{ flex: 1 }}
             aria-label="Grocery item"
           />
-          <TextInput
-            size="xs"
+          <TextField
+            size="sm"
             placeholder="Aisle"
             value={item.aisle ?? ""}
-            onChange={(event) =>
+            onChange={(value) =>
               onConfigChange({
-                items: items.map((row) =>
-                  row.id === item.id ? { ...row, aisle: event.currentTarget.value } : row,
-                ),
+                items: items.map((row) => (row.id === item.id ? { ...row, aisle: value } : row)),
               })
             }
             style={{ width: 110 }}
             aria-label="Aisle"
           />
-        </Group>
+        </HStack>
       ))}
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Hide checked</Text>
         <Switch
-          checked={hideChecked}
-          onChange={(event) => onConfigChange({ hideChecked: event.currentTarget.checked })}
+          aria-label="Hide checked"
+          isSelected={hideChecked}
+          onChange={(value) => onConfigChange({ hideChecked: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Group by aisle</Text>
         <Switch
-          checked={groupByAisle}
-          onChange={(event) => onConfigChange({ groupByAisle: event.currentTarget.checked })}
+          aria-label="Group by aisle"
+          isSelected={groupByAisle}
+          onChange={(value) => onConfigChange({ groupByAisle: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

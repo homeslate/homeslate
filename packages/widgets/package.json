@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@homeslate/schema": "workspace:*",
+    "@internationalized/date": "^3.12.4",
     "@mantine/core": "^8.3.10",
     "@mantine/dates": "^8.3.10",
     "@mantine/hooks": "^8.3.10",

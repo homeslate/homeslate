@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-  Box,
   Button,
-  Group,
-  Loader,
+  HStack,
+  Spinner,
   NumberInput,
-  Paper,
+  Surface,
   Stack,
   Switch,
   Text,
-  TextInput,
-} from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
+  TextField,
+} from "@var-ui/react";
+import { useDebouncedValue } from "@var-ui/react";
 import { IconAlertTriangle, IconMapPin, IconRefresh } from "@tabler/icons-react";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { useWeatherAlerts } from "../hooks/useWeatherAlerts";
@@ -70,67 +69,59 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
 
   if (latitude === null || longitude === null) {
     return (
-      <Box className={containerClass}>
+      <div className={containerClass}>
         <div className={classes.empty}>
           <IconMapPin size={48} className={classes.emptyIcon} />
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             {WEATHER_ALERTS_NEED_LOCATION_COPY}
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if ((isLoading || coverage === null) && lastUpdated === null && !error) {
     return (
-      <Box className={containerClass}>
+      <div className={containerClass}>
         <div className={classes.loading}>
-          <Loader size="lg" />
-          <Text size="sm" c="dimmed">
+          <Spinner size="lg" />
+          <Text size="sm" tone="secondary">
             Loading alerts...
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (error && lastUpdated === null) {
     return (
-      <Box className={containerClass}>
+      <div className={containerClass}>
         <div className={classes.error}>
-          <Text size="sm" c="red">
+          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
             {error}
           </Text>
-          <Button
-            variant="light"
-            size="xs"
-            leftSection={<IconRefresh size={14} />}
-            onClick={refresh}
-          >
+          <Button appearance="subtle" size="sm" onPress={refresh}>
+            <IconRefresh size={14} />
             Retry
           </Button>
         </div>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={containerClass}>
+    <div className={containerClass}>
       <div className={classes.header}>
         <Text className={classes.title}>
           <IconAlertTriangle size={18} />
           {location || "Weather Alerts"}
         </Text>
         {isLoading ? (
-          <Loader size="xs" />
+          <Spinner size="sm" />
         ) : (
           error && (
-            <Button
-              variant="subtle"
-              size="compact-xs"
-              leftSection={<IconRefresh size={14} />}
-              onClick={refresh}
-            >
+            <Button appearance="ghost" size="sm" onPress={refresh}>
+              <IconRefresh size={14} />
               Retry
             </Button>
           )
@@ -150,7 +141,7 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
           {visible.map((alert) => {
             const until = alert.endsAt ? formatAlertUntil(alert.endsAt) : undefined;
             return (
-              <Paper key={alert.id} className={classes.alert} p="sm">
+              <Surface key={alert.id} className={classes.alert} padding="sm">
                 <Text size="sm" className={`${classes.event} ${severityClass(alert.severity)}`}>
                   {alert.event}
                 </Text>
@@ -162,7 +153,7 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
                     {until}
                   </Text>
                 )}
-              </Paper>
+              </Surface>
             );
           })}
         </div>
@@ -176,7 +167,7 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
           isLoading={isLoading}
         />
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -186,7 +177,7 @@ export function WeatherAlertsWidgetSettings({
 }: WidgetProps<WeatherAlertsConfig>) {
   const { location, maxAlerts, transparentBackground } = widget.config;
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery] = useDebouncedValue(searchQuery, 300);
+  const debouncedQuery = useDebouncedValue(searchQuery, 300);
   const [searchResults, setSearchResults] = useState<GeocodingResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -229,25 +220,26 @@ export function WeatherAlertsWidgetSettings({
   return (
     <Stack gap="md">
       <div>
-        <TextInput
-          label="Search Location"
-          placeholder="Enter city name..."
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.currentTarget.value)}
-          rightSection={isSearching ? <Loader size="xs" /> : null}
-        />
+        <HStack gap="xs" align="end">
+          <TextField
+            label="Search Location"
+            placeholder="Enter city name..."
+            value={searchQuery}
+            onChange={setSearchQuery}
+            style={{ flex: 1 }}
+          />
+          {isSearching && <Spinner size="sm" />}
+        </HStack>
 
         {searchResults.length > 0 && (
-          <Paper className={classes.searchResults} mt="xs" p="xs">
-            <Stack gap={4}>
+          <Surface className={classes.searchResults} padding="sm">
+            <Stack gap="xs">
               {searchResults.map((result) => (
                 <Button
                   key={result.id}
-                  variant="subtle"
+                  appearance="ghost"
                   size="sm"
-                  fullWidth
-                  justify="flex-start"
-                  onClick={() => selectLocation(result)}
+                  onPress={() => selectLocation(result)}
                   className={classes.searchResult}
                 >
                   <IconMapPin size={14} style={{ marginRight: 8 }} />
@@ -257,30 +249,30 @@ export function WeatherAlertsWidgetSettings({
                 </Button>
               ))}
             </Stack>
-          </Paper>
+          </Surface>
         )}
       </div>
 
       {location && (
-        <Paper p="sm" className={classes.currentLocation}>
-          <Group gap="xs">
+        <Surface padding="sm" className={classes.currentLocation}>
+          <HStack gap="xs">
             <IconMapPin size={16} />
             <div>
-              <Text size="xs" c="dimmed">
+              <Text size="xs" tone="secondary">
                 Current Location
               </Text>
-              <Text size="sm" fw={500}>
+              <Text size="sm" weight="medium">
                 {location}
               </Text>
             </div>
-          </Group>
-        </Paper>
+          </HStack>
+        </Surface>
       )}
 
       <NumberInput
         label="Max alerts"
-        min={1}
-        max={15}
+        minValue={1}
+        maxValue={15}
         value={clampMaxAlerts(maxAlerts)}
         onChange={(value) =>
           onConfigChange({
@@ -289,15 +281,14 @@ export function WeatherAlertsWidgetSettings({
         }
       />
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

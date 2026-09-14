@@ -1,18 +1,17 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  Box,
   Text,
   Stack,
-  TextInput,
+  TextField,
   Select,
   Switch,
   NumberInput,
-  Group,
-  Loader,
+  HStack,
+  Spinner,
   Button,
-  Paper,
-} from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
+  Surface,
+} from "@var-ui/react";
+import { useDebouncedValue } from "@var-ui/react";
 import {
   IconSun,
   IconCloud,
@@ -25,6 +24,7 @@ import {
   IconMapPin,
 } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig, TextAlign } from "../types";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { useWeather } from "../hooks/useWeather";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import {
@@ -149,54 +149,48 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
   // No location configured
   if (!latitude || !longitude) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconMapPin size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             No Location Set
           </Text>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Configure a location in widget settings
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   // Loading state
   if (isLoading && !weather) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
-          <Loader size="lg" color="orange" />
-          <Text size="sm" c="dimmed" mt="sm">
+          <Spinner size="lg" />
+          <Text size="sm" tone="secondary">
             Loading weather...
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   // Error state
   if (error && !weather) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.error}>
-          <Text size="sm" c="red">
+          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
             {error}
           </Text>
-          <Button
-            variant="light"
-            color="orange"
-            size="xs"
-            mt="sm"
-            leftSection={<IconRefresh size={14} />}
-            onClick={refresh}
-          >
+          <Button appearance="subtle" size="sm" onPress={refresh}>
+            <IconRefresh size={14} />
             Retry
           </Button>
         </div>
-      </Box>
+      </div>
     );
   }
 
@@ -220,7 +214,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
   const showCompactLocation = isCompact && w >= 3;
 
   return (
-    <Box
+    <div
       className={`${classes.container} ${transparentBackground ? classes.transparent : ""} ${alignClass} ${isCompact ? classes.compact : ""}`}
     >
       {(sections.showLocation || showCompactLocation) && (
@@ -229,7 +223,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
             {weather.location.name}
             {weather.location.admin1 && `, ${weather.location.admin1}`}
           </Text>
-          {isLoading && <Loader size="xs" color="orange" />}
+          {isLoading && <Spinner size="sm" />}
         </div>
       )}
       {sections.showUpdated && (
@@ -271,7 +265,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
               </Text>
             </div>
             <div className={classes.detailItem}>
-              <Text size="sm" c="dimmed">
+              <Text size="sm" tone="secondary">
                 Feels {weather.current.apparentTemperature}°
               </Text>
             </div>
@@ -286,10 +280,10 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
             return (
               <div className={classes.aqiBadge} style={{ borderColor: band.color }}>
                 <span className={classes.aqiDot} style={{ background: band.color }} />
-                <Text size="xs" fw={600} style={{ color: band.color }}>
+                <Text size="sm" weight="semibold" style={{ color: band.color }}>
                   AQI {aqData.usAqi}
                 </Text>
-                <Text size="xs" c="dimmed">
+                <Text size="sm" tone="secondary">
                   {band.label}
                 </Text>
               </div>
@@ -299,7 +293,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
 
       {sections.showHourly && weather.hourly.length > 0 && (
         <div className={classes.hourlySection}>
-          <Text size="xs" fw={600} c="dimmed" mb="xs">
+          <Text size="sm" weight="semibold" tone="secondary">
             Next 24 hours
           </Text>
           <div className={classes.hourly}>
@@ -311,11 +305,11 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
               const hourIcon = getWeatherIcon(hour.weatherCode);
               return (
                 <div key={index} className={classes.forecastHour}>
-                  <Text size="xs" fw={500}>
+                  <Text size="sm" weight="medium">
                     {hourLabel}
                   </Text>
                   <WeatherIcon condition={hourIcon} size={22} isDay={hour.isDay} />
-                  <Text size="xs">
+                  <Text size="sm">
                     {hour.temperature}
                     {tempUnit}
                   </Text>
@@ -333,19 +327,19 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
             const dayIcon = getWeatherIcon(day.weatherCode);
             return (
               <div key={index} className={classes.forecastDay}>
-                <Text size="sm" fw={500} className={classes.forecastDayName}>
+                <Text size="sm" weight="medium" className={classes.forecastDayName}>
                   {dayName}
                 </Text>
                 <div className={classes.forecastDayBody}>
                   <WeatherIcon condition={dayIcon} size={26} />
                   <div className={classes.forecastDayTemps}>
-                    <Text size="sm" fw={500} component="span">
+                    <Text size="sm" weight="medium" as="span">
                       {day.tempMax}°
                     </Text>
-                    <Text size="sm" c="dimmed" component="span">
+                    <Text size="sm" tone="secondary" as="span">
                       /
                     </Text>
-                    <Text size="sm" c="dimmed" component="span">
+                    <Text size="sm" tone="secondary" as="span">
                       {day.tempMin}°
                     </Text>
                   </div>
@@ -355,11 +349,12 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
           })}
         </div>
       )}
-    </Box>
+    </div>
   );
 }
 
 export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<WeatherConfig>) {
+  const portalContainer = useOverlayPortalContainer();
   const {
     location,
     units,
@@ -370,7 +365,7 @@ export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<We
   } = widget.config;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery] = useDebouncedValue(searchQuery, 300);
+  const debouncedQuery = useDebouncedValue(searchQuery, 300);
   const [searchResults, setSearchResults] = useState<GeocodingResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -427,25 +422,24 @@ export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<We
   return (
     <Stack gap="md">
       <div>
-        <TextInput
+        <TextField
           label="Search Location"
           placeholder="Enter city name..."
           value={searchQuery}
-          onChange={(e) => handleQueryChange(e.currentTarget.value)}
-          rightSection={isSearching ? <Loader size="xs" /> : null}
+          onChange={(value) => handleQueryChange(value)}
         />
+        {isSearching && <Spinner size="sm" />}
 
         {searchResults.length > 0 && (
-          <Paper className={classes.searchResults} mt="xs" p="xs">
-            <Stack gap={4}>
+          <Surface className={classes.searchResults} padding="sm">
+            <Stack gap="xs">
               {searchResults.map((result) => (
                 <Button
                   key={result.id}
-                  variant="subtle"
+                  appearance="ghost"
                   size="sm"
-                  fullWidth
-                  justify="flex-start"
-                  onClick={() => selectLocation(result)}
+
+                  onPress={() => selectLocation(result)}
                   className={classes.searchResult}
                 >
                   <IconMapPin size={14} style={{ marginRight: 8 }} />
@@ -455,72 +449,74 @@ export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<We
                 </Button>
               ))}
             </Stack>
-          </Paper>
+          </Surface>
         )}
       </div>
 
       {location && (
-        <Paper p="sm" className={classes.currentLocation}>
-          <Group gap="xs">
+        <Surface padding="sm" className={classes.currentLocation}>
+          <HStack gap="xs">
             <IconMapPin size={16} />
             <div>
-              <Text size="xs" c="dimmed">
+              <Text size="sm" tone="secondary">
                 Current Location
               </Text>
-              <Text size="sm" fw={500}>
+              <Text size="sm" weight="medium">
                 {location}
               </Text>
             </div>
-          </Group>
-        </Paper>
+          </HStack>
+        </Surface>
       )}
 
       <Select
         label="Temperature Units"
-        data={[
-          { value: "imperial", label: "Fahrenheit (°F)" },
-          { value: "metric", label: "Celsius (°C)" },
+        options={[
+          { id: "imperial", label: "Fahrenheit (°F)" },
+          { id: "metric", label: "Celsius (°C)" },
         ]}
-        value={units}
-        onChange={(value) =>
+        selectedKey={units}
+        onSelectionChange={(value) =>
           onConfigChange({ units: (value as "imperial" | "metric") || "imperial" })
         }
+        portalContainer={portalContainer}
       />
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Show Forecast</Text>
         <Switch
-          checked={showForecast}
-          onChange={(e) => onConfigChange({ showForecast: e.currentTarget.checked })}
+          isSelected={showForecast}
+          onChange={(value) => onConfigChange({ showForecast: value })}
         />
-      </Group>
+      </HStack>
 
       {showForecast && (
         <NumberInput
           label="Forecast Days"
-          min={1}
-          max={6}
+          minValue={1}
+          maxValue={6}
           value={forecastDays}
           onChange={(value) => onConfigChange({ forecastDays: Number(value) || 5 })}
         />
       )}
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Show Air Quality (US AQI)</Text>
         <Switch
-          checked={showAirQuality ?? false}
-          onChange={(e) => onConfigChange({ showAirQuality: e.currentTarget.checked })}
+          isSelected={showAirQuality ?? false}
+          onChange={(value) => onConfigChange({ showAirQuality: value })}
         />
-      </Group>
+      </HStack>
       <Select
         label="Text Alignment"
-        data={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Center" },
-          { value: "right", label: "Right" },
+        options={[
+          { id: "left", label: "Left" },
+          { id: "center", label: "Center" },
+          { id: "right", label: "Right" },
         ]}
-        value={textAlign}
-        onChange={(value) => onConfigChange({ textAlign: (value as TextAlign) || "left" })}
+        selectedKey={textAlign}
+        onSelectionChange={(value) => onConfigChange({ textAlign: (value as TextAlign) || "left" })}
+        portalContainer={portalContainer}
       />
     </Stack>
   );

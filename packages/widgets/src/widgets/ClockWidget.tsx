@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Box, Text, Stack, Switch, Select, Group } from "@mantine/core";
+import { HStack, Select, Stack, Switch, Text } from "@var-ui/react";
 import type { WidgetProps, WidgetConfig, TextAlign } from "../types";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { clock } from "./ClockWidget.styles";
 
 export interface ClockConfig extends WidgetConfig {
@@ -11,6 +12,23 @@ export interface ClockConfig extends WidgetConfig {
   transparentBackground: boolean;
   textAlign: TextAlign;
 }
+
+const TIMEZONE_OPTIONS = [
+  { id: "local", label: "Local Time" },
+  { id: "America/New_York", label: "Eastern Time" },
+  { id: "America/Chicago", label: "Central Time" },
+  { id: "America/Denver", label: "Mountain Time" },
+  { id: "America/Los_Angeles", label: "Pacific Time" },
+  { id: "Europe/London", label: "London" },
+  { id: "Europe/Paris", label: "Paris" },
+  { id: "Asia/Tokyo", label: "Tokyo" },
+];
+
+const ALIGN_OPTIONS = [
+  { id: "left", label: "Left" },
+  { id: "center", label: "Center" },
+  { id: "right", label: "Right" },
+];
 
 export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
   const [time, setTime] = useState(new Date());
@@ -76,12 +94,17 @@ export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
     return time.toLocaleDateString(undefined, options);
   };
 
-  const alignMap = { left: "flex-start", center: "center", right: "flex-end" } as const;
+  const alignMap = { left: "start", center: "center", right: "end" } as const;
   const align = alignMap[textAlign];
 
   return (
-    <Box ref={containerRef} className={clock({ transparent: transparentBackground }).root}>
-      <Stack gap={0} align={align} justify="center" h="100%" style={{ textAlign, width: "100%" }}>
+    <div ref={containerRef} className={clock({ transparent: transparentBackground }).root}>
+      <Stack
+        gap="none"
+        align={align}
+        justify="center"
+        style={{ textAlign, width: "100%", height: "100%" }}
+      >
         <Text className={clock().time} style={{ fontSize: `${fontSize}px` }}>
           {formatTime()}
         </Text>
@@ -91,62 +114,57 @@ export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
           </Text>
         )}
       </Stack>
-    </Box>
+    </div>
   );
 }
 
 export function ClockWidgetSettings({ widget, onConfigChange }: WidgetProps<ClockConfig>) {
   const { showSeconds, showDate, use24Hour, timezone, textAlign = "center" } = widget.config;
-
-  const timezones = [
-    { value: "local", label: "Local Time" },
-    { value: "America/New_York", label: "Eastern Time" },
-    { value: "America/Chicago", label: "Central Time" },
-    { value: "America/Denver", label: "Mountain Time" },
-    { value: "America/Los_Angeles", label: "Pacific Time" },
-    { value: "Europe/London", label: "London" },
-    { value: "Europe/Paris", label: "Paris" },
-    { value: "Asia/Tokyo", label: "Tokyo" },
-  ];
+  const portalContainer = useOverlayPortalContainer();
 
   return (
     <Stack gap="md">
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Show Seconds</Text>
         <Switch
-          checked={showSeconds}
-          onChange={(e) => onConfigChange({ showSeconds: e.currentTarget.checked })}
+          aria-label="Show Seconds"
+          isSelected={showSeconds}
+          onChange={(value) => onConfigChange({ showSeconds: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Show Date</Text>
         <Switch
-          checked={showDate}
-          onChange={(e) => onConfigChange({ showDate: e.currentTarget.checked })}
+          aria-label="Show Date"
+          isSelected={showDate}
+          onChange={(value) => onConfigChange({ showDate: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">24-Hour Format</Text>
         <Switch
-          checked={use24Hour}
-          onChange={(e) => onConfigChange({ use24Hour: e.currentTarget.checked })}
+          aria-label="24-Hour Format"
+          isSelected={use24Hour}
+          onChange={(value) => onConfigChange({ use24Hour: value })}
         />
-      </Group>
+      </HStack>
       <Select
         label="Timezone"
-        data={timezones}
-        value={timezone}
-        onChange={(value) => onConfigChange({ timezone: value || "local" })}
+        options={TIMEZONE_OPTIONS}
+        selectedKey={timezone}
+        onSelectionChange={(key) => onConfigChange({ timezone: String(key ?? "local") })}
+        portalContainer={portalContainer}
       />
       <Select
         label="Text Alignment"
-        data={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Center" },
-          { value: "right", label: "Right" },
-        ]}
-        value={textAlign}
-        onChange={(value) => onConfigChange({ textAlign: (value as TextAlign) || "center" })}
+        options={ALIGN_OPTIONS}
+        selectedKey={textAlign}
+        onSelectionChange={(key) => {
+          if (key === "left" || key === "center" || key === "right") {
+            onConfigChange({ textAlign: key });
+          }
+        }}
+        portalContainer={portalContainer}
       />
     </Stack>
   );

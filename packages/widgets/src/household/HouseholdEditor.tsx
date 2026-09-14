@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Stack, Text, TextInput } from "@mantine/core";
+import { Button, IconButton, Stack, Text, TextField } from "@var-ui/react";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { HouseholdMember } from "@homeslate/schema";
@@ -45,7 +45,7 @@ export function HouseholdEditor({
   return (
     <Stack gap="sm" className={classes.list}>
       {members.length === 0 && (
-        <Text size="sm" c="dimmed">
+        <Text size="sm" tone="secondary">
           Add people to color-code chores.
         </Text>
       )}
@@ -54,11 +54,11 @@ export function HouseholdEditor({
           <span className={classes.disc} style={{ background: member.color }} aria-hidden>
             {member.name.trim().charAt(0).toUpperCase() || "?"}
           </span>
-          <TextInput
+          <TextField
             size="sm"
             value={member.name}
-            onChange={(event) => update(member.id, { name: event.currentTarget.value })}
-            disabled={readOnly}
+            onChange={(value) => update(member.id, { name: value })}
+            isDisabled={readOnly}
             style={{ flex: 1 }}
             aria-label="Member name"
           />
@@ -71,25 +71,25 @@ export function HouseholdEditor({
                 aria-label={`Color for ${member.name}`}
                 onChange={(event) => update(member.id, { color: event.currentTarget.value })}
               />
-              <ActionIcon
-                variant="subtle"
-                color="red"
+              <IconButton
+                name="close"
+                icon={<IconTrash size={16} />}
+                appearance="ghost"
+                tone="danger"
                 aria-label={`Remove ${member.name}`}
-                onClick={() => onChange(members.filter((item) => item.id !== member.id))}
-              >
-                <IconTrash size={16} />
-              </ActionIcon>
+                onPress={() => onChange(members.filter((item) => item.id !== member.id))}
+              />
             </>
           )}
         </div>
       ))}
       {!readOnly && members.length < MAX_HOUSEHOLD_MEMBERS && (
         <Button
-          variant="light"
-          size="xs"
-          leftSection={<IconPlus size={14} />}
-          onClick={() => onChange([...members, createMember(members.length)])}
+          appearance="subtle"
+          size="sm"
+          onPress={() => onChange([...members, createMember(members.length)])}
         >
+          <IconPlus size={14} />
           Add person
         </Button>
       )}

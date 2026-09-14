@@ -1,41 +1,35 @@
 import { useState, useMemo, useCallback } from "react";
 import {
-  Box,
   Text,
-  Group,
-  Loader,
-  ActionIcon,
+  HStack,
+  Spinner,
+  IconButton,
   ScrollArea,
   Stack,
-  Paper,
+  Surface,
   Badge,
-  MultiSelect,
+  MultiSelector,
   Button,
   NumberInput,
-  Modal,
-  TextInput,
-  Textarea,
+  Dialog,
+  TextField,
+  TextAreaField,
   Select,
   Switch,
   Alert,
-} from "@mantine/core";
-import { DatePicker } from "@mantine/dates";
-import {
-  IconBrandGoogle,
-  IconCalendarEvent,
-  IconRefresh,
-  IconMapPin,
-  IconPlus,
-  IconCheck,
-} from "@tabler/icons-react";
+} from "@var-ui/react";
+import { DateInput } from "@var-ui/react";
+import { IconCalendarEvent, IconRefresh, IconMapPin, IconPlus } from "@tabler/icons-react";
 import { GoogleCalendarEmptyState } from "../chrome/GoogleCalendarEmptyState";
 import { displayCalendarEmptyDetail } from "./googleCalendarError";
 import type { WidgetProps, WidgetConfig } from "../types";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { useGoogleCalendar } from "../hooks/useGoogleCalendar";
 import { useDisplayCalendar } from "../hooks/useDisplayCalendar";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { useGoogleRuntime } from "../googleRuntime";
 import type { ParsedCalendarEvent, CalendarEventInput } from "../services/googleCalendar";
+import { calendarDateFromIso, isoFromCalendarDate } from "../dateValue";
 import * as classes from "./GoogleCalendarMonthWidget.styles";
 import dayjs from "dayjs";
 
@@ -106,6 +100,7 @@ function formatTimeRange(event: ParsedCalendarEvent): string {
 // ── Main widget ──
 
 export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendarMonthConfig>) {
+  const portalContainer = useOverlayPortalContainer();
   const { selectedCalendarIds, daysAhead, transparentBackground } = widget.config;
   const { displayId, isPreview, isAuthenticated } = useGoogleRuntime();
   const isDisplayMode = !!displayId && !isPreview;
@@ -135,7 +130,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
   const calendarOptions = useMemo(
     () =>
       calendars.map((cal) => ({
-        value: cal.id,
+        id: cal.id,
         label: cal.summary + (cal.primary ? " (Primary)" : ""),
         color: cal.backgroundColor ?? "#4285f4",
       })),
@@ -163,7 +158,7 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
 
   const handleFormSubmit = useCallback(async () => {
     if (!formData.title.trim()) {
-      setFormError("Title is required");
+      setFormError("Title is isRequired");
       return;
     }
     if (!formData.calendarId) {
@@ -218,54 +213,60 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
 
   if (!isAuthenticated && !isDisplayMode) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="signIn" className={classes.empty} />
-      </Box>
+      </div>
     );
   }
 
   if (isDisplayMode && displayData.error && !displayData.isLoading && events.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState
           variant="displayError"
           className={classes.empty}
           detail={displayCalendarEmptyDetail(displayData.error)}
         />
-      </Box>
+      </div>
     );
   }
 
   if (selectedCalendarIds.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <GoogleCalendarEmptyState variant="noCalendars" className={classes.empty} />
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.header}>
         <span className={classes.title}>
           <IconCalendarEvent size={12} />
           Calendar
         </span>
-        <Group gap={4}>
-          {isLoading && <Loader size="xs" color="blue" />}
-          <ActionIcon
-            variant="subtle"
-            size="xs"
-            onClick={() => openCreateModal(selectedDate)}
+        <HStack gap="xs">
+          {isLoading && <Spinner size="sm" />}
+          <IconButton
+            name="check"
+            icon={<IconPlus size={13} />}
+            appearance="ghost"
+            size="sm"
+            onPress={() => openCreateModal(selectedDate)}
             className={classes.addBtn}
-            title="Add event"
-          >
-            <IconPlus size={13} />
-          </ActionIcon>
-          <ActionIcon variant="subtle" size="xs" onClick={refresh} className={classes.refreshBtn}>
-            <IconRefresh size={13} />
-          </ActionIcon>
-        </Group>
+            aria-label="Add event"
+          />
+          <IconButton
+            name="arrowUp"
+            icon={<IconRefresh size={13} />}
+            appearance="ghost"
+            size="sm"
+            aria-label="Refresh"
+            onPress={refresh}
+            className={classes.refreshBtn}
+          />
+        </HStack>
       </div>
       <WidgetDataStatus
         widgetId={widget.id}
@@ -275,31 +276,13 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
       />
 
       <div className={classes.calendarWrap}>
-        <DatePicker
-          value={selectedDate}
-          onChange={(d) => d && setSelectedDate(new Date(d))}
-          renderDay={(date) => {
-            const key = dayjs(date).format("YYYY-MM-DD");
-            const dayEvents = eventsByDate.get(key) ?? [];
-            const colors = [...new Set(dayEvents.map((e) => e.color))].slice(0, 3);
-            return (
-              <div className={classes.dayCell}>
-                <span>{dayjs(date).date()}</span>
-                {colors.length > 0 && (
-                  <div className={classes.eventDots}>
-                    {colors.map((color, i) => (
-                      <div
-                        key={i}
-                        className={classes.eventDot}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
+        <DateInput
+          aria-label="Selected date"
+          value={calendarDateFromIso(dayjs(selectedDate).format("YYYY-MM-DD"))}
+          onChange={(d) => {
+            const iso = isoFromCalendarDate(d);
+            if (iso) setSelectedDate(dayjs(iso).toDate());
           }}
-          classNames={{ calendarHeader: classes.calendarHeader }}
         />
       </div>
 
@@ -309,23 +292,23 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
           {selectedDateEvents.length > 0 && (
             <span className={classes.eventCount}>{selectedDateEvents.length}</span>
           )}
-          <ActionIcon
-            variant="subtle"
-            size="xs"
-            onClick={() => openCreateModal(selectedDate)}
+          <IconButton
+            name="check"
+            icon={<IconPlus size={12} />}
+            appearance="ghost"
+            size="sm"
+            onPress={() => openCreateModal(selectedDate)}
             className={classes.addBtn}
-            title="Add event"
+            aria-label="Add event"
             style={{ marginLeft: "auto" }}
-          >
-            <IconPlus size={12} />
-          </ActionIcon>
+          />
         </div>
         {selectedDateEvents.length === 0 ? (
-          <Text size="sm" c="dimmed" ta="center" py="xl">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             No events
           </Text>
         ) : (
-          <ScrollArea className={classes.dayEventsList} scrollbarSize={4}>
+          <ScrollArea className={classes.dayEventsList}>
             {selectedDateEvents.map((event) => (
               <div key={event.id} className={classes.eventCard}>
                 <div className={classes.eventIndicator} style={{ backgroundColor: event.color }} />
@@ -346,119 +329,103 @@ export function GoogleCalendarMonthWidget({ widget }: WidgetProps<GoogleCalendar
       </div>
 
       {/* ── Create event modal ── */}
-      <Modal
-        opened={formOpen}
-        onClose={() => setFormOpen(false)}
-        title="New Event"
-        size="sm"
-        centered
-        scrollAreaComponent={ScrollArea.Autosize}
+      <Dialog.Root
+        isOpen={formOpen}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setFormOpen(false);
+        }}
+        portalContainer={portalContainer}
       >
-        <Stack gap="sm">
-          <TextInput
-            label="Title"
-            placeholder="Event title"
-            required
-            value={formData.title}
-            onChange={(e) => setFormData((d) => ({ ...d, title: e.currentTarget.value }))}
-            autoFocus
-          />
+        <Dialog.Backdrop>
+          <Dialog.Popup>
+            <Dialog.Title>New Event</Dialog.Title>
+            <Stack gap="sm">
+              <TextField
+                label="Title"
+                placeholder="Event title"
+                isRequired
+                value={formData.title}
+                onChange={(value) => setFormData((d) => ({ ...d, title: value }))}
+                autoFocus
+              />
 
-          <Select
-            label="Calendar"
-            placeholder="Select a calendar"
-            required
-            data={calendarOptions}
-            value={formData.calendarId}
-            onChange={(v) => setFormData((d) => ({ ...d, calendarId: v ?? "" }))}
-            renderOption={({ option }) => {
-              const cal = calendars.find((c) => c.id === option.value);
-              return (
-                <Group gap="xs">
-                  <div
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: "50%",
-                      backgroundColor: cal?.backgroundColor ?? "#4285f4",
-                      flexShrink: 0,
-                    }}
+              <Select
+                label="Calendar"
+                placeholder="Select a calendar"
+                isRequired
+                options={calendarOptions}
+                selectedKey={formData.calendarId}
+                onSelectionChange={(v) =>
+                  setFormData((d) => ({ ...d, calendarId: v == null ? "" : String(v) }))
+                }
+                portalContainer={portalContainer}
+              />
+
+              <TextField
+                label="Date"
+                type="date"
+                value={formData.date}
+                onChange={(value) => setFormData((d) => ({ ...d, date: value }))}
+              />
+
+              <HStack justify="between">
+                <Text size="sm">All day</Text>
+                <Switch
+                  isSelected={formData.allDay}
+                  onChange={(value) => setFormData((d) => ({ ...d, allDay: value }))}
+                />
+              </HStack>
+
+              {!formData.allDay && (
+                <div className={classes.timeGrid}>
+                  <TextField
+                    label="Start time"
+                    type="time"
+                    value={formData.startTime}
+                    onChange={(value) => setFormData((d) => ({ ...d, startTime: value }))}
                   />
-                  <Text size="sm">{option.label}</Text>
-                </Group>
-              );
-            }}
-          />
+                  <TextField
+                    label="End time"
+                    type="time"
+                    value={formData.endTime}
+                    onChange={(value) => setFormData((d) => ({ ...d, endTime: value }))}
+                  />
+                </div>
+              )}
 
-          <TextInput
-            label="Date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData((d) => ({ ...d, date: e.currentTarget.value }))}
-          />
-
-          <Group justify="space-between">
-            <Text size="sm">All day</Text>
-            <Switch
-              checked={formData.allDay}
-              onChange={(e) => setFormData((d) => ({ ...d, allDay: e.currentTarget.checked }))}
-            />
-          </Group>
-
-          {!formData.allDay && (
-            <div className={classes.timeGrid}>
-              <TextInput
-                label="Start time"
-                type="time"
-                value={formData.startTime}
-                onChange={(e) => setFormData((d) => ({ ...d, startTime: e.currentTarget.value }))}
+              <TextField
+                label="Location"
+                placeholder="Optional"
+                value={formData.location}
+                onChange={(value) => setFormData((d) => ({ ...d, location: value }))}
               />
-              <TextInput
-                label="End time"
-                type="time"
-                value={formData.endTime}
-                onChange={(e) => setFormData((d) => ({ ...d, endTime: e.currentTarget.value }))}
+
+              <TextAreaField
+                label="Description"
+                placeholder="Optional"
+                value={formData.description}
+                onChange={(value) => setFormData((d) => ({ ...d, description: value }))}
               />
-            </div>
-          )}
 
-          <TextInput
-            label="Location"
-            placeholder="Optional"
-            value={formData.location}
-            onChange={(e) => setFormData((d) => ({ ...d, location: e.currentTarget.value }))}
-          />
+              {formError && (
+                <Alert variant="danger" appearance="subtle">
+                  <Text size="sm">{formError}</Text>
+                </Alert>
+              )}
 
-          <Textarea
-            label="Description"
-            placeholder="Optional"
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData((d) => ({ ...d, description: e.currentTarget.value }))}
-          />
-
-          {formError && (
-            <Alert color="red" variant="light" p="xs">
-              <Text size="xs">{formError}</Text>
-            </Alert>
-          )}
-
-          <Group justify="flex-end" gap="xs" mt="xs">
-            <Button variant="subtle" size="sm" onClick={() => setFormOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              leftSection={<IconCheck size={14} />}
-              loading={formLoading}
-              onClick={handleFormSubmit}
-            >
-              Create Event
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </Box>
+              <HStack justify="end" gap="xs">
+                <Button appearance="ghost" size="sm" onPress={() => setFormOpen(false)}>
+                  Cancel
+                </Button>
+                <Button size="sm" isPending={formLoading} onPress={handleFormSubmit}>
+                  Create Event
+                </Button>
+              </HStack>
+            </Stack>
+          </Dialog.Popup>
+        </Dialog.Backdrop>
+      </Dialog.Root>
+    </div>
   );
 }
 
@@ -473,49 +440,43 @@ export function GoogleCalendarMonthWidgetSettings({
   const { calendars } = useGoogleCalendar({ selectedCalendarIds, daysAhead });
 
   const calendarOptions = calendars.map((cal) => ({
-    value: cal.id,
+    id: cal.id,
     label: cal.summary + (cal.primary ? " (Primary)" : ""),
   }));
 
   return (
     <Stack gap="md">
-      <Paper p="sm" className={classes.authSection}>
+      <Surface padding="sm" className={classes.authSection}>
         {isAuthenticated ? (
           <>
-            <Badge color="green" variant="light" mb="sm">
+            <Badge tone="success" appearance="subtle">
               Connected to Google
             </Badge>
-            <MultiSelect
+            <MultiSelector
               label="Select Calendars"
               placeholder="Choose calendars to display..."
-              data={calendarOptions}
+              options={calendarOptions}
               value={selectedCalendarIds}
               onChange={(value) => onConfigChange({ selectedCalendarIds: value })}
-              searchable
             />
           </>
         ) : (
           <Stack align="center" gap="sm">
-            <Text size="sm" c="dimmed">
+            <Text size="sm" tone="secondary">
               Sign in to select your calendars
             </Text>
-            <Button
-              leftSection={<IconBrandGoogle size={16} />}
-              onClick={signIn}
-              loading={authLoading}
-              size="sm"
-            >
+            <Button onPress={signIn} isPending={authLoading} size="sm">
               Sign in with Google
             </Button>
           </Stack>
         )}
-      </Paper>
+      </Surface>
 
       <NumberInput
         label="Days Ahead"
         description="How many days ahead to fetch events"
-        min={1}
-        max={90}
+        minValue={1}
+        maxValue={90}
         value={daysAhead}
         onChange={(value) => onConfigChange({ daysAhead: Number(value) || 30 })}
       />
