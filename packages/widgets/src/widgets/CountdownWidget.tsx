@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Group, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import type { TextAlign, WidgetConfig, WidgetProps } from "../types";
 import { countdownRemaining, formatCountdownParts } from "./countdown";
-import classes from "./listWidget.module.css";
+import * as classes from "./listWidget.styles";
 
 export interface CountdownConfig extends WidgetConfig {
   target: string;

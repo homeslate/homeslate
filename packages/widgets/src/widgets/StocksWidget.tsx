@@ -16,7 +16,7 @@ import type { WidgetProps, WidgetConfig } from "../types";
 import { useStocks } from "../hooks/useStocks";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { popularStocks, popularIndices, type StockQuote } from "../services/stocks";
-import classes from "./StocksWidget.module.css";
+import * as classes from "./StocksWidget.styles";
 
 export interface StocksConfig extends WidgetConfig {
   symbols: string[];

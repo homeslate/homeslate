@@ -1,6 +1,6 @@
 import { useRef, useCallback, useState, useEffect } from "react";
 import type { StickyNote as StickyNoteType } from "@homeslate/schema";
-import classes from "./StickyNote.module.css";
+import * as classes from "./StickyNote.styles";
 
 interface Props {
   note: StickyNoteType;

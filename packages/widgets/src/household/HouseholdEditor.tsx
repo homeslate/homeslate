@@ -2,7 +2,7 @@ import { ActionIcon, Button, Stack, Text, TextInput } from "@mantine/core";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { HouseholdMember } from "@homeslate/schema";
-import classes from "./HouseholdEditor.module.css";
+import * as classes from "./HouseholdEditor.styles";
 
 export const HOUSEHOLD_MEMBER_COLORS = [
   "#6366f1",

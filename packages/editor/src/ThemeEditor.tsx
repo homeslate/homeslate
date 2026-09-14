@@ -74,7 +74,7 @@ function themeDocumentToPreviewVars(doc: ThemeDocument, mode: ColorMode) {
   const resolved = resolveTheme(doc, mode);
   return themeToVars(resolved);
 }
-import classes from "./ThemeEditor.module.css";
+import * as classes from "./ThemeEditor.styles";
 
 export type ThemeEditorProps = {
   documents: ThemeDocument[] | undefined;

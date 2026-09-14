@@ -18,16 +18,20 @@ describe("@homeslate/widgets", () => {
     ) as { exports: Record<string, unknown> };
 
     expect(manifest.exports["."]).toEqual({
-      types: "./dist/index.d.ts",
-      import: "./dist/index.js",
+      types: "./dist/index.d.mts",
+      import: "./dist/index.mjs",
     });
     expect(manifest.exports["./server"]).toEqual({
-      types: "./dist/server.d.ts",
-      import: "./dist/server.js",
+      types: "./dist/server.d.mts",
+      import: "./dist/server.mjs",
     });
     expect(manifest.exports["./schemas"]).toEqual({
-      types: "./dist/schemas.d.ts",
-      import: "./dist/schemas.js",
+      types: "./dist/schemas.d.mts",
+      import: "./dist/schemas.mjs",
+    });
+    expect(manifest.exports["./styles"]).toEqual({
+      types: "./dist/styles.d.mts",
+      import: "./dist/styles.mjs",
     });
   });
 });

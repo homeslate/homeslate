@@ -12,19 +12,23 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     },
     "./canvas": {
-      "types": "./dist/canvas/index.d.ts",
-      "import": "./dist/canvas/index.js"
+      "types": "./dist/canvas/index.d.mts",
+      "import": "./dist/canvas/index.mjs"
+    },
+    "./styles": {
+      "types": "./dist/styles.d.mts",
+      "import": "./dist/styles.mjs"
     }
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/canvas/index.ts --format esm --dts --clean --tsconfig ../../tsconfig.app.json --config ../../tsup.config.ts",
+    "build": "vp pack",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
@@ -35,6 +39,7 @@
     "@tabler/icons-react": "^3.35.0",
     "react-grid-layout": "^2.0.0",
     "react-resizable": "^3.2.0",
+    "typestyles": "^0.23.0",
     "uuid": "^13.0.0"
   },
   "peerDependencies": {

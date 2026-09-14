@@ -20,7 +20,9 @@ vp run dev:reference
 
 Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the Hono server on port 8787. Opening the API port redirects there.
 
-This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. There is no production `vite build` + static-serving mode yet.
+This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. `build:web` (`vp build`) extracts TypeStyles CSS via `@typestyles/vite` from `typestyles-entry.ts`.
+
+Hosts that want zero-runtime production CSS should add `@typestyles/vite` and import `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`. Skipping the plugin still styles the UI via TypeStyles runtime injection.
 
 ## Typecheck
 

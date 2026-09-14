@@ -11,6 +11,9 @@ export default defineConfig({
   plugins: lazyPlugins(() => [react()]),
   resolve: {
     alias: {
+      "@homeslate/widgets/styles": workspaceSrc("./packages/widgets/src/styles.ts"),
+      "@homeslate/display/styles": workspaceSrc("./packages/display/src/styles.ts"),
+      "@homeslate/editor/styles": workspaceSrc("./packages/editor/src/styles.ts"),
       "@homeslate/schema": workspaceSrc("./packages/schema/src/index.ts"),
       "@homeslate/google": workspaceSrc("./packages/google/src/index.ts"),
       "@homeslate/widgets/schemas": workspaceSrc("./packages/widgets/src/schemas.ts"),
@@ -38,7 +41,7 @@ export default defineConfig({
   },
   fmt: {
     semi: true,
-    ignorePatterns: ["docs/**"],
+    ignorePatterns: ["docs/**", ".docs/**"],
   },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],

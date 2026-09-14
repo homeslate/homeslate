@@ -54,4 +54,14 @@ describe("reference app build boundary", () => {
     expect(orchestrator).toMatch(/dev:api/);
     expect(orchestrator).toMatch(/dev:web/);
   });
+
+  it("extracts TypeStyles from the published package style entries", () => {
+    const viteConfig = readFileSync(new URL("../vite.config.ts", import.meta.url), "utf8");
+    expect(viteConfig).toContain("@typestyles/vite");
+
+    const entry = readFileSync(new URL("../typestyles-entry.ts", import.meta.url), "utf8");
+    expect(entry).toContain("@homeslate/widgets/styles");
+    expect(entry).toContain("@homeslate/display/styles");
+    expect(entry).toContain("@homeslate/editor/styles");
+  });
 });

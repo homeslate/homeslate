@@ -12,15 +12,15 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     }
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.json && node -e \"import fs from 'node:fs'; const p='dist/index.js'; fs.writeFileSync(p, fs.readFileSync(p,'utf8').replaceAll('from \\\"sqlite\\\"','from \\\"node:sqlite\\\"'));\"",
+    "build": "vp pack",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {

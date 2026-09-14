@@ -1,7 +1,7 @@
 import { Box, Group, Select, Stack, Switch, Text, Textarea, TextInput } from "@mantine/core";
 import type { TextAlign, WidgetConfig, WidgetProps } from "../types";
 import { isAnnouncementVisible } from "./announcement";
-import classes from "./listWidget.module.css";
+import * as classes from "./listWidget.styles";
 
 export interface AnnouncementConfig extends WidgetConfig {
   body: string;

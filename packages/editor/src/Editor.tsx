@@ -30,7 +30,7 @@ import {
   type WidgetRegistryApi,
 } from "@homeslate/display/canvas";
 import { BgSettings, WidgetPanel } from "./WidgetPanel";
-import classes from "./Editor.module.css";
+import * as classes from "./Editor.styles";
 
 const DEFAULT_WIDGET_REGISTRY: WidgetRegistryApi = { getWidgetByType, getWidgetTypes };
 

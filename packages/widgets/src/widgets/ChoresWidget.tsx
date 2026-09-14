@@ -20,7 +20,7 @@ import {
   toggleChoreCompletion,
   type ChoreCompletion,
 } from "./chores";
-import classes from "./listWidget.module.css";
+import * as classes from "./listWidget.styles";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 

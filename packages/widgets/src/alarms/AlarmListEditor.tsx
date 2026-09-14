@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { AlarmDefinition, AlarmToneId } from "@homeslate/schema";
 import { isValidTime } from "./isValidTime";
 import { ALARM_TONE_OPTIONS } from "./tones";
-import classes from "./AlarmListEditor.module.css";
+import * as classes from "./AlarmListEditor.styles";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

@@ -19,7 +19,7 @@ import { useScores } from "../hooks/useScores";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { LEAGUES, fetchLeagueTeams, type SportsTeam } from "../services/sports";
 import type { SportGame, RaceSession } from "../services/sports";
-import classes from "./SportsWidget.module.css";
+import * as classes from "./SportsWidget.styles";
 
 export interface SportsConfig extends WidgetConfig {
   leagueId: string;

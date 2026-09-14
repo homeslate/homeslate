@@ -16,7 +16,7 @@ import type { WidgetProps, WidgetConfig } from "../types";
 import { useGooglePhotos } from "../hooks/useGooglePhotos";
 import { useGoogleRuntime } from "../googleRuntime";
 import type { StoredImage } from "../services/googlePhotos";
-import classes from "./GooglePhotosWidget.module.css";
+import * as classes from "./GooglePhotosWidget.styles";
 
 export interface GooglePhotosConfig extends WidgetConfig {
   showCaption: boolean;

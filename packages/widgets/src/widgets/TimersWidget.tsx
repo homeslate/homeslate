@@ -20,7 +20,7 @@ import { useTimers } from "../timers/TimersContext";
 import { formatDurationMs, remainingMs } from "../timers/format";
 import type { TimerPreset, TimersWidgetConfig } from "../timers/types";
 import type { WidgetConfig, WidgetProps } from "../types";
-import classes from "./TimersWidget.module.css";
+import * as classes from "./TimersWidget.styles";
 
 export interface TimersConfig extends TimersWidgetConfig, WidgetConfig {
   presets: TimerPreset[];

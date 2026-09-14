@@ -15,7 +15,7 @@ import type { WidgetProps, WidgetConfig } from "../types";
 import { useNews } from "../hooks/useNews";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { popularFeeds, type RSSFeed } from "../services/news";
-import classes from "./NewsWidget.module.css";
+import * as classes from "./NewsWidget.styles";
 
 export interface NewsConfig extends WidgetConfig {
   feedUrls: string[];

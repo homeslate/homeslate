@@ -9,7 +9,7 @@ import {
   embedSandbox,
   parseEmbedUrl,
 } from "./embedUrl";
-import classes from "./EmbedWidget.module.css";
+import * as classes from "./EmbedWidget.styles";
 
 const REFRESH_PRESETS = new Set([0, 60, 300, 900]);
 

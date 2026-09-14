@@ -35,7 +35,7 @@ import {
   type GeocodingResult,
   type AirQualityData,
 } from "../services/weather";
-import classes from "./WeatherWidget.module.css";
+import * as classes from "./WeatherWidget.styles";
 import { getWeatherSectionVisibility, getWeatherSizeTier } from "./weatherSizeTier";
 
 export interface WeatherConfig extends WidgetConfig {

@@ -22,7 +22,7 @@ import {
   formatCommuteDuration,
   type CommuteUnits,
 } from "./commute";
-import classes from "./CommuteWidget.module.css";
+import * as classes from "./CommuteWidget.styles";
 
 const EMPTY_ROUTES: CommuteRoute[] = [];
 
