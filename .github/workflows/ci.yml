@@ -16,5 +16,5 @@ jobs:
       - run: vp install
       - run: vp check
       - run: vp run build
-      - run: pnpm --filter docs check
+      - run: vp run docs#check
       - run: vp test
