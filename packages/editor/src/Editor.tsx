@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState, type JSX, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type JSX, type ReactNode } from "react";
 import { Group, Button, Modal, Stack } from "@mantine/core";
+import { DesignSystemProvider } from "@var-ui/react";
 import { IconSettings, IconUsers } from "@tabler/icons-react";
-import type { DisplayDocument, StickyNote, ViewBackground } from "@homeslate/schema";
+import type { DisplayDocument, StickyNote, ThemeDocument, ViewBackground } from "@homeslate/schema";
 import {
   AlarmsProvider,
   HouseholdEditor,
@@ -14,10 +15,13 @@ import {
   BackgroundSlideshow,
   DocumentCanvas,
   applyWidgetLayouts,
+  getCanvasBackgroundStyle,
   patchView,
   patchViewNotes,
   patchWidgetConfig,
+  pickActiveDocument,
   removeWidget,
+  useCompiledDisplayTheme,
   type WidgetRegistryApi,
 } from "@homeslate/display/canvas";
 import { BgSettings, WidgetPanel } from "./WidgetPanel";
@@ -54,6 +58,14 @@ export function Editor(props: EditorProps): JSX.Element {
   documentRef.current = document;
 
   const view = document.views.find((item) => item.id === viewId);
+  const themeDocument = useMemo(
+    () => pickActiveDocument(document.themes as ThemeDocument[], document.activeThemeId),
+    [document.themes, document.activeThemeId],
+  );
+  const theme = useCompiledDisplayTheme(themeDocument);
+  const editorColorMode = document.colorMode === "light" ? "light" : "dark";
+  const canvasBackground = getCanvasBackgroundStyle(themeDocument, editorColorMode);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const emit = useCallback(
     (next: DisplayDocument) => {
@@ -138,97 +150,99 @@ export function Editor(props: EditorProps): JSX.Element {
   );
 
   return (
-    <div className={classes.root}>
-      <div className={classes.pageActions}>
-        <Group gap="sm">
-          <Button
-            variant="default"
-            leftSection={<IconSettings size={16} />}
-            onClick={() => setBgSettingsOpen(true)}
-          >
-            Background Settings
-          </Button>
-          <Button
-            variant="default"
-            leftSection={<IconUsers size={16} />}
-            onClick={() => setHouseholdOpen(true)}
-          >
-            Household
-          </Button>
-          {actions}
-        </Group>
-      </div>
-
-      <div className={classes.body}>
-        <WidgetPanel
-          document={document}
-          viewId={viewId}
-          onChange={emit}
-          widgetRegistry={widgetRegistry}
-        />
-        <main className={classes.main}>
-          {view && <BackgroundSlideshow view={view} />}
-          <TimersProvider>
-            <HouseholdProvider
-              members={document.household?.members ?? []}
-              onMembersChange={(members) =>
-                emit({ ...documentRef.current, household: { members } })
-              }
+    <DesignSystemProvider customTheme={theme} colorMode={editorColorMode}>
+      <div ref={rootRef} className={classes.root}>
+        <div className={classes.pageActions}>
+          <Group gap="sm">
+            <Button
+              variant="default"
+              leftSection={<IconSettings size={16} />}
+              onClick={() => setBgSettingsOpen(true)}
             >
-              <AlarmsProvider
-                alarms={document.alarms ?? []}
-                onAlarmsChange={(next) => emit({ ...documentRef.current, alarms: next })}
-              >
-                {view && (
-                  <DocumentCanvas
-                    view={view}
-                    isEditing
-                    stickyNotesEnabled={document.settings.stickyNotesEnabled ?? false}
-                    widgetRegistry={widgetRegistry}
-                    onLayoutChange={handleLayoutChange}
-                    onWidgetConfigChange={handleWidgetConfigChange}
-                    onRemoveWidget={handleRemoveWidget}
-                    onAddNote={handleAddNote}
-                    onRemoveNote={handleRemoveNote}
-                    onUpdateNote={handleUpdateNote}
-                  />
-                )}
-              </AlarmsProvider>
-            </HouseholdProvider>
-          </TimersProvider>
-        </main>
-      </div>
-      <Modal
-        opened={householdOpen}
-        onClose={() => setHouseholdOpen(false)}
-        title="Household"
-        size="md"
-      >
-        <Stack gap="md">
-          <HouseholdEditor
-            members={document.household?.members ?? []}
-            onChange={(members) => emit({ ...documentRef.current, household: { members } })}
+              Background Settings
+            </Button>
+            <Button
+              variant="default"
+              leftSection={<IconUsers size={16} />}
+              onClick={() => setHouseholdOpen(true)}
+            >
+              Household
+            </Button>
+            {actions}
+          </Group>
+        </div>
+
+        <div className={classes.body}>
+          <WidgetPanel
+            document={document}
+            viewId={viewId}
+            onChange={emit}
+            widgetRegistry={widgetRegistry}
           />
-          <Button onClick={() => setHouseholdOpen(false)}>Done</Button>
-        </Stack>
-      </Modal>
-      <Modal
-        opened={bgSettingsOpen}
-        onClose={() => setBgSettingsOpen(false)}
-        title="View Background"
-        size="md"
-      >
-        <Stack gap="md">
-          {view && (
-            <BgSettings
-              view={view}
-              updateBg={updateBg}
-              onUploadBackgroundPhoto={onUploadBackgroundPhoto}
+          <main className={classes.main} style={canvasBackground}>
+            {view && <BackgroundSlideshow view={view} />}
+            <TimersProvider>
+              <HouseholdProvider
+                members={document.household?.members ?? []}
+                onMembersChange={(members) =>
+                  emit({ ...documentRef.current, household: { members } })
+                }
+              >
+                <AlarmsProvider
+                  alarms={document.alarms ?? []}
+                  onAlarmsChange={(next) => emit({ ...documentRef.current, alarms: next })}
+                >
+                  {view && (
+                    <DocumentCanvas
+                      view={view}
+                      isEditing
+                      stickyNotesEnabled={document.settings.stickyNotesEnabled ?? false}
+                      widgetRegistry={widgetRegistry}
+                      onLayoutChange={handleLayoutChange}
+                      onWidgetConfigChange={handleWidgetConfigChange}
+                      onRemoveWidget={handleRemoveWidget}
+                      onAddNote={handleAddNote}
+                      onRemoveNote={handleRemoveNote}
+                      onUpdateNote={handleUpdateNote}
+                    />
+                  )}
+                </AlarmsProvider>
+              </HouseholdProvider>
+            </TimersProvider>
+          </main>
+        </div>
+        <Modal
+          opened={householdOpen}
+          onClose={() => setHouseholdOpen(false)}
+          title="Household"
+          size="md"
+        >
+          <Stack gap="md">
+            <HouseholdEditor
+              members={document.household?.members ?? []}
+              onChange={(members) => emit({ ...documentRef.current, household: { members } })}
             />
-          )}
-          <Button onClick={() => setBgSettingsOpen(false)}>Done</Button>
-        </Stack>
-      </Modal>
-    </div>
+            <Button onClick={() => setHouseholdOpen(false)}>Done</Button>
+          </Stack>
+        </Modal>
+        <Modal
+          opened={bgSettingsOpen}
+          onClose={() => setBgSettingsOpen(false)}
+          title="View Background"
+          size="md"
+        >
+          <Stack gap="md">
+            {view && (
+              <BgSettings
+                view={view}
+                updateBg={updateBg}
+                onUploadBackgroundPhoto={onUploadBackgroundPhoto}
+              />
+            )}
+            <Button onClick={() => setBgSettingsOpen(false)}>Done</Button>
+          </Stack>
+        </Modal>
+      </div>
+    </DesignSystemProvider>
   );
 }

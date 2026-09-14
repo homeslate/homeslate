@@ -20,6 +20,21 @@ describe("@homeslate/display", () => {
     expect(source).not.toMatch(/PinInput/);
   });
 
+  it("nests DesignSystemProvider with a compiled theme class, not inline --token-* styles", () => {
+    const source = readFileSync(new URL("./Display.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/from ["']@var-ui\/react["']/);
+    expect(source).toMatch(/DesignSystemProvider/);
+    expect(source).toMatch(/useCompiledDisplayTheme/);
+    expect(source).toMatch(/customTheme=\{theme\}/);
+    expect(source).toMatch(/colorMode=\{effectiveColorMode === "dark" \? "dark" : "light"\}/);
+    expect(source).not.toMatch(/tokenVars/);
+    expect(source).not.toMatch(/resolveDisplayThemeVars/);
+    expect(source).not.toMatch(/--token-/);
+    expect(source).not.toMatch(/applyToDocument/);
+    expect(source).not.toMatch(/document\.documentElement/);
+    expect(source).toMatch(/getCanvasBackgroundStyle/);
+  });
+
   it("re-exports HolidayId from schema instead of duplicating the union", () => {
     const source = readFileSync(new URL("./holidays.ts", import.meta.url), "utf8");
     expect(source).toMatch(/from ['"]@homeslate\/schema['"]/);

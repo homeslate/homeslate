@@ -30,6 +30,6 @@ export const main = styles.class("editor-main", {
   flexDirection: "column",
   overflow: "hidden",
   minWidth: "0",
-  background: "var(--var-ui-color-background-app)",
+  backgroundColor: "var(--var-ui-color-background-app)",
   position: "relative",
 });

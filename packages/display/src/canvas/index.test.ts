@@ -16,6 +16,11 @@ describe("@homeslate/display/canvas", () => {
     expect(theme.className).toBe(`theme-var-ui-homeslate-${DEFAULT_THEME_DOCUMENTS[0].id}`);
   });
 
+  it("exports useCompiledDisplayTheme", async () => {
+    const canvas = await import("@homeslate/display/canvas");
+    expect(typeof canvas.useCompiledDisplayTheme).toBe("function");
+  });
+
   it("DocumentCanvas source does not import hosted store or auth", () => {
     const source = readFileSync(new URL("./DocumentCanvas.tsx", import.meta.url), "utf8");
     expect(source).not.toMatch(/dashboardStore/);

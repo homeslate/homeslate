@@ -126,7 +126,7 @@ export const colorModeBtn = styles.class("display-colorModeBtn", {
 export const root = styles.class("display-root", {
   width: "100vw",
   height: "100dvh",
-  background: "var(--var-ui-color-background-app, var(--mantine-color-body))",
+  backgroundColor: "var(--var-ui-color-background-app, var(--mantine-color-body))",
   overflow: "hidden",
   position: "relative",
   display: "flex",

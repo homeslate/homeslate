@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vite-plus/test";
 import { getRegisteredCss, reset } from "typestyles";
-import { createDisplayTheme } from "./createDisplayTheme";
+import { createDisplayTheme, getCanvasBackgroundStyle } from "./createDisplayTheme";
 import { DEFAULT_THEME_DOCUMENTS } from "./defaults";
 
 describe("createDisplayTheme", () => {
@@ -36,5 +36,24 @@ describe("createDisplayTheme", () => {
         }),
       }),
     );
+  });
+
+  it("paints mode-aware canvas gradients from extend.canvas.backgroundImage", () => {
+    const cosmos = DEFAULT_THEME_DOCUMENTS[0];
+    const dark = getCanvasBackgroundStyle(cosmos, "dark");
+    const light = getCanvasBackgroundStyle(cosmos, "light");
+    const canvas = cosmos.extend?.canvas as {
+      backgroundImage: { light: string; dark: string };
+    };
+
+    expect(dark.backgroundImage).toBe(canvas.backgroundImage.dark);
+    expect(light.backgroundImage).toBe(canvas.backgroundImage.light);
+    expect(dark.backgroundImage).toMatch(/gradient/i);
+  });
+
+  it("omits canvas backgroundImage when the preset has no extend.canvas", () => {
+    const paper = DEFAULT_THEME_DOCUMENTS.find((doc) => doc.id === "theme-paper");
+    expect(paper).toBeDefined();
+    expect(getCanvasBackgroundStyle(paper!, "dark")).toEqual({});
   });
 });

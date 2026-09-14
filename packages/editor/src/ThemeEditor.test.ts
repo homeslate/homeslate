@@ -91,4 +91,15 @@ describe("ThemeEditor markup", () => {
     expect(source).toContain("activeThemeDocumentId");
     expect(source).toMatch(/useState<string \| null>\(initialThemeId\)/);
   });
+
+  it("previews a draft theme through a nested DesignSystemProvider and live replace", () => {
+    expect(source).toMatch(/from ["']@var-ui\/react["']/);
+    expect(source).toContain("DesignSystemProvider");
+    expect(source).toContain("useDebouncedValue");
+    expect(source).toContain("createDisplayTheme");
+    expect(source).toMatch(/customTheme=\{previewTheme\}/);
+    expect(source).not.toContain("themeDocumentToPreviewVars");
+    expect(source).not.toMatch(/applyToDocument/);
+    expect(source).not.toMatch(/document\.documentElement/);
+  });
 });

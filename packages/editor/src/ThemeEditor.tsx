@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import {
   ActionIcon,
   Alert,
@@ -19,6 +19,8 @@ import {
   Textarea,
   Tooltip,
 } from "@mantine/core";
+import { DesignSystemProvider, useDebouncedValue } from "@var-ui/react";
+import { disposeDesignTheme } from "@var-ui/core";
 import {
   IconAlertCircle,
   IconCheck,
@@ -39,7 +41,10 @@ import {
 } from "@homeslate/schema";
 import {
   BackgroundSlideshow,
+  createDisplayTheme,
+  displayThemeName,
   DocumentCanvas,
+  getCanvasBackgroundStyle,
   getPresetById,
   THEME_PRESET_OPTIONS,
   TAILWIND_COLOR_PALETTES,
@@ -57,6 +62,7 @@ import {
   type EditableTokenType,
   type ReferenceOption,
 } from "./themeEditorModel";
+import * as classes from "./ThemeEditor.styles";
 
 function createThemeDocumentFromPreset(presetId: string, name: string): ThemeDocument {
   const base = getPresetById(presetId);
@@ -68,10 +74,59 @@ function createThemeDocumentFromPreset(presetId: string, name: string): ThemeDoc
   };
 }
 
-function themeDocumentToPreviewVars(_doc: ThemeDocument, _mode: ColorMode): CSSProperties {
-  return {};
+function ThemePreviewIsland(props: {
+  doc: ThemeDocument;
+  colorMode: ColorMode;
+  view: View | null;
+  activeThemeDocumentId: string | null | undefined;
+}): JSX.Element {
+  const { doc, colorMode, view, activeThemeDocumentId } = props;
+  const debouncedDoc = useDebouncedValue(doc, 80);
+  const tokensKey = JSON.stringify(debouncedDoc.tokens ?? null);
+  const colorModeKey = JSON.stringify(debouncedDoc.colorMode ?? null);
+  const extendKey = JSON.stringify(debouncedDoc.extend ?? null);
+  const previewTheme = useMemo(
+    () => createDisplayTheme(debouncedDoc),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serialized token trees
+    [debouncedDoc.id, tokensKey, colorModeKey, extendKey],
+  );
+
+  useEffect(() => {
+    const id = debouncedDoc.id;
+    return () => {
+      if (id !== activeThemeDocumentId) {
+        disposeDesignTheme(displayThemeName(id));
+      }
+    };
+  }, [activeThemeDocumentId, debouncedDoc.id]);
+
+  const canvasBackground = getCanvasBackgroundStyle(debouncedDoc, colorMode);
+
+  return (
+    <DesignSystemProvider
+      customTheme={previewTheme}
+      colorMode={colorMode === "dark" ? "dark" : "light"}
+    >
+      <div className={classes.previewCanvas} style={canvasBackground}>
+        {view ? (
+          <div className={classes.actualPreviewViewport}>
+            <BackgroundSlideshow view={view} />
+            <DocumentCanvas view={view} isEditing={false} />
+          </div>
+        ) : (
+          <>
+            <div className={classes.previewToolbar}>Widget toolbar</div>
+            <div className={classes.previewWidget}>
+              <p className={classes.previewWidgetTitle}>Sample widget</p>
+              <p className={classes.previewWidgetMuted}>Secondary text uses muted tokens.</p>
+              <span className={classes.previewButton}>Accent button</span>
+            </div>
+          </>
+        )}
+      </div>
+    </DesignSystemProvider>
+  );
 }
-import * as classes from "./ThemeEditor.styles";
 
 export type ThemeEditorProps = {
   documents: ThemeDocument[] | undefined;
@@ -480,8 +535,7 @@ export function ThemeEditor({
       if (!validation.ok || !validation.data) {
         return { status: "invalid" as const, issues: validation.issues };
       }
-      const vars = themeDocumentToPreviewVars(validation.data, previewMode);
-      return { status: "ok" as const, doc: validation.data, vars };
+      return { status: "ok" as const, doc: validation.data };
     } catch (error) {
       if (error instanceof SyntaxError) {
         return { status: "parse" as const };
@@ -496,7 +550,7 @@ export function ThemeEditor({
         ],
       };
     }
-  }, [editorValue, previewMode, editingThemeId]);
+  }, [editorValue, editingThemeId]);
 
   const editableTokenEntries = useMemo(
     () =>
@@ -1062,28 +1116,12 @@ export function ThemeEditor({
 
                     <div className={classes.previewShell}>
                       {previewResult.status === "ok" ? (
-                        <div
-                          className={classes.previewCanvas}
-                          style={previewResult.vars as CSSProperties}
-                        >
-                          {activePreviewView ? (
-                            <div className={classes.actualPreviewViewport}>
-                              <BackgroundSlideshow view={activePreviewView} />
-                              <DocumentCanvas view={activePreviewView} isEditing={false} />
-                            </div>
-                          ) : (
-                            <>
-                              <div className={classes.previewToolbar}>Widget toolbar</div>
-                              <div className={classes.previewWidget}>
-                                <p className={classes.previewWidgetTitle}>Sample widget</p>
-                                <p className={classes.previewWidgetMuted}>
-                                  Secondary text uses muted tokens.
-                                </p>
-                                <span className={classes.previewButton}>Accent button</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        <ThemePreviewIsland
+                          doc={previewResult.doc}
+                          colorMode={previewMode}
+                          view={activePreviewView}
+                          activeThemeDocumentId={activeThemeDocumentId}
+                        />
                       ) : (
                         <div className={classes.previewPlaceholder}>
                           {previewResult.status === "empty" && "Edit JSON to see a preview."}

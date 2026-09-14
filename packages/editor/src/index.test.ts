@@ -19,6 +19,20 @@ describe("@homeslate/editor", () => {
     expect(source).not.toMatch(/react-router/);
   });
 
+  it("nests DesignSystemProvider with the active compiled theme, not applyToDocument", () => {
+    const source = readFileSync(new URL("./Editor.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/from ["']@var-ui\/react["']/);
+    expect(source).toMatch(/DesignSystemProvider/);
+    expect(source).toMatch(/useCompiledDisplayTheme/);
+    expect(source).toMatch(/pickActiveDocument/);
+    expect(source).toMatch(/customTheme=\{theme\}/);
+    expect(source).not.toMatch(/tokenVars/);
+    expect(source).not.toMatch(/resolveDisplayThemeVars/);
+    expect(source).not.toMatch(/applyToDocument/);
+    expect(source).not.toMatch(/document\.documentElement/);
+    expect(source).toMatch(/getCanvasBackgroundStyle/);
+  });
+
   it("WidgetPanel source does not import hosted auth, api, or store", () => {
     const source = readFileSync(new URL("./WidgetPanel.tsx", import.meta.url), "utf8");
     expect(source).not.toMatch(/AuthContext/);

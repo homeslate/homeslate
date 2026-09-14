@@ -335,7 +335,7 @@ export const previewCanvas = styles.class("themeeditor-previewCanvas", {
   flex: "1",
   minHeight: "min(520px, calc(100dvh - 220px))",
   padding: "0.75rem",
-  background: "var(--var-ui-color-background-app)",
+  backgroundColor: "var(--var-ui-color-background-app)",
   fontFamily: "var(--var-ui-fontFamily-body)",
 });
 
@@ -345,7 +345,7 @@ export const actualPreviewViewport = styles.class("themeeditor-actualPreviewView
   height: "clamp(520px, calc(100dvh - 220px), 820px)",
   overflow: "hidden",
   borderRadius: "12px",
-  background: "var(--var-ui-color-background-app)",
+  backgroundColor: "transparent",
   border: "1px solid var(--var-ui-color-border-default)",
 });
 

@@ -6,7 +6,12 @@ export {
   getPresetById,
   pickActiveDocument,
 } from "./theme/defaults";
-export { createDisplayTheme } from "./theme/createDisplayTheme";
+export {
+  createDisplayTheme,
+  displayThemeName,
+  getCanvasBackgroundStyle,
+  useCompiledDisplayTheme,
+} from "./theme/createDisplayTheme";
 export { hexToRgb, getBackgroundStyle } from "./theme/utils";
 export {
   TAILWIND_COLOR_PALETTES,
