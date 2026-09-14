@@ -311,7 +311,7 @@ export const paletteShadeChip = styles.class("themeeditor-paletteShadeChip", {
   width: "100%",
   minWidth: "1.75rem",
   height: "1.65rem",
-  borderRadius: "var(--var-ui-radius-xs)",
+  borderRadius: "var(--var-ui-radius-sm)",
   border: "1px solid color-mix(in srgb, var(--var-ui-color-text-primary) 16%, transparent)",
 });
 

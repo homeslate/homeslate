@@ -526,7 +526,10 @@ export function GoogleCalendarDayWidget({ widget }: WidgetProps<GoogleCalendarDa
                       </Button>
                     </HStack>
                     {deleteError && (
-                      <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+                      <Text
+                        size="sm"
+                        style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}
+                      >
                         {deleteError}
                       </Text>
                     )}

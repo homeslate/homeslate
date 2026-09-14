@@ -98,7 +98,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
 
       {wholeWidgetError ? (
         <div className={classes.error}>
-          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+          <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
             {wholeWidgetError}
           </Text>
           <Button appearance="subtle" size="sm" onPress={refresh}>
@@ -126,7 +126,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
                   </div>
                 )}
                 {result?.error && !result.estimate && result.status !== 501 && (
-                  <Text size="xs" style={{ color: "var(--var-ui-color-danger)" }}>
+                  <Text size="xs" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
                     {result.error}
                   </Text>
                 )}

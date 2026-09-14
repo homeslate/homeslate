@@ -167,7 +167,7 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
                   <Text size="sm" weight="semibold">
                     {symbol}
                   </Text>
-                  <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+                  <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
                     {error}
                   </Text>
                 </Surface>
@@ -323,7 +323,10 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
                     {result.name}
                   </Text>
                   {symbols.includes(result.symbol) && (
-                    <Text size="sm" style={{ color: "var(--var-ui-color-success)" }}>
+                    <Text
+                      size="sm"
+                      style={{ color: "var(--var-ui-color-tone-success-foreground)" }}
+                    >
                       Added
                     </Text>
                   )}

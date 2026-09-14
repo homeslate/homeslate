@@ -245,7 +245,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
       <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconTrophy size={48} className={classes.emptyIcon} />
-          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+          <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
             {error}
           </Text>
           <Button size="sm" appearance="ghost" onPress={refresh}>

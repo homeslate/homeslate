@@ -48,7 +48,7 @@ export const pulse = styles.class("alarmdialog-pulse", {
   height: "64px",
   margin: "0 auto 1.25rem",
   borderRadius: "50%",
-  background: "var(--var-ui-color-danger)",
+  background: "var(--var-ui-color-tone-danger-background)",
   animation: "pulse 1.2s ease-in-out infinite",
 });
 

@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import { DISPLAY_PACKAGE_NAME, Display } from "@homeslate/display";
 
@@ -47,4 +49,34 @@ describe("@homeslate/display", () => {
     expect(source).toMatch(/export function AlarmRuntime\(/);
     expect(source).not.toMatch(/AlertRuntime/);
   });
+
+  it("uses public VarUI tone tokens, not invented color.danger/success names", () => {
+    assertNoInventedVarUiTokens(dirname(fileURLToPath(import.meta.url)));
+  });
 });
+
+function walkSourceFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walkSourceFiles(full));
+      continue;
+    }
+    if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+    if (/\.test\.(ts|tsx)$/.test(entry.name)) continue;
+    out.push(full);
+  }
+  return out;
+}
+
+function assertNoInventedVarUiTokens(root: string) {
+  const files = walkSourceFiles(root);
+  expect(files.length).toBeGreaterThan(0);
+  for (const file of files) {
+    const source = readFileSync(file, "utf8");
+    expect(source, file).not.toMatch(/--var-ui-color-danger(?!-)/);
+    expect(source, file).not.toMatch(/--var-ui-color-success(?!-)/);
+    expect(source, file).not.toMatch(/--var-ui-radius-xs/);
+  }
+}

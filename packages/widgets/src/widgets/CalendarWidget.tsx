@@ -93,7 +93,7 @@ export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
     return (
       <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.error}>
-          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+          <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
             {error}
           </Text>
           <Button appearance="subtle" size="sm" onPress={refresh}>

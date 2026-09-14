@@ -554,7 +554,10 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
                       </Button>
                     </HStack>
                     {deleteError && (
-                      <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+                      <Text
+                        size="sm"
+                        style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}
+                      >
                         {deleteError}
                       </Text>
                     )}

@@ -97,7 +97,7 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
     return (
       <div className={containerClass}>
         <div className={classes.error}>
-          <Text size="sm" style={{ color: "var(--var-ui-color-danger)" }}>
+          <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
             {error}
           </Text>
           <Button appearance="subtle" size="sm" onPress={refresh}>

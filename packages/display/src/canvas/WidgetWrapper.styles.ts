@@ -156,7 +156,7 @@ export const healthLoading = styles.class("widgetwrapper-healthLoading", {
 });
 
 export const healthOk = styles.class("widgetwrapper-healthOk", {
-  color: "var(--var-ui-color-success)",
+  color: "var(--var-ui-color-tone-success-foreground)",
   borderColor: "rgba(34, 197, 94, 0.35)",
 });
 
@@ -166,7 +166,7 @@ export const healthStale = styles.class("widgetwrapper-healthStale", {
 });
 
 export const healthError = styles.class("widgetwrapper-healthError", {
-  color: "var(--var-ui-color-danger)",
+  color: "var(--var-ui-color-tone-danger-foreground)",
   borderColor: "rgba(239, 68, 68, 0.35)",
 });
 
