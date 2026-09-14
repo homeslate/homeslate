@@ -1,69 +1,4 @@
 import type { ThemeDocument } from "@homeslate/schema";
-import { tailwindPaletteToTokenGroup } from "./tailwindPalette";
-
-const SCHEMA_URL = "https://homeslate.dev/schemas/theme-document.schema.json";
-
-const SHARED_SPACING = {
-  "0": { $type: "dimension", $value: "0px" },
-  "1": { $type: "dimension", $value: "4px" },
-  "2": { $type: "dimension", $value: "8px" },
-  "3": { $type: "dimension", $value: "12px" },
-  "4": { $type: "dimension", $value: "16px" },
-  "6": { $type: "dimension", $value: "24px" },
-  "8": { $type: "dimension", $value: "32px" },
-  "12": { $type: "dimension", $value: "48px" },
-  "16": { $type: "dimension", $value: "64px" },
-} as const;
-
-const SHARED_RADIUS = {
-  none: { $type: "dimension", $value: "0px" },
-  sm: { $type: "dimension", $value: "6px" },
-  md: { $type: "dimension", $value: "10px" },
-  lg: { $type: "dimension", $value: "14px" },
-  xl: { $type: "dimension", $value: "18px" },
-  full: { $type: "dimension", $value: "9999px" },
-} as const;
-
-const SHARED_TYPOGRAPHY_REST = {
-  size: {
-    xs: { $type: "dimension", $value: "12px" },
-    sm: { $type: "dimension", $value: "14px" },
-    md: { $type: "dimension", $value: "16px" },
-    lg: { $type: "dimension", $value: "18px" },
-    xl: { $type: "dimension", $value: "20px" },
-    "2xl": { $type: "dimension", $value: "24px" },
-  },
-  weight: {
-    regular: { $type: "fontWeight", $value: 400 },
-    medium: { $type: "fontWeight", $value: 500 },
-    semibold: { $type: "fontWeight", $value: 600 },
-    bold: { $type: "fontWeight", $value: 700 },
-  },
-  lineHeight: {
-    tight: { $type: "number", $value: 1.2 },
-    normal: { $type: "number", $value: 1.5 },
-    relaxed: { $type: "number", $value: 1.75 },
-  },
-} as const;
-
-const STATUS_COLORS = {
-  success: {
-    "500": { $type: "color", $value: "#22c55e" },
-    "600": { $type: "color", $value: "#16a34a" },
-  },
-  warning: {
-    "500": { $type: "color", $value: "#f59e0b" },
-    "600": { $type: "color", $value: "#d97706" },
-  },
-  danger: {
-    "500": { $type: "color", $value: "#ef4444" },
-    "600": { $type: "color", $value: "#dc2626" },
-  },
-  info: {
-    "500": { $type: "color", $value: "#0ea5e9" },
-    "600": { $type: "color", $value: "#0284c7" },
-  },
-} as const;
 
 interface ThemeSeed {
   id: string;
@@ -82,6 +17,56 @@ interface ModeSeed {
   textMuted: string;
   glow: string;
 }
+
+const SHARED_SPACE = {
+  0: "0px",
+  1: "4px",
+  2: "8px",
+  3: "12px",
+  4: "16px",
+  6: "24px",
+  8: "32px",
+  12: "48px",
+  16: "64px",
+} as const;
+
+const SHARED_RADIUS = {
+  none: "0px",
+  sm: "6px",
+  md: "10px",
+  lg: "14px",
+  xl: "18px",
+  full: "9999px",
+} as const;
+
+const SHARED_FONT_SIZE = {
+  xs: "12px",
+  sm: "14px",
+  md: "16px",
+  lg: "18px",
+  xl: "20px",
+  "2xl": "24px",
+} as const;
+
+const SHARED_FONT_WEIGHT = {
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+} as const;
+
+const SHARED_LINE_HEIGHT = {
+  tight: 1.2,
+  normal: 1.5,
+  relaxed: 1.75,
+} as const;
+
+const STATUS_COLORS = {
+  success: { "500": "#22c55e", "600": "#16a34a" },
+  warning: { "500": "#f59e0b", "600": "#d97706" },
+  danger: { "500": "#ef4444", "600": "#dc2626" },
+  info: { "500": "#0ea5e9", "600": "#0284c7" },
+} as const;
 
 const SEEDS: ThemeSeed[] = [
   {
@@ -308,103 +293,56 @@ const SEEDS: ThemeSeed[] = [
   },
 ];
 
-function color(value: string) {
-  return { $type: "color" as const, $value: value };
-}
-
-function modeBlock(seed: ModeSeed, _isDark: boolean) {
+function colorFaces(seed: ModeSeed, isDark: boolean, brand: ThemeSeed["brand"]) {
   return {
-    semantic: {
-      surface: {
-        canvas: color(seed.canvas),
-        sunken: color(seed.canvas),
-        card: color(seed.card),
-        overlay: color(seed.card),
-      },
-      text: {
-        primary: color(seed.textPrimary),
-        muted: color(seed.textMuted),
-        inverse: color(_isDark ? "#101828" : "#f8fafc"),
-        link: color("{foundation.color.brand.500}"),
-      },
-      border: {
-        subtle: color(seed.border),
-        default: color(seed.border),
-        strong: color("{foundation.color.brand.500}"),
-      },
-      focus: {
-        ring: color(seed.glow),
-      },
-      status: {
-        success: {
-          bg: color(_isDark ? "#166534" : "#dcfce7"),
-          fg: color(_isDark ? "#dcfce7" : "#166534"),
-          border: color("{foundation.color.success.500}"),
-        },
-        warning: {
-          bg: color(_isDark ? "#92400e" : "#fef3c7"),
-          fg: color(_isDark ? "#fef3c7" : "#92400e"),
-          border: color("{foundation.color.warning.500}"),
-        },
-        danger: {
-          bg: color(_isDark ? "#991b1b" : "#fee2e2"),
-          fg: color(_isDark ? "#fee2e2" : "#991b1b"),
-          border: color("{foundation.color.danger.500}"),
-        },
-      },
-      interactive: {
-        primary: {
-          bg: color("{foundation.color.brand.500}"),
-          fg: color("#ffffff"),
-          border: color("{foundation.color.brand.500}"),
-          hoverBg: color("{foundation.color.brand.600}"),
-          activeBg: color("{foundation.color.brand.600}"),
-        },
-        secondary: {
-          bg: color(seed.card),
-          fg: color(seed.textPrimary),
-          border: color(seed.border),
-          hoverBg: color(seed.card),
-          activeBg: color(seed.card),
-        },
-        ghost: {
-          bg: color("transparent"),
-          fg: color(seed.textPrimary),
-          border: color("transparent"),
-          hoverBg: color(seed.card),
-          activeBg: color(seed.card),
-        },
-      },
+    background: {
+      app: seed.canvas,
+      surface: seed.card,
     },
-    components: {
-      widget: {
-        background: color(seed.card),
-        borderColor: color(seed.border),
-        borderWidth: { $type: "dimension" as const, $value: "1px" },
-        radius: { $type: "dimension" as const, $value: "12px" },
-        padding: { $type: "dimension" as const, $value: "12px" },
+    text: {
+      primary: seed.textPrimary,
+      secondary: seed.textMuted,
+    },
+    border: {
+      subtle: seed.border,
+      default: seed.border,
+      strong: brand["500"],
+      focus: seed.glow,
+    },
+    ring: {
+      default: seed.glow,
+    },
+    link: {
+      default: brand["500"],
+    },
+    tone: {
+      accent: {
+        background: brand["500"],
+        foreground: brand["500"],
       },
-      toolbar: {
-        background: color(seed.card),
-        text: color(seed.textPrimary),
-        icon: color(seed.textMuted),
-        divider: color(seed.border),
-        height: { $type: "dimension" as const, $value: "56px" },
+      success: {
+        background: STATUS_COLORS.success["500"],
+        foreground: isDark ? "#dcfce7" : "#166534",
+        subtleBackground: isDark ? "#166534" : "#dcfce7",
+        border: STATUS_COLORS.success["500"],
       },
-      badge: {
-        background: color("{foundation.color.brand.500}"),
-        text: color("#ffffff"),
-        radius: { $type: "dimension" as const, $value: "9999px" },
-        paddingX: { $type: "dimension" as const, $value: "10px" },
-        paddingY: { $type: "dimension" as const, $value: "4px" },
+      warning: {
+        background: STATUS_COLORS.warning["500"],
+        foreground: isDark ? "#fef3c7" : "#92400e",
+        subtleBackground: isDark ? "#92400e" : "#fef3c7",
+        border: STATUS_COLORS.warning["500"],
       },
-      control: {
-        height: { $type: "dimension" as const, $value: "36px" },
-        radius: { $type: "dimension" as const, $value: "8px" },
-        borderColor: color(seed.border),
-        background: color(seed.card),
-        text: color(seed.textPrimary),
-        placeholder: color(seed.textMuted),
+      danger: {
+        background: STATUS_COLORS.danger["500"],
+        foreground: isDark ? "#fee2e2" : "#991b1b",
+        subtleBackground: isDark ? "#991b1b" : "#fee2e2",
+        border: STATUS_COLORS.danger["500"],
+      },
+      info: {
+        background: STATUS_COLORS.info["500"],
+        foreground: brand["500"],
+        subtleBackground: isDark ? "#0c4a6e" : "#e0f2fe",
+        border: STATUS_COLORS.info["500"],
       },
     },
   };
@@ -412,45 +350,36 @@ function modeBlock(seed: ModeSeed, _isDark: boolean) {
 
 function buildDocument(seed: ThemeSeed): ThemeDocument {
   return {
-    $schema: SCHEMA_URL,
-    id: `theme_${seed.id}`,
+    id: `theme-${seed.id}`,
     name: seed.name,
-    version: 1,
+    version: 2,
     isActive: false,
     tokens: {
-      foundation: {
-        color: {
-          brand: {
-            "500": color(seed.brand["500"]),
-            "600": color(seed.brand["600"]),
-          },
-          success: STATUS_COLORS.success,
-          warning: STATUS_COLORS.warning,
-          danger: STATUS_COLORS.danger,
-          info: STATUS_COLORS.info,
-          ...tailwindPaletteToTokenGroup(),
-        },
-        spacing: SHARED_SPACING,
-        radius: SHARED_RADIUS,
-        typography: {
-          family: {
-            base: { $type: "fontFamily", $value: seed.fontFamily },
-            mono: {
-              $type: "fontFamily",
-              $value: "'Fira Code', 'SFMono-Regular', Menlo, monospace",
-            },
-          },
-          size: SHARED_TYPOGRAPHY_REST.size,
-          weight: SHARED_TYPOGRAPHY_REST.weight,
-          lineHeight: SHARED_TYPOGRAPHY_REST.lineHeight,
-        },
+      fontFamily: {
+        body: seed.fontFamily,
+        display: seed.fontFamily,
+        mono: "'Fira Code', 'SFMono-Regular', Menlo, monospace",
       },
-      modes: {
-        dark: modeBlock(seed.dark, true),
-        light: modeBlock(seed.light, false),
+      space: SHARED_SPACE,
+      radius: SHARED_RADIUS,
+      fontSize: SHARED_FONT_SIZE,
+      fontWeight: SHARED_FONT_WEIGHT,
+      lineHeight: SHARED_LINE_HEIGHT,
+    },
+    colorMode: {
+      light: colorFaces(seed.light, false, seed.brand),
+      dark: colorFaces(seed.dark, true, seed.brand),
+    },
+    extend: {
+      widget: {
+        background: { light: seed.light.card, dark: seed.dark.card },
+        borderColor: { light: seed.light.border, dark: seed.dark.border },
+        borderWidth: "1px",
+        radius: "12px",
+        padding: "12px",
       },
     },
-  } as ThemeDocument;
+  };
 }
 
 export const DEFAULT_THEME_DOCUMENTS: ThemeDocument[] = SEEDS.map(buildDocument);

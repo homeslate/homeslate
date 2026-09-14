@@ -11,14 +11,13 @@ import {
 import { ActionIcon, Tooltip } from "@mantine/core";
 import * as TablerIcons from "@tabler/icons-react";
 import { IconMoon, IconSun } from "@tabler/icons-react";
-import type { ColorMode, DisplayDocument, StickyNote, ThemeDocument } from "@homeslate/schema";
+import type { ColorMode, DisplayDocument, StickyNote } from "@homeslate/schema";
 import { AlarmsProvider, HouseholdProvider, TimersProvider, useTimers } from "@homeslate/widgets";
 import {
   BackgroundSlideshow,
   DocumentCanvas,
   patchViewNotes,
   patchWidgetConfig,
-  resolveDisplayThemeVars,
   type WidgetRegistryApi,
 } from "./canvas";
 import { AlarmRuntime } from "./alarms/AlarmRuntime";
@@ -62,16 +61,6 @@ export function Display(props: {
   const alarms = useMemo(() => coerceAlarms(document.alarms), [document.alarms]);
 
   const effectiveColorMode: ColorMode = localColorMode ?? colorMode ?? document.colorMode ?? "dark";
-
-  const tokenVars = useMemo(
-    () =>
-      resolveDisplayThemeVars(
-        document.themes as ThemeDocument[],
-        document.activeThemeId,
-        effectiveColorMode,
-      ),
-    [document.themes, document.activeThemeId, effectiveColorMode],
-  );
 
   useEffect(() => {
     const visibleViews = document.views.filter((view) => !view.hidden);
@@ -264,7 +253,7 @@ export function Display(props: {
     <TimersProvider>
       <HouseholdProvider members={document.household?.members ?? []} readOnly>
         <AlarmsProvider alarms={alarms} readOnly>
-          <div ref={rootRef} className={classes.root} style={tokenVars as CSSProperties}>
+          <div ref={rootRef} className={classes.root}>
             {schemaView && <BackgroundSlideshow view={schemaView} />}
             {document.settings.holidayEffectsEnabled && (
               <HolidayEffects previewHolidayId={document.settings.holidayPreviewId} />

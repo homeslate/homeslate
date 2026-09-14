@@ -1,15 +1,19 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vite-plus/test";
-import { DISPLAY_CANVAS_ENTRY, resolveDisplayThemeVars } from "@homeslate/display/canvas";
+import {
+  DISPLAY_CANVAS_ENTRY,
+  createDisplayTheme,
+  DEFAULT_THEME_DOCUMENTS,
+} from "@homeslate/display/canvas";
 
 describe("@homeslate/display/canvas", () => {
   it("is importable by subpath", () => {
     expect(DISPLAY_CANVAS_ENTRY).toBe("@homeslate/display/canvas");
   });
 
-  it("exports resolveDisplayThemeVars", () => {
-    const vars = resolveDisplayThemeVars([], null, "dark");
-    expect(vars["--token-surface-canvas"]).toEqual(expect.any(String));
+  it("exports createDisplayTheme", () => {
+    const theme = createDisplayTheme(DEFAULT_THEME_DOCUMENTS[0]);
+    expect(theme.className).toBe(`theme-var-ui-homeslate-${DEFAULT_THEME_DOCUMENTS[0].id}`);
   });
 
   it("DocumentCanvas source does not import hosted store or auth", () => {
