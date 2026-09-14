@@ -87,14 +87,14 @@ importers:
         specifier: ^3.35.0
         version: 3.46.0(react@19.3.0)
       '@var-ui/core':
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^0.1.0
+        version: 0.1.0
       '@var-ui/icons':
-        specifier: ^2.0.0
-        version: 2.0.0(@var-ui/core@2.0.0)(react@19.3.0)
+        specifier: ^0.1.0
+        version: 0.1.0(@var-ui/core@0.1.0)(react@19.3.0)
       '@var-ui/react':
-        specifier: ^2.0.0
-        version: 2.0.0(@internationalized/date@3.12.4)(@var-ui/core@2.0.0)(@var-ui/icons@2.0.0(@var-ui/core@2.0.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: ^0.1.0
+        version: 0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       dayjs:
         specifier: ^1.11.19
         version: 1.11.23
@@ -136,14 +136,14 @@ importers:
   docs:
     dependencies:
       '@var-ui/astro':
-        specifier: ^1.0.0
-        version: 1.0.0(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))
+        specifier: ^0.1.0
+        version: 0.1.0(@var-ui/core@0.1.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))
       '@var-ui/core':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^0.1.0
+        version: 0.1.0
       '@var-ui/docs':
-        specifier: ^1.0.1
-        version: 1.0.1(@typestyles/build-runner@0.5.2)(@typestyles/vite@0.4.4(vite@6.4.3(@types/node@24.13.4)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1)))(@var-ui/astro@1.0.0(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)))(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typestyles@0.23.0)
+        specifier: ^0.1.0
+        version: 0.1.0(@typestyles/build-runner@0.5.2)(@typestyles/vite@0.4.4(vite@6.4.3(@types/node@24.13.4)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1)))(@var-ui/astro@0.1.0(@var-ui/core@0.1.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)))(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(@var-ui/react@0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typestyles@0.23.1)
       astro:
         specifier: ^5.14.0
         version: 5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
@@ -161,8 +161,8 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
       typestyles:
-        specifier: ^0.23.0
-        version: 0.23.0
+        specifier: ^0.23.1
+        version: 0.23.1
 
   packages/adapters:
     dependencies:
@@ -191,11 +191,11 @@ importers:
         specifier: ^3.35.0
         version: 3.46.0(react@19.3.0)
       '@var-ui/core':
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^0.1.0
+        version: 0.1.0
       '@var-ui/react':
-        specifier: ^2.0.0
-        version: 2.0.0(@internationalized/date@3.12.4)(@var-ui/core@2.0.0)(@var-ui/icons@2.0.0(@var-ui/core@2.0.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: ^0.1.0
+        version: 0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: ^19.0.0
         version: 19.3.0
@@ -230,11 +230,11 @@ importers:
         specifier: ^3.35.0
         version: 3.46.0(react@19.3.0)
       '@var-ui/core':
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^0.1.0
+        version: 0.1.0
       '@var-ui/react':
-        specifier: ^2.0.0
-        version: 2.0.0(@internationalized/date@3.12.4)(@var-ui/core@2.0.0)(@var-ui/icons@2.0.0(@var-ui/core@2.0.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: ^0.1.0
+        version: 0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: ^19.0.0
         version: 19.3.0
@@ -268,11 +268,11 @@ importers:
         specifier: ^3.35.0
         version: 3.46.0(react@19.3.0)
       '@var-ui/core':
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^0.1.0
+        version: 0.1.0
       '@var-ui/react':
-        specifier: ^2.0.0
-        version: 2.0.0(@internationalized/date@3.12.4)(@var-ui/core@2.0.0)(@var-ui/icons@2.0.0(@var-ui/core@2.0.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: ^0.1.0
+        version: 0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       dayjs:
         specifier: ^1.11.19
         version: 1.11.23
@@ -1754,32 +1754,29 @@ packages:
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
 
-  '@var-ui/astro@1.0.0':
-    resolution: {integrity: sha512-xZhuuJ/f3sru9xrcZnJIZTiSjd7o6YkgC0998gOw/1ccnY0TBVvaoJqL3PKaZDnw+yRbdclQzOlHGc6yVSknHw==}
+  '@var-ui/astro@0.1.0':
+    resolution: {integrity: sha512-AHBFye8DZM6KjvN2d9ZSktSEa/vqItC4Okjs3Yakf0WtQNJ8nbFC8C60Z62SdQF/P6SF8AUcEkTnPpH9/imdPA==}
     peerDependencies:
-      '@var-ui/core': ^1.0.0
+      '@var-ui/core': '>=0.1.0 <1.0.0'
       astro: ^5.14.0
 
-  '@var-ui/core@1.0.0':
-    resolution: {integrity: sha512-CV0576n57bh2OrwjUs0ZPc8PtdT2t4NRa6Xyckmm8TyeE+b0KuW9KYaxOeFAyj0AEdgaUcRtk6UyFQkoXKyABw==}
+  '@var-ui/core@0.1.0':
+    resolution: {integrity: sha512-94cMzzzNQPcL5O66y0y6rE9s0azvr7u4+2H9H9hbsJ8ENpuAHGtNa812NskPwMci/j93SHxa2Bgpep0VQV7qYA==}
 
-  '@var-ui/core@2.0.0':
-    resolution: {integrity: sha512-HkyB0GO7uoy1WPZk08onG5Fjz+WzhA9kcqCJLg3cJ+u8K7t+AP2Fm7AvL35wLQahnOQ8y3kUvv4ocBLp7UqDRw==}
-
-  '@var-ui/docs@1.0.1':
-    resolution: {integrity: sha512-iv7/4cgSDzozsyqIYWDI22AXCySHW0W/2qxHem2pBrXVy2+WeOqpiTCXILBmHSScdEECI7jId6As0hz8YrwcaQ==}
+  '@var-ui/docs@0.1.0':
+    resolution: {integrity: sha512-HNuPduTHRdruG5EytMhFK0eCKtx9hBiJmBnamQnTfSrDUC9VvMK9FCsMaWTdIqvdIwWG9GaPIZ3IGAEjDWJ7/Q==}
     peerDependencies:
       '@typestyles/build-runner': ^0.5.2
       '@typestyles/vite': ^0.4.4
-      '@var-ui/astro': ^1.0.0
-      '@var-ui/core': ^1.0.0
-      '@var-ui/icons': ^1.0.0
-      '@var-ui/react': ^1.0.0
+      '@var-ui/astro': '>=0.1.0 <1.0.0'
+      '@var-ui/core': '>=0.1.0 <1.0.0'
+      '@var-ui/icons': '>=0.1.0 <1.0.0'
+      '@var-ui/react': '>=0.1.0 <1.0.0'
       astro: ^5.14.0
       react: ^19.0.0
       react-aria-components: ^1.19.0
       react-dom: ^19.0.0
-      typestyles: ^0.22.0
+      typestyles: ^0.23.1
     peerDependenciesMeta:
       '@var-ui/icons':
         optional: true
@@ -1792,18 +1789,18 @@ packages:
       react-dom:
         optional: true
 
-  '@var-ui/icons@2.0.0':
-    resolution: {integrity: sha512-d+BNidJZQJU/1eEUKIYqQ5nWlkWx9FELj7sNSB5QGqu0lThGbpzrpRQXvsUJHDSDBI+czc4/5pvG9wi9GW+nUg==}
+  '@var-ui/icons@0.1.0':
+    resolution: {integrity: sha512-O8PdfWkoVVqw58YpsU1Ql1Hen0uLMgvwGuyw9DD7zIgYomADdEst3nWxA/n1BHputAW9+2l56JOOHMTmI2XkGQ==}
     peerDependencies:
-      '@var-ui/core': ^2.0.0
+      '@var-ui/core': '>=0.1.0 <1.0.0'
       react: ^19.0.0
 
-  '@var-ui/react@2.0.0':
-    resolution: {integrity: sha512-+ODdFsHlA4yCgDMi1yFpSliT84TKOQJ3xcmiN76qvbYLUUyQp3yzmxAuPklJ8Aj9+c7UwWmdXuVwwAbhae6qDw==}
+  '@var-ui/react@0.1.0':
+    resolution: {integrity: sha512-Etd4ZZ2yHCCLPGN0TqXSSM0Mm+Ci7+XJSus4JXjyOvfKmXkPx32E9firFiGARTavbdm+fPjW5IBjTyIfnF/Q1A==}
     peerDependencies:
       '@internationalized/date': ^3.12.2
-      '@var-ui/core': ^2.0.0
-      '@var-ui/icons': ^2.0.0
+      '@var-ui/core': '>=0.1.0 <1.0.0'
+      '@var-ui/icons': '>=0.1.0 <1.0.0'
       react: ^19.0.0
       react-aria-components: ^1.19.0
       react-dom: ^19.0.0
@@ -3443,12 +3440,6 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
-
-  typestyles@0.22.0:
-    resolution: {integrity: sha512-PjucHgKGcGgMiYSzNOlvKtOVDlE9jp2NT7Kftu3XQqjBawJ8HTcGnKWTIbosJeY5kmKLHMBTaqbvVmZ6K5dDJw==}
-
-  typestyles@0.23.0:
-    resolution: {integrity: sha512-bKwnSbu59+oG1KCbgrJww8cyaiQ+Vh/z33/S0WZIlxsIwPBL/dJrShgEl1wnySAPIbmPh/KY2bQu09ENSdtjgw==}
 
   typestyles@0.23.1:
     resolution: {integrity: sha512-4G1Tzf0tulA9WEfWppCdbgdkzRDDNG3mOr449wn2qr03YrUsvqg7E35pZiXZYgPsTWQ5GkjJjBsZaUQ3oq+XEQ==}
@@ -5133,53 +5124,51 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@var-ui/astro@1.0.0(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))':
+  '@var-ui/astro@0.1.0(@var-ui/core@0.1.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))':
     dependencies:
-      '@var-ui/core': 1.0.0
+      '@var-ui/core': 0.1.0
       astro: 5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
 
-  '@var-ui/core@1.0.0':
-    dependencies:
-      typestyles: 0.22.0
-
-  '@var-ui/core@2.0.0':
+  '@var-ui/core@0.1.0':
     dependencies:
       typestyles: 0.23.1
 
-  '@var-ui/docs@1.0.1(@typestyles/build-runner@0.5.2)(@typestyles/vite@0.4.4(vite@6.4.3(@types/node@24.13.4)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1)))(@var-ui/astro@1.0.0(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)))(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typestyles@0.23.0)':
+  '@var-ui/docs@0.1.0(@typestyles/build-runner@0.5.2)(@typestyles/vite@0.4.4(vite@6.4.3(@types/node@24.13.4)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1)))(@var-ui/astro@0.1.0(@var-ui/core@0.1.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)))(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(@var-ui/react@0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typestyles@0.23.1)':
     dependencies:
       '@astrojs/mdx': 4.3.14(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))
       '@typestyles/build-runner': 0.5.2
       '@typestyles/vite': 0.4.4(vite@6.4.3(@types/node@24.13.4)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1))
-      '@var-ui/astro': 1.0.0(@var-ui/core@1.0.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))
-      '@var-ui/core': 1.0.0
+      '@var-ui/astro': 0.1.0(@var-ui/core@0.1.0)(astro@5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))
+      '@var-ui/core': 0.1.0
       astro: 5.18.2(@types/node@24.13.4)(lightningcss@1.33.0)(rollup@4.63.1)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
       rehype-slug: 6.0.0
-      typestyles: 0.23.0
+      typestyles: 0.23.1
       zod: 4.6.1
     optionalDependencies:
+      '@var-ui/icons': 0.1.0(@var-ui/core@0.1.0)(react@19.3.0)
+      '@var-ui/react': 0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react: 19.3.0
       react-aria-components: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-dom: 19.3.0(react@19.3.0)
     transitivePeerDependencies:
       - supports-color
 
-  '@var-ui/icons@2.0.0(@var-ui/core@2.0.0)(react@19.3.0)':
+  '@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0)':
     dependencies:
-      '@var-ui/core': 2.0.0
+      '@var-ui/core': 0.1.0
       react: 19.3.0
 
-  '@var-ui/react@2.0.0(@internationalized/date@3.12.4)(@var-ui/core@2.0.0)(@var-ui/icons@2.0.0(@var-ui/core@2.0.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@var-ui/react@0.1.0(@internationalized/date@3.12.4)(@var-ui/core@0.1.0)(@var-ui/icons@0.1.0(@var-ui/core@0.1.0)(react@19.3.0))(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       '@internationalized/date': 3.12.4
       '@react-aria/i18n': 3.13.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@var-ui/core': 2.0.0
+      '@var-ui/core': 0.1.0
       react: 19.3.0
       react-aria-components: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-dom: 19.3.0(react@19.3.0)
       typestyles: 0.23.1
     optionalDependencies:
-      '@var-ui/icons': 2.0.0(@var-ui/core@2.0.0)(react@19.3.0)
+      '@var-ui/icons': 0.1.0(@var-ui/core@0.1.0)(react@19.3.0)
 
   '@vitejs/plugin-react@5.2.0(@voidzero-dev/vite-plus-core@0.2.6(@types/node@24.13.4)(esbuild@0.28.2)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1))':
     dependencies:
@@ -7332,14 +7321,6 @@ snapshots:
       semver: 7.8.5
 
   typescript@5.9.3: {}
-
-  typestyles@0.22.0:
-    dependencies:
-      csstype: 3.2.3
-
-  typestyles@0.23.0:
-    dependencies:
-      csstype: 3.2.3
 
   typestyles@0.23.1:
     dependencies:

@@ -9,9 +9,9 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@var-ui/astro": "^1.0.0",
-    "@var-ui/core": "^1.0.0",
-    "@var-ui/docs": "^1.0.1",
+    "@var-ui/astro": "^0.1.0",
+    "@var-ui/core": "^0.1.0",
+    "@var-ui/docs": "^0.1.0",
     "astro": "^5.14.0"
   },
   "devDependencies": {
@@ -19,6 +19,6 @@
     "@typestyles/build-runner": "^0.5.2",
     "@typestyles/vite": "^0.4.4",
     "typescript": "~5.9.3",
-    "typestyles": "^0.23.0"
+    "typestyles": "^0.23.1"
   }
 }

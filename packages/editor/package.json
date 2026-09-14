@@ -32,8 +32,8 @@
     "@homeslate/schema": "workspace:*",
     "@homeslate/widgets": "workspace:*",
     "@tabler/icons-react": "^3.35.0",
-    "@var-ui/core": "^2.0.0",
-    "@var-ui/react": "^2.0.0",
+    "@var-ui/core": "^0.1.0",
+    "@var-ui/react": "^0.1.0",
     "typestyles": "^0.23.1",
     "uuid": "^13.0.0"
   },
