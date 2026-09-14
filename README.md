@@ -23,7 +23,7 @@ Published on npm as `@homeslate/*`:
 - `@homeslate/display`
 - `@homeslate/adapters`
 
-UI packages (`widgets`, `display`, `editor`) style with TypeStyles. Hosts that want zero-runtime production CSS add `@typestyles/vite` and import `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`. Without the plugin, styles still inject at runtime.
+UI packages (`widgets`, `display`, `editor`) style with TypeStyles and VarUI. Hosts wrap the tree in `DesignSystemProvider` (`applyToDocument`) plus `IconProvider` and `LayerProvider`, and install VarUI peers `react-aria-components` and `@internationalized/date`. For zero-runtime production CSS, add `@typestyles/vite` and import `@var-ui/core/styles` first, then `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`. Do not also import VarUI CSS from a JS entry. Without the plugin, styles still inject at runtime. `Editor` and `Display` nest their own provider and must not call `applyToDocument`. See `apps/reference/README.md` for the full seven-step host contract.
 
 ## Releasing
 

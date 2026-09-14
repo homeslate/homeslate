@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { RouterProvider } from "react-aria-components";
 import {
-  Link,
   Navigate,
   Route,
   BrowserRouter,
   Routes,
+  useHref,
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { Anchor, AppShell, Button, Group, Loader, Stack, Text, Title } from "@mantine/core";
+import {
+  AppShell,
+  Button,
+  Heading,
+  HStack,
+  Link,
+  Spinner,
+  Stack,
+  Text,
+  TopNav,
+} from "@var-ui/react";
 import type { DisplayDocument } from "@homeslate/schema";
 import { Editor } from "@homeslate/editor";
 import { Display } from "@homeslate/display";
@@ -33,13 +44,22 @@ const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
 export function App() {
   return (
     <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
+
+function AppRoutes() {
+  const navigate = useNavigate();
+  return (
+    <RouterProvider navigate={navigate} useHref={useHref}>
       <Routes>
         <Route path="/" element={<DisplayListPage />} />
         <Route path="/edit/:id" element={<EditorPage />} />
         <Route path="/d/:publicId" element={<KioskPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </RouterProvider>
   );
 }
 
@@ -86,39 +106,35 @@ function DisplayListPage() {
   };
 
   return (
-    <AppShell header={{ height: 56 }} padding="md">
-      <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Title order={3}>Homeslate</Title>
-          <Button onClick={() => void createDisplay()} loading={creating}>
-            New display
-          </Button>
-        </Group>
-      </AppShell.Header>
-      <AppShell.Main>
-        {loading && <Loader />}
-        {error && <Text c="red">{error}</Text>}
-        {!loading && displays.length === 0 && (
-          <Text c="dimmed">No displays yet. Create one to open the editor.</Text>
-        )}
-        <Stack gap="sm" mt="md">
-          {displays.map((display) => (
-            <Group key={display.id} justify="space-between">
-              <Text>{display.name}</Text>
-              <Group gap="md">
-                <Anchor component={Link} to={`/edit/${display.id}`}>
-                  Editor
-                </Anchor>
-                {display.publicId && (
-                  <Anchor component={Link} to={`/d/${display.publicId}`}>
-                    Kiosk
-                  </Anchor>
-                )}
-              </Group>
-            </Group>
-          ))}
-        </Stack>
-      </AppShell.Main>
+    <AppShell
+      contentPadding={4}
+      topNav={
+        <TopNav
+          heading={<TopNav.Heading heading="Homeslate" />}
+          endContent={
+            <Button intent="primary" onPress={() => void createDisplay()} isPending={creating}>
+              New display
+            </Button>
+          }
+        />
+      }
+    >
+      {loading && <Spinner />}
+      {error && <Text role="alert">{error}</Text>}
+      {!loading && displays.length === 0 && (
+        <Text tone="secondary">No displays yet. Create one to open the editor.</Text>
+      )}
+      <Stack gap="sm">
+        {displays.map((display) => (
+          <HStack key={display.id} justify="between">
+            <Text>{display.name}</Text>
+            <HStack gap="md">
+              <Link href={`/edit/${display.id}`}>Editor</Link>
+              {display.publicId && <Link href={`/d/${display.publicId}`}>Kiosk</Link>}
+            </HStack>
+          </HStack>
+        ))}
+      </Stack>
     </AppShell>
   );
 }
@@ -175,40 +191,42 @@ function EditorPage() {
 
   if (error)
     return (
-      <Text c="red" p="md">
+      <Text role="alert" style={{ padding: "1rem" }}>
         {error}
       </Text>
     );
-  if (!record) return <Loader m="md" />;
+  if (!record) return <Spinner />;
 
   const viewId = record.document.activeViewId ?? record.document.views[0].id;
 
   return (
     <ReferenceGoogleRuntime displayId={record.publicId}>
-      <AppShell header={{ height: 56 }} padding={0}>
-        <AppShell.Header>
-          <Group h="100%" px="md" justify="space-between">
-            <Group>
-              <Anchor component={Link} to="/">
-                Displays
-              </Anchor>
-              <Title order={4}>{record.document.name}</Title>
-            </Group>
-            <Group>
-              {saveError && (
-                <Text c="red" size="sm" role="alert">
-                  Not saved: {saveError}
-                </Text>
-              )}
-              <Button component={Link} to={`/d/${record.publicId}`} variant="default">
-                Open kiosk
-              </Button>
-            </Group>
-          </Group>
-        </AppShell.Header>
-        <AppShell.Main style={{ height: "calc(100vh - 56px)", display: "flex" }}>
+      <AppShell
+        contentPadding={0}
+        topNav={
+          <TopNav
+            heading={
+              <HStack gap="md">
+                <Link href="/">Displays</Link>
+                <Heading level={4}>{record.document.name}</Heading>
+              </HStack>
+            }
+            endContent={
+              <HStack gap="md">
+                {saveError && (
+                  <Text as="span" size="sm" role="alert">
+                    Not saved: {saveError}
+                  </Text>
+                )}
+                <Link href={`/d/${record.publicId}`}>Open kiosk</Link>
+              </HStack>
+            }
+          />
+        }
+      >
+        <div style={{ height: "100%", display: "flex" }}>
           <Editor document={record.document} viewId={viewId} onChange={onChange} />
-        </AppShell.Main>
+        </div>
       </AppShell>
     </ReferenceGoogleRuntime>
   );
@@ -258,16 +276,16 @@ function KioskPage() {
 
   if (error && !document)
     return (
-      <Text c="red" p="md">
+      <Text role="alert" style={{ padding: "1rem" }}>
         {error}
       </Text>
     );
-  if (!document || !publicId) return <Loader m="md" />;
+  if (!document || !publicId) return <Spinner />;
 
   return (
     <ReferenceGoogleRuntime displayId={publicId}>
       {saveError && (
-        <Text c="red" p="xs" role="alert" style={KIOSK_SAVE_ERROR_STYLE}>
+        <Text as="span" size="sm" role="alert" style={KIOSK_SAVE_ERROR_STYLE}>
           Not saved: {saveError}
         </Text>
       )}
