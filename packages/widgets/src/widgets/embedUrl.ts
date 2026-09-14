@@ -7,11 +7,7 @@ export function isLoopbackHostname(hostname: string): boolean {
   return LOOPBACK.has(hostname);
 }
 
-export function embedIframeKey(
-  frameKey: number,
-  allowInteraction: boolean,
-  href: string,
-): string {
+export function embedIframeKey(frameKey: number, allowInteraction: boolean, href: string): string {
   return `${frameKey}:${allowInteraction}:${href}`;
 }
 
@@ -25,7 +21,8 @@ export function parseEmbedUrl(raw: string): { ok: true; href: string } | { ok: f
     return { ok: false };
   }
   if (url.protocol === "https:") return { ok: true, href: url.href };
-  if (url.protocol === "http:" && isLoopbackHostname(url.hostname)) return { ok: true, href: url.href };
+  if (url.protocol === "http:" && isLoopbackHostname(url.hostname))
+    return { ok: true, href: url.href };
   return { ok: false };
 }
 

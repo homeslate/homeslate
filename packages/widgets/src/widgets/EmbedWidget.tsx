@@ -124,7 +124,8 @@ export function EmbedWidgetSettings({ widget, onConfigChange }: WidgetProps<Embe
   const [customMode, setCustomMode] = useState(
     clampedRefresh > 0 && !REFRESH_PRESETS.has(clampedRefresh),
   );
-  const selectValue = customMode || !REFRESH_PRESETS.has(clampedRefresh) ? "custom" : String(clampedRefresh);
+  const selectValue =
+    customMode || !REFRESH_PRESETS.has(clampedRefresh) ? "custom" : String(clampedRefresh);
 
   return (
     <Stack gap="md">
@@ -182,9 +183,7 @@ export function EmbedWidgetSettings({ widget, onConfigChange }: WidgetProps<Embe
       <Switch
         label="Transparent background"
         checked={transparentBackground}
-        onChange={(event) =>
-          onConfigChange({ transparentBackground: event.currentTarget.checked })
-        }
+        onChange={(event) => onConfigChange({ transparentBackground: event.currentTarget.checked })}
       />
 
       <Text size="xs" c="dimmed">

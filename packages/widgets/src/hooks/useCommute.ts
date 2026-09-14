@@ -64,7 +64,9 @@ export function useCommute(routes: CommuteRouteQuery[], units: CommuteUnits): Us
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
   const routesRef = useRef(routes);
   routesRef.current = routes;
-  const routeKey = routes.map((route) => `${route.id}\0${route.origin}\0${route.destination}`).join("\n");
+  const routeKey = routes
+    .map((route) => `${route.id}\0${route.origin}\0${route.destination}`)
+    .join("\n");
 
   const fetchData = useCallback(async () => {
     const currentRoutes = routesRef.current;

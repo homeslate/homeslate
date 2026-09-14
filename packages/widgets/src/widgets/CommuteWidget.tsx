@@ -47,8 +47,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
   const resultList = [...results.values()];
   const hasMissingKey = resultList.some(({ status }) => status === 501);
   const hasEstimate = resultList.some(({ estimate }) => estimate);
-  const fetchError =
-    resultList.find(({ error, status }) => error && status !== 501)?.error ?? null;
+  const fetchError = resultList.find(({ error, status }) => error && status !== 501)?.error ?? null;
   const failedWithoutEstimate = routes.filter((route) => {
     const result = results.get(route.id);
     return Boolean(result?.error && !result.estimate && result.status !== 501);
@@ -149,10 +148,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
   );
 }
 
-export function CommuteWidgetSettings({
-  widget,
-  onConfigChange,
-}: WidgetProps<CommuteConfig>) {
+export function CommuteWidgetSettings({ widget, onConfigChange }: WidgetProps<CommuteConfig>) {
   const routes = widget.config.routes ?? EMPTY_ROUTES;
   const units = widget.config.units ?? "imperial";
   const transparentBackground = widget.config.transparentBackground;
