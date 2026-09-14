@@ -2,11 +2,11 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("alarmswidget-container", {
   height: "100%",
-  background: "var(--token-widget-background, var(--token-surface-card))",
+  background: "var(--var-ui-widget-background, var(--var-ui-color-background-surface))",
   border:
-    "var(--token-widget-border-width, 1px) solid\n    var(--token-widget-border-color, var(--token-border-default))",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
-  padding: "var(--token-widget-padding, var(--token-spacing-3))",
+    "var(--var-ui-widget-borderWidth, 1px) solid\n    var(--var-ui-widget-borderColor, var(--var-ui-color-border-default))",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-3))",
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",

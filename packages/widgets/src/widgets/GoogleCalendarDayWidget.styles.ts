@@ -4,8 +4,8 @@ export const container = styles.class("googlecalendardaywidget-container", {
   height: "100%",
   padding: "0.875rem",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-color-brand-500) 8%, transparent) 0%,\n    color-mix(in srgb, var(--token-status-success-fg) 8%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-success-foreground) 8%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
@@ -31,22 +31,24 @@ export const headerTitle = styles.class("googlecalendardaywidget-headerTitle", {
   fontWeight: "700",
   textTransform: "uppercase",
   letterSpacing: "0.07em",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const addBtn = styles.class("googlecalendardaywidget-addBtn", {
-  color: "color-mix(in srgb, var(--token-color-brand-500) 70%, transparent) !important",
+  color:
+    "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 70%, transparent) !important",
   "&:hover": {
-    color: "var(--token-color-brand-500) !important",
-    background: "color-mix(in srgb, var(--token-color-brand-500) 12%, transparent) !important",
+    color: "var(--var-ui-color-tone-accent-foreground) !important",
+    background:
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 12%, transparent) !important",
   },
 });
 
 export const refreshBtn = styles.class("googlecalendardaywidget-refreshBtn", {
-  color: "var(--token-text-muted) !important",
+  color: "var(--var-ui-color-text-secondary) !important",
   "&:hover": {
-    color: "var(--token-text-primary) !important",
-    background: "var(--token-surface-card) !important",
+    color: "var(--var-ui-color-text-primary) !important",
+    background: "var(--var-ui-color-background-surface) !important",
   },
 });
 
@@ -74,26 +76,26 @@ export const dayHeaderLabel = styles.class("googlecalendardaywidget-dayHeaderLab
   fontWeight: "700",
   textTransform: "uppercase",
   letterSpacing: "0.08em",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   whiteSpace: "nowrap",
   flexShrink: "0",
 });
 
 export const dayHeaderToday = styles.class("googlecalendardaywidget-dayHeaderToday", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const dayHeaderLine = styles.class("googlecalendardaywidget-dayHeaderLine", {
   flex: "1",
   height: "1px",
-  background: "var(--token-border-default)",
+  background: "var(--var-ui-color-border-default)",
 });
 
 export const eventCard = styles.class("googlecalendardaywidget-eventCard", {
   display: "flex",
   alignItems: "stretch",
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
   borderRadius: "7px",
   overflow: "hidden",
   marginBottom: "0.3rem",
@@ -103,19 +105,20 @@ export const eventCard = styles.class("googlecalendardaywidget-eventCard", {
     marginBottom: "0",
   },
   "&:hover": {
-    background: "color-mix(in srgb, var(--token-color-brand-500) 8%, var(--token-surface-card))",
+    background:
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, var(--var-ui-color-background-surface))",
     transform: "translateX(2px)",
     borderColor:
-      "color-mix(in srgb, var(--token-color-brand-500) 35%, var(--token-border-default))",
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 35%, var(--var-ui-color-border-default))",
   },
 });
 
 export const eventCardNow = styles.class("googlecalendardaywidget-eventCardNow", {
-  borderColor: "var(--token-status-success-border) !important",
-  background: "var(--token-status-success-bg) !important",
+  borderColor: "var(--var-ui-color-tone-success-border) !important",
+  background: "var(--var-ui-color-tone-success-subtleBackground) !important",
   "&:hover": {
     background:
-      "color-mix(\n    in srgb,\n    var(--token-status-success-fg) 16%,\n    var(--token-status-success-bg)\n  ) !important",
+      "color-mix(\n    in srgb,\n    var(--var-ui-color-tone-success-foreground) 16%,\n    var(--var-ui-color-tone-success-subtleBackground)\n  ) !important",
   },
 });
 
@@ -142,7 +145,7 @@ export const eventTitleRow = styles.class("googlecalendardaywidget-eventTitleRow
 export const eventTitle = styles.class("googlecalendardaywidget-eventTitle", {
   fontSize: "0.8rem",
   fontWeight: "600",
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
   lineHeight: "1.3",
   overflow: "hidden",
   textOverflow: "ellipsis",
@@ -156,9 +159,9 @@ export const nowBadge = styles.class("googlecalendardaywidget-nowBadge", {
   fontWeight: "700",
   textTransform: "uppercase",
   letterSpacing: "0.04em",
-  color: "var(--token-status-success-fg)",
-  background: "var(--token-status-success-bg)",
-  border: "1px solid var(--token-status-success-border)",
+  color: "var(--var-ui-color-tone-success-foreground)",
+  background: "var(--var-ui-color-tone-success-subtleBackground)",
+  border: "1px solid var(--var-ui-color-tone-success-border)",
   borderRadius: "3px",
   padding: "1px 5px",
   lineHeight: "1.5",
@@ -168,7 +171,7 @@ export const nowBadge = styles.class("googlecalendardaywidget-nowBadge", {
 export const soonBadge = styles.class("googlecalendardaywidget-soonBadge", {
   fontSize: "0.65rem",
   fontWeight: "500",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   whiteSpace: "nowrap",
   flexShrink: "0",
   lineHeight: "1.3",
@@ -184,7 +187,7 @@ export const eventMeta = styles.class("googlecalendardaywidget-eventMeta", {
 
 export const timeRange = styles.class("googlecalendardaywidget-timeRange", {
   fontSize: "0.7rem",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const calendarBadge = styles.class("googlecalendardaywidget-calendarBadge", {
@@ -206,7 +209,7 @@ export const eventLocation = styles.class("googlecalendardaywidget-eventLocation
   alignItems: "center",
   gap: "3px",
   fontSize: "0.67rem",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   marginTop: "0.15rem",
   overflow: "hidden",
   textOverflow: "ellipsis",
@@ -224,12 +227,12 @@ export const empty = styles.class("googlecalendardaywidget-empty", {
 });
 
 export const googleIcon = styles.class("googlecalendardaywidget-googleIcon", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   marginBottom: "1rem",
 });
 
 export const emptyIcon = styles.class("googlecalendardaywidget-emptyIcon", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   opacity: "0.45",
 });
 
@@ -243,8 +246,8 @@ export const loadingEvents = styles.class("googlecalendardaywidget-loadingEvents
 });
 
 export const authSection = styles.class("googlecalendardaywidget-authSection", {
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
 });
 
 export const modalDetail = styles.class("googlecalendardaywidget-modalDetail", {
@@ -261,7 +264,7 @@ export const modalDetailRow = styles.class("googlecalendardaywidget-modalDetailR
 });
 
 export const modalDetailIcon = styles.class("googlecalendardaywidget-modalDetailIcon", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   flexShrink: "0",
   marginTop: "2px",
 });

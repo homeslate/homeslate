@@ -2,17 +2,17 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("embedwidget-container", {
   height: "100%",
-  background: "var(--token-widget-background, var(--token-surface-card))",
+  background: "var(--var-ui-widget-background, var(--var-ui-color-background-surface))",
   border:
-    "var(--token-widget-border-width, 1px) solid\n    var(--token-widget-border-color, var(--token-border-default))",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "var(--var-ui-widget-borderWidth, 1px) solid\n    var(--var-ui-widget-borderColor, var(--var-ui-color-border-default))",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
 });
 
 export const padded = styles.class("embedwidget-padded", {
-  padding: "var(--token-widget-padding, var(--token-spacing-3))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-3))",
 });
 
 export const transparent = styles.class("embedwidget-transparent", {
@@ -26,12 +26,12 @@ export const empty = styles.class("embedwidget-empty", {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: "var(--token-spacing-2)",
+  gap: "var(--var-ui-space-2)",
   textAlign: "center",
 });
 
 export const emptyIcon = styles.class("embedwidget-emptyIcon", {
-  color: "var(--token-text-secondary)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const frame = styles.class("embedwidget-frame", {

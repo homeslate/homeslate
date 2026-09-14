@@ -3,7 +3,7 @@ import { styles } from "../typeStyles";
 export const container = styles.class("photowidget-container", {
   height: "100%",
   position: "relative",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   overflow: "hidden",
 });
 
@@ -31,7 +31,7 @@ export const overlay = styles.class("photowidget-overlay", {
   position: "absolute",
   inset: "0",
   background:
-    "linear-gradient(\n    180deg,\n    transparent 0%,\n    transparent 60%,\n    color-mix(in srgb, var(--token-surface-overlay, var(--token-surface-card)) 82%, transparent)\n      100%\n  )",
+    "linear-gradient(\n    180deg,\n    transparent 0%,\n    transparent 60%,\n    color-mix(in srgb, var(--var-ui-color-background-popover, var(--var-ui-color-background-surface)) 82%, transparent)\n      100%\n  )",
   pointerEvents: "none",
 });
 
@@ -45,10 +45,11 @@ export const caption = styles.class("photowidget-caption", {
 });
 
 export const captionText = styles.class("photowidget-captionText", {
-  color: "var(--token-text-inverse)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   fontSize: "1rem",
   fontWeight: "500",
-  textShadow: "0 2px 4px var(--token-surface-overlay, var(--token-surface-card))",
+  textShadow:
+    "0 2px 4px var(--var-ui-color-background-popover, var(--var-ui-color-background-surface))",
 });
 
 export const dots = styles.class("photowidget-dots", {
@@ -64,19 +65,21 @@ export const dot = styles.class("photowidget-dot", {
   width: "8px",
   height: "8px",
   borderRadius: "50%",
-  background: "color-mix(in srgb, var(--token-text-inverse) 40%, transparent)",
+  background:
+    "color-mix(in srgb, var(--var-ui-color-tone-accent-foregroundOnBackground) 40%, transparent)",
   border: "none",
   cursor: "pointer",
   transition: "all 0.2s ease",
   padding: "0",
   "&:hover": {
-    background: "color-mix(in srgb, var(--token-text-inverse) 70%, transparent)",
+    background:
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foregroundOnBackground) 70%, transparent)",
     transform: "scale(1.2)",
   },
 });
 
 export const activeDot = styles.class("photowidget-activeDot", {
-  background: "var(--token-text-inverse)",
+  background: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   transform: "scale(1.2)",
 });
 
@@ -88,18 +91,18 @@ export const demoNotice = styles.class("photowidget-demoNotice", {
   alignItems: "center",
   gap: "0.5rem",
   background:
-    "color-mix(\n    in srgb,\n    var(--token-surface-overlay, var(--token-surface-card)) 82%,\n    transparent\n  )",
+    "color-mix(\n    in srgb,\n    var(--var-ui-color-background-popover, var(--var-ui-color-background-surface)) 82%,\n    transparent\n  )",
   padding: "0.25rem 0.5rem",
-  borderRadius: "var(--token-radius-sm)",
-  color: "var(--token-text-inverse)",
+  borderRadius: "var(--var-ui-radius-sm)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   backdropFilter: "blur(4px)",
 });
 
 export const thumbWrapper = styles.class("photowidget-thumbWrapper", {
   position: "relative",
-  borderRadius: "var(--token-radius-sm)",
+  borderRadius: "var(--var-ui-radius-sm)",
   overflow: "hidden",
-  background: "var(--token-surface-card)",
+  background: "var(--var-ui-color-background-surface)",
 });
 
 export const thumb = styles.class("photowidget-thumb", {
@@ -112,8 +115,8 @@ export const thumbPlaceholder = styles.class("photowidget-thumbPlaceholder", {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "var(--token-border-default)",
-  borderRadius: "var(--token-radius-sm)",
+  background: "var(--var-ui-color-border-default)",
+  borderRadius: "var(--var-ui-radius-sm)",
 });
 
 export const thumbRemove = styles.class("photowidget-thumbRemove", {
@@ -135,8 +138,8 @@ export const thumbCaption = styles.class("photowidget-thumbCaption", {
   right: "0",
   padding: "0.25rem 0.375rem",
   background:
-    "color-mix(\n    in srgb,\n    var(--token-surface-overlay, var(--token-surface-card)) 78%,\n    transparent\n  )",
-  color: "var(--token-text-inverse)",
+    "color-mix(\n    in srgb,\n    var(--var-ui-color-background-popover, var(--var-ui-color-background-surface)) 78%,\n    transparent\n  )",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   fontSize: "0.65rem",
   lineHeight: "1.3",
 });

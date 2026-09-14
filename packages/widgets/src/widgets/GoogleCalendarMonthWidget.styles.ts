@@ -4,8 +4,8 @@ export const container = styles.class("googlecalendarmonthwidget-container", {
   height: "100%",
   padding: "0.875rem",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-color-brand-500) 8%, transparent) 0%,\n    color-mix(in srgb, var(--token-status-success-fg) 8%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-success-foreground) 8%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
@@ -31,22 +31,22 @@ export const title = styles.class("googlecalendarmonthwidget-title", {
   fontWeight: "700",
   textTransform: "uppercase",
   letterSpacing: "0.07em",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const refreshBtn = styles.class("googlecalendarmonthwidget-refreshBtn", {
-  color: "var(--token-text-muted) !important",
+  color: "var(--var-ui-color-text-secondary) !important",
   "&:hover": {
-    color: "var(--token-text-primary) !important",
-    background: "var(--token-surface-card) !important",
+    color: "var(--var-ui-color-text-primary) !important",
+    background: "var(--var-ui-color-background-surface) !important",
   },
 });
 
 export const addBtn = styles.class("googlecalendarmonthwidget-addBtn", {
-  color: "var(--token-text-muted) !important",
+  color: "var(--var-ui-color-text-secondary) !important",
   "&:hover": {
-    color: "var(--token-color-brand-500) !important",
-    background: "var(--token-surface-card) !important",
+    color: "var(--var-ui-color-tone-accent-foreground) !important",
+    background: "var(--var-ui-color-background-surface) !important",
   },
 });
 
@@ -63,7 +63,7 @@ export const calendarWrap = styles.class("googlecalendarmonthwidget-calendarWrap
 });
 
 export const calendarHeader = styles.class("googlecalendarmonthwidget-calendarHeader", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   fontSize: "0.82rem",
 });
 
@@ -99,7 +99,7 @@ export const dayPanel = styles.class("googlecalendarmonthwidget-dayPanel", {
   display: "flex",
   flexDirection: "column",
   marginTop: "0.5rem",
-  borderTop: "1px solid var(--token-border-default)",
+  borderTop: "1px solid var(--var-ui-color-border-default)",
   paddingTop: "0.5rem",
 });
 
@@ -116,14 +116,14 @@ export const dayPanelTitle = styles.class("googlecalendarmonthwidget-dayPanelTit
   fontWeight: "700",
   textTransform: "uppercase",
   letterSpacing: "0.06em",
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const eventCount = styles.class("googlecalendarmonthwidget-eventCount", {
   fontSize: "0.6rem",
   fontWeight: "700",
-  background: "color-mix(in srgb, var(--token-color-brand-500) 20%, transparent)",
-  color: "var(--token-color-brand-500)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 20%, transparent)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   borderRadius: "10px",
   padding: "0 6px",
   lineHeight: "1.6",
@@ -137,8 +137,8 @@ export const dayEventsList = styles.class("googlecalendarmonthwidget-dayEventsLi
 export const eventCard = styles.class("googlecalendarmonthwidget-eventCard", {
   display: "flex",
   alignItems: "stretch",
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
   borderRadius: "6px",
   overflow: "hidden",
   marginBottom: "0.25rem",
@@ -161,7 +161,7 @@ export const eventBody = styles.class("googlecalendarmonthwidget-eventBody", {
 export const eventTitle = styles.class("googlecalendarmonthwidget-eventTitle", {
   fontSize: "0.78rem",
   fontWeight: "600",
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -169,7 +169,7 @@ export const eventTitle = styles.class("googlecalendarmonthwidget-eventTitle", {
 
 export const eventTime = styles.class("googlecalendarmonthwidget-eventTime", {
   fontSize: "0.67rem",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   marginTop: "1px",
 });
 
@@ -178,7 +178,7 @@ export const eventLocation = styles.class("googlecalendarmonthwidget-eventLocati
   alignItems: "center",
   gap: "3px",
   fontSize: "0.65rem",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   marginTop: "1px",
   overflow: "hidden",
   textOverflow: "ellipsis",
@@ -196,6 +196,6 @@ export const empty = styles.class("googlecalendarmonthwidget-empty", {
 });
 
 export const authSection = styles.class("googlecalendarmonthwidget-authSection", {
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
 });

@@ -335,8 +335,8 @@ export const previewCanvas = styles.class("themeeditor-previewCanvas", {
   flex: "1",
   minHeight: "min(520px, calc(100dvh - 220px))",
   padding: "0.75rem",
-  background: "var(--token-surface-canvas)",
-  fontFamily: "var(--token-font-base)",
+  background: "var(--var-ui-color-background-app)",
+  fontFamily: "var(--var-ui-fontFamily-body)",
 });
 
 export const actualPreviewViewport = styles.class("themeeditor-actualPreviewViewport", {
@@ -345,8 +345,8 @@ export const actualPreviewViewport = styles.class("themeeditor-actualPreviewView
   height: "clamp(520px, calc(100dvh - 220px), 820px)",
   overflow: "hidden",
   borderRadius: "12px",
-  background: "var(--token-surface-canvas)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-app)",
+  border: "1px solid var(--var-ui-color-border-default)",
 });
 
 export const previewToolbar = styles.class("themeeditor-previewToolbar", {
@@ -356,9 +356,9 @@ export const previewToolbar = styles.class("themeeditor-previewToolbar", {
   padding: "0.5rem 0.75rem",
   marginBottom: "0.75rem",
   borderRadius: "8px",
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
-  color: "var(--token-text-primary)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
+  color: "var(--var-ui-color-text-primary)",
   fontSize: "0.75rem",
   fontWeight: "600",
 });
@@ -366,20 +366,20 @@ export const previewToolbar = styles.class("themeeditor-previewToolbar", {
 export const previewWidget = styles.class("themeeditor-previewWidget", {
   borderRadius: "12px",
   padding: "1rem",
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
-  boxShadow: "0 0 16px var(--token-glow)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
+  boxShadow: "0 0 16px var(--var-ui-color-ring-default)",
 });
 
 export const previewWidgetTitle = styles.class("themeeditor-previewWidgetTitle", {
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
   fontSize: "1rem",
   fontWeight: "600",
   margin: "0 0 0.25rem",
 });
 
 export const previewWidgetMuted = styles.class("themeeditor-previewWidgetMuted", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   fontSize: "0.8rem",
   margin: "0 0 1rem",
 });
@@ -390,9 +390,9 @@ export const previewButton = styles.class("themeeditor-previewButton", {
   borderRadius: "8px",
   fontSize: "0.8rem",
   fontWeight: "500",
-  border: "1px solid var(--token-color-brand-500)",
-  background: "var(--token-color-brand-500)",
-  color: "var(--token-text-inverse)",
+  border: "1px solid var(--var-ui-color-tone-accent-foreground)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   cursor: "default",
 });
 

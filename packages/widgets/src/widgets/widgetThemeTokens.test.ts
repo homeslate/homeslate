@@ -32,9 +32,17 @@ describe("widget TypeStyles theme tokens", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("does not reference retired --token- CSS variables", () => {
+    for (const file of styleFiles) {
+      const css = stripComments(readFileSync(file, "utf8"));
+      const tokenPrefix = css.match(/--token-[a-z0-9-]+/gi) ?? [];
+      expect(tokenPrefix, file).toEqual([]);
+    }
+  });
+
   it("keeps widget color styling on theme-provided tokens", () => {
     const literalColorPattern =
-      /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*(?!var\(--token-)[^)]+\)|(?:^|[\s,(])(?:white|black)(?=[\s,);]|$)/g;
+      /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*(?!var\(--var-ui-)[^)]+\)|(?:^|[\s,(])(?:white|black)(?=[\s,);]|$)/g;
 
     const offenders = styleFiles.flatMap((file) => {
       const css = stripComments(readFileSync(file, "utf8"));

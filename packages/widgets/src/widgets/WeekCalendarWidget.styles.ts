@@ -16,7 +16,7 @@ export const dayHeaders = styles.class("weekcalendarwidget-dayHeaders", {
   display: "grid",
   gridTemplateColumns: "48px repeat(7, 1fr)",
   flexShrink: "0",
-  borderBottom: "1px solid var(--token-border-default)",
+  borderBottom: "1px solid var(--var-ui-color-border-default)",
   paddingBottom: "6px",
   paddingTop: "4px",
 });
@@ -33,7 +33,7 @@ export const dayHead = styles.class("weekcalendarwidget-dayHead", {
 
 export const dayName = styles.class("weekcalendarwidget-dayName", {
   fontSize: "10px",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
   fontWeight: "500",
@@ -48,22 +48,23 @@ export const dayNum = styles.class("weekcalendarwidget-dayNum", {
   borderRadius: "50%",
   fontSize: "13px",
   fontWeight: "500",
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
 });
 
 export const dayNumToday = styles.class("weekcalendarwidget-dayNumToday", {
-  background: "var(--token-color-brand-500)",
-  color: "var(--token-text-inverse)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   fontWeight: "700",
-  boxShadow: "0 0 0 2px color-mix(in srgb, var(--token-color-brand-500) 45%, transparent)",
+  boxShadow:
+    "0 0 0 2px color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 45%, transparent)",
 });
 
 export const dayHeadPast = styles.class("weekcalendarwidget-dayHeadPast", {
   [`& .${dayName}`]: {
-    color: "color-mix(in srgb, var(--token-text-muted) 55%, transparent)",
+    color: "color-mix(in srgb, var(--var-ui-color-text-secondary) 55%, transparent)",
   },
   [`& .${dayNum}`]: {
-    color: "color-mix(in srgb, var(--token-text-muted) 55%, transparent)",
+    color: "color-mix(in srgb, var(--var-ui-color-text-secondary) 55%, transparent)",
   },
 });
 
@@ -71,7 +72,7 @@ export const allDayStrip = styles.class("weekcalendarwidget-allDayStrip", {
   display: "grid",
   gridTemplateColumns: "48px repeat(7, 1fr)",
   flexShrink: "0",
-  borderBottom: "1px solid var(--token-border-default)",
+  borderBottom: "1px solid var(--var-ui-color-border-default)",
   minHeight: "24px",
   padding: "2px 0",
 });
@@ -83,7 +84,7 @@ export const allDayGutter = styles.class("weekcalendarwidget-allDayGutter", {
   paddingRight: "6px",
   paddingTop: "3px",
   fontSize: "9px",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   whiteSpace: "nowrap",
 });
 
@@ -99,14 +100,14 @@ export const allDayEvent = styles.class("weekcalendarwidget-allDayEvent", {
   padding: "1px 4px",
   fontSize: "10px",
   fontWeight: "500",
-  color: "var(--token-text-inverse)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   whiteSpace: "nowrap",
   overflow: "hidden",
   textOverflow: "ellipsis",
   opacity: "0.9",
   cursor: "pointer",
   "&:focus-visible": {
-    outline: "2px solid var(--token-focus-ring)",
+    outline: "2px solid var(--var-ui-color-ring-default)",
     outlineOffset: "1px",
   },
 });
@@ -116,7 +117,7 @@ export const scrollable = styles.class("weekcalendarwidget-scrollable", {
   overflowY: "auto",
   overflowX: "hidden",
   scrollbarWidth: "thin",
-  scrollbarColor: "var(--token-border-default) transparent",
+  scrollbarColor: "var(--var-ui-color-border-default) transparent",
 });
 
 export const gridBody = styles.class("weekcalendarwidget-gridBody", {
@@ -133,7 +134,7 @@ export const hourLabel = styles.class("weekcalendarwidget-hourLabel", {
   position: "absolute",
   right: "6px",
   fontSize: "9px",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   whiteSpace: "nowrap",
   transform: "translateY(-50%)",
   userSelect: "none",
@@ -141,11 +142,11 @@ export const hourLabel = styles.class("weekcalendarwidget-hourLabel", {
 
 export const dayColumn = styles.class("weekcalendarwidget-dayColumn", {
   position: "relative",
-  borderLeft: "1px solid var(--token-border-subtle, var(--token-border-default))",
+  borderLeft: "1px solid var(--var-ui-color-border-subtle, var(--var-ui-color-border-default))",
 });
 
 export const dayColumnToday = styles.class("weekcalendarwidget-dayColumnToday", {
-  background: "color-mix(in srgb, var(--token-color-brand-500) 10%, transparent)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent)",
 });
 
 export const dayColumnPast = styles.class("weekcalendarwidget-dayColumnPast", {
@@ -157,7 +158,7 @@ export const hourLine = styles.class("weekcalendarwidget-hourLine", {
   left: "0",
   right: "0",
   height: "1px",
-  background: "var(--token-border-subtle, var(--token-border-default))",
+  background: "var(--var-ui-color-border-subtle, var(--var-ui-color-border-default))",
   pointerEvents: "none",
 });
 
@@ -167,7 +168,7 @@ export const halfHourLine = styles.class("weekcalendarwidget-halfHourLine", {
   right: "0",
   height: "1px",
   background:
-    "color-mix(\n    in srgb,\n    var(--token-border-subtle, var(--token-border-default)) 45%,\n    transparent\n  )",
+    "color-mix(\n    in srgb,\n    var(--var-ui-color-border-subtle, var(--var-ui-color-border-default)) 45%,\n    transparent\n  )",
   pointerEvents: "none",
 });
 
@@ -185,7 +186,7 @@ export const event = styles.class("weekcalendarwidget-event", {
     zIndex: "3 !important",
   },
   "&:focus-visible": {
-    outline: "2px solid var(--token-focus-ring)",
+    outline: "2px solid var(--var-ui-color-ring-default)",
     outlineOffset: "1px",
   },
 });
@@ -194,7 +195,7 @@ export const eventTitle = styles.class("weekcalendarwidget-eventTitle", {
   display: "block",
   fontSize: "10px",
   fontWeight: "600",
-  color: "var(--token-text-inverse)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   lineHeight: "1.3",
   overflow: "hidden",
   whiteSpace: "nowrap",
@@ -204,7 +205,8 @@ export const eventTitle = styles.class("weekcalendarwidget-eventTitle", {
 export const eventTime = styles.class("weekcalendarwidget-eventTime", {
   display: "block",
   fontSize: "9px",
-  color: "color-mix(in srgb, var(--token-text-inverse) 70%, transparent)",
+  color:
+    "color-mix(in srgb, var(--var-ui-color-tone-accent-foregroundOnBackground) 70%, transparent)",
   lineHeight: "1.2",
   marginTop: "1px",
   whiteSpace: "nowrap",
@@ -216,7 +218,7 @@ export const currentTimeLine = styles.class("weekcalendarwidget-currentTimeLine"
   left: "48px",
   right: "0",
   height: "2px",
-  background: "color-mix(in srgb, var(--token-status-danger-fg) 65%, transparent)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-danger-foreground) 65%, transparent)",
   zIndex: "4",
   pointerEvents: "none",
 });
@@ -228,7 +230,7 @@ export const currentTimeDot = styles.class("weekcalendarwidget-currentTimeDot", 
   width: "10px",
   height: "10px",
   borderRadius: "50%",
-  background: "color-mix(in srgb, var(--token-status-danger-fg) 65%, transparent)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-danger-foreground) 65%, transparent)",
 });
 
 export const timeGrid = styles.class("weekcalendarwidget-timeGrid", {
@@ -238,14 +240,15 @@ export const timeGrid = styles.class("weekcalendarwidget-timeGrid", {
 });
 
 export const dayAddBtn = styles.class("weekcalendarwidget-dayAddBtn", {
-  color: "var(--token-text-muted) !important",
+  color: "var(--var-ui-color-text-secondary) !important",
   width: "14px !important",
   height: "14px !important",
   minWidth: "14px !important",
   minHeight: "14px !important",
   "&:hover": {
-    color: "var(--token-color-brand-500) !important",
-    background: "color-mix(in srgb, var(--token-color-brand-500) 15%, transparent) !important",
+    color: "var(--var-ui-color-tone-accent-foreground) !important",
+    background:
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 15%, transparent) !important",
   },
 });
 

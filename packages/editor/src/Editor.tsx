@@ -1,15 +1,7 @@
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type JSX,
-  type ReactNode,
-} from "react";
+import { useCallback, useRef, useState, type JSX, type ReactNode } from "react";
 import { Group, Button, Modal, Stack } from "@mantine/core";
 import { IconSettings, IconUsers } from "@tabler/icons-react";
-import type { DisplayDocument, StickyNote, ThemeDocument, ViewBackground } from "@homeslate/schema";
+import type { DisplayDocument, StickyNote, ViewBackground } from "@homeslate/schema";
 import {
   AlarmsProvider,
   HouseholdEditor,
@@ -26,7 +18,6 @@ import {
   patchViewNotes,
   patchWidgetConfig,
   removeWidget,
-  resolveDisplayThemeVars,
   type WidgetRegistryApi,
 } from "@homeslate/display/canvas";
 import { BgSettings, WidgetPanel } from "./WidgetPanel";
@@ -63,16 +54,6 @@ export function Editor(props: EditorProps): JSX.Element {
   documentRef.current = document;
 
   const view = document.views.find((item) => item.id === viewId);
-
-  const tokenVars = useMemo(
-    () =>
-      resolveDisplayThemeVars(
-        document.themes as ThemeDocument[],
-        document.activeThemeId,
-        document.colorMode ?? "dark",
-      ),
-    [document.themes, document.activeThemeId, document.colorMode],
-  );
 
   const emit = useCallback(
     (next: DisplayDocument) => {
@@ -157,7 +138,7 @@ export function Editor(props: EditorProps): JSX.Element {
   );
 
   return (
-    <div className={classes.root} style={tokenVars as CSSProperties}>
+    <div className={classes.root}>
       <div className={classes.pageActions}>
         <Group gap="sm">
           <Button
@@ -185,7 +166,7 @@ export function Editor(props: EditorProps): JSX.Element {
           onChange={emit}
           widgetRegistry={widgetRegistry}
         />
-        <main className={classes.main} style={tokenVars as CSSProperties}>
+        <main className={classes.main}>
           {view && <BackgroundSlideshow view={view} />}
           <TimersProvider>
             <HouseholdProvider

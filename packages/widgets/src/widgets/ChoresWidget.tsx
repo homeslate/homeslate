@@ -91,7 +91,7 @@ export function ChoresWidget({ widget, onConfigChange }: WidgetProps<ChoresConfi
                 <span
                   className={classes.disc}
                   style={{
-                    background: member?.color ?? "var(--token-text-secondary)",
+                    background: member?.color ?? "var(--var-ui-color-text-secondary)",
                   }}
                   aria-hidden
                 >

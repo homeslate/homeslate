@@ -2,10 +2,10 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("stockswidget-container", {
   height: "100%",
-  padding: "var(--token-widget-padding, var(--token-spacing-4))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-4))",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-status-success-fg) 10%, transparent) 0%,\n    color-mix(in srgb, var(--token-color-brand-500) 10%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-success-foreground) 10%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   display: "flex",
   flexDirection: "column",
 });
@@ -28,14 +28,14 @@ export const title = styles.class("stockswidget-title", {
   gap: "0.5rem",
   fontWeight: "600",
   fontSize: "1rem",
-  color: "var(--token-status-success-fg)",
+  color: "var(--var-ui-color-tone-success-foreground)",
 });
 
 export const refreshBtn = styles.class("stockswidget-refreshBtn", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   "&:hover": {
-    color: "var(--token-text-primary)",
-    background: "color-mix(in srgb, var(--token-color-brand-500) 12%, transparent)",
+    color: "var(--var-ui-color-text-primary)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 12%, transparent)",
   },
 });
 
@@ -50,13 +50,14 @@ export const stockRow = styles.class("stockswidget-stockRow", {
   justifyContent: "space-between",
   alignItems: "flex-start",
   gap: "1rem",
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
   transition: "all 0.2s ease",
   "&:hover": {
-    background: "color-mix(in srgb, var(--token-status-success-fg) 8%, var(--token-surface-card))",
+    background:
+      "color-mix(in srgb, var(--var-ui-color-tone-success-foreground) 8%, var(--var-ui-color-background-surface))",
     borderColor:
-      "color-mix(in srgb, var(--token-status-success-fg) 45%, var(--token-border-default))",
+      "color-mix(in srgb, var(--var-ui-color-tone-success-foreground) 45%, var(--var-ui-color-border-default))",
   },
 });
 
@@ -79,15 +80,15 @@ export const change = styles.class("stockswidget-change", {
 });
 
 export const positive = styles.class("stockswidget-positive", {
-  color: "var(--token-status-success-fg)",
+  color: "var(--var-ui-color-tone-success-foreground)",
 });
 
 export const negative = styles.class("stockswidget-negative", {
-  color: "var(--token-status-danger-fg)",
+  color: "var(--var-ui-color-tone-danger-foreground)",
 });
 
 export const neutral = styles.class("stockswidget-neutral", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const attribution = styles.class("stockswidget-attribution", {
@@ -106,7 +107,7 @@ export const empty = styles.class("stockswidget-empty", {
 });
 
 export const emptyIcon = styles.class("stockswidget-emptyIcon", {
-  color: "var(--token-status-success-fg)",
+  color: "var(--var-ui-color-tone-success-foreground)",
   opacity: "0.5",
 });
 
@@ -131,18 +132,18 @@ export const checkboxLabel = styles.class("stockswidget-checkboxLabel", {
 });
 
 export const searchResults = styles.class("stockswidget-searchResults", {
-  background: "var(--token-surface-overlay, var(--token-surface-card))",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-popover, var(--var-ui-color-background-surface))",
+  border: "1px solid var(--var-ui-color-border-default)",
   maxHeight: "250px",
   overflowY: "auto",
 });
 
 export const searchResult = styles.class("stockswidget-searchResult", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   fontWeight: "normal",
   "&:hover:not(:disabled)": {
-    color: "var(--token-text-primary)",
-    background: "color-mix(in srgb, var(--token-color-brand-500) 12%, transparent)",
+    color: "var(--var-ui-color-text-primary)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 12%, transparent)",
   },
   "&:disabled": {
     opacity: "0.7",

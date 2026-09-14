@@ -3,15 +3,15 @@ import { styles } from "../typeStyles";
 export const wrapper = styles.class("widgetwrapper-wrapper", {
   height: "100%",
   position: "relative",
-  background: "var(--token-widget-background, var(--token-surface-card))",
+  background: "var(--var-ui-widget-background, var(--var-ui-color-background-surface))",
   backdropFilter: "blur(10px)",
   border:
-    "var(--token-widget-border-width, 1px) solid\n    var(--token-widget-border-color, var(--token-border-default))",
-  borderRadius: "var(--token-widget-radius, var(--mantine-radius-md))",
+    "var(--var-ui-widget-borderWidth, 1px) solid\n    var(--var-ui-widget-borderColor, var(--var-ui-color-border-default))",
+  borderRadius: "var(--var-ui-widget-radius, var(--mantine-radius-md))",
   overflow: "hidden",
   transition: "box-shadow 0.2s ease,\n    border-color 0.2s ease",
   "&:hover": {
-    boxShadow: "0 0 20px var(--token-glow)",
+    boxShadow: "0 0 20px var(--var-ui-color-ring-default)",
   },
 });
 
@@ -20,15 +20,17 @@ export const transparent = styles.class("widgetwrapper-transparent", {
   backdropFilter: "none",
   borderColor: "transparent",
   "&:hover": {
-    borderColor: "var(--token-border-default)",
+    borderColor: "var(--var-ui-color-border-default)",
   },
 });
 
 export const editing = styles.class("widgetwrapper-editing", {
-  border: "2px dashed rgba(var(--token-color-brand-500-rgb), 0.5)",
+  border:
+    "2px dashed color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 50%, transparent)",
   "&:hover": {
-    borderColor: "rgba(var(--token-color-brand-500-rgb), 0.8)",
-    boxShadow: "0 0 20px rgba(var(--token-color-brand-500-rgb), 0.2)",
+    borderColor: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 80%, transparent)",
+    boxShadow:
+      "0 0 20px color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 20%, transparent)",
   },
   "&::before": {
     content: '""',
@@ -38,7 +40,7 @@ export const editing = styles.class("widgetwrapper-editing", {
     width: "24px",
     height: "24px",
     background:
-      "linear-gradient(\n    135deg,\n    transparent 50%,\n    rgba(var(--token-color-brand-500-rgb), 0.3) 50%\n  )",
+      "linear-gradient(\n    135deg,\n    transparent 50%,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 30%, transparent) 50%\n  )",
     zIndex: "5",
     pointerEvents: "none",
     opacity: "0",
@@ -85,11 +87,11 @@ export const toolbarRight = styles.class("widgetwrapper-toolbarRight", {
 export const dragHandle = styles.class("widgetwrapper-dragHandle", {
   cursor: "grab",
   padding: "0.25rem",
-  color: "var(--token-text-muted, var(--mantine-color-dimmed))",
+  color: "var(--var-ui-color-text-secondary, var(--mantine-color-dimmed))",
   display: "flex",
   alignItems: "center",
   "&:hover": {
-    color: "var(--token-text-primary, var(--mantine-color-text))",
+    color: "var(--var-ui-color-text-primary, var(--mantine-color-text))",
   },
   "&:active": {
     cursor: "grabbing",
@@ -97,10 +99,10 @@ export const dragHandle = styles.class("widgetwrapper-dragHandle", {
 });
 
 export const toolbarButton = styles.class("widgetwrapper-toolbarButton", {
-  color: "var(--token-text-muted, var(--mantine-color-dimmed))",
+  color: "var(--var-ui-color-text-secondary, var(--mantine-color-dimmed))",
   background: "light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08))",
   "&:hover": {
-    color: "var(--token-text-primary, var(--mantine-color-text))",
+    color: "var(--var-ui-color-text-primary, var(--mantine-color-text))",
     background: "light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.15))",
   },
 });
@@ -114,7 +116,7 @@ export const content = styles.class("widgetwrapper-content", {
 export const widgetName = styles.class("widgetwrapper-widgetName", {
   fontWeight: "500",
   opacity: "0.8",
-  color: "var(--token-text-primary, var(--mantine-color-text))",
+  color: "var(--var-ui-color-text-primary, var(--mantine-color-text))",
   whiteSpace: "nowrap",
   "@container toolbar (max-width: 180px)": {
     display: "none",
@@ -126,9 +128,9 @@ export const sizeIndicator = styles.class("widgetwrapper-sizeIndicator", {
   alignItems: "center",
   gap: "4px",
   padding: "2px 6px",
-  background: "rgba(var(--token-color-brand-500-rgb), 0.2)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 20%, transparent)",
   borderRadius: "4px",
-  color: "var(--token-text-primary, var(--mantine-color-text))",
+  color: "var(--var-ui-color-text-primary, var(--mantine-color-text))",
   fontSize: "10px",
   cursor: "default",
 });

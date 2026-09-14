@@ -20,7 +20,7 @@ export const disc = styles.class("householdeditor-disc", {
   justifyContent: "center",
   fontSize: "0.75rem",
   fontWeight: "700",
-  color: "var(--token-text-inverse, var(--token-text-primary))",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground, var(--var-ui-color-text-primary))",
 });
 
 export const swatch = styles.class("householdeditor-swatch", {
@@ -28,12 +28,12 @@ export const swatch = styles.class("householdeditor-swatch", {
   height: "1.5rem",
   minWidth: "1.5rem",
   padding: "0",
-  border: "1px solid var(--token-border-default)",
+  border: "1px solid var(--var-ui-color-border-default)",
   borderRadius: "999px",
   cursor: "pointer",
 });
 
 export const swatchActive = styles.class("householdeditor-swatchActive", {
-  outline: "2px solid var(--token-color-brand-500)",
+  outline: "2px solid var(--var-ui-color-tone-accent-foreground)",
   outlineOffset: "2px",
 });

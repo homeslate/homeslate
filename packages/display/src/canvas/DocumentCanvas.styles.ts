@@ -39,7 +39,7 @@ export const addNoteBtn = styles.class("documentcanvas-addNoteBtn", {
   height: "36px",
   borderRadius: "50%",
   border: "none",
-  background: "rgba(var(--token-color-brand-500-rgb), 0.85)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 85%, transparent)",
   color: "#fff",
   fontSize: "22px",
   lineHeight: "1",
@@ -51,7 +51,7 @@ export const addNoteBtn = styles.class("documentcanvas-addNoteBtn", {
   transition: "background 0.15s ease,\n    transform 0.15s ease",
   pointerEvents: "auto",
   "&:hover": {
-    background: "var(--token-color-brand-500$1)",
+    background: "var(--var-ui-color-tone-accent-foreground)",
     transform: "scale(1.1)",
   },
 });
@@ -80,7 +80,7 @@ export const empty = styles.class("documentcanvas-empty", {
     fontWeight: "500",
     marginBottom: "0.5rem",
     background:
-      "linear-gradient(\n    135deg,\n    var(--token-color-brand-500$1) 0%,\n    var(--token-color-brand-600) 100%\n  )",
+      "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-accent-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
     "-webkit-background-clip": "text",
     "-webkit-text-fill-color": "transparent",
     backgroundClip: "text",
@@ -98,8 +98,10 @@ export const fadeIn = styles.class("documentcanvas-fadeIn", {
 });
 
 global.style(".react-grid-item.react-grid-placeholder", {
-  background: "rgba(var(--token-color-brand-500-rgb), 0.2) !important",
-  border: "2px dashed rgba(var(--token-color-brand-500-rgb), 0.5) !important",
+  background:
+    "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 20%, transparent) !important",
+  border:
+    "2px dashed color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 50%, transparent) !important",
   borderRadius: "var(--mantine-radius-md)",
 });
 global.style(".react-grid-item.resizing", {
@@ -146,7 +148,7 @@ global.style(
     width: 10,
     height: 10,
     borderRadius: 2,
-    background: "rgba(var(--token-color-brand-500-rgb), 0.6)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 60%, transparent)",
     transition: "all 0.2s ease",
   },
 );
@@ -162,7 +164,7 @@ global.style(".react-resizable-handle-e::after, .react-resizable-handle-w::after
   top: "50%",
   transform: "translateY(-50%)",
   borderRadius: 2,
-  background: "rgba(var(--token-color-brand-500-rgb), 0.6)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 60%, transparent)",
   transition: "all 0.2s ease",
 });
 global.style(".react-resizable-handle-e::after", { right: 2 });
@@ -175,13 +177,13 @@ global.style(".react-resizable-handle-n::after, .react-resizable-handle-s::after
   left: "50%",
   transform: "translateX(-50%)",
   borderRadius: 2,
-  background: "rgba(var(--token-color-brand-500-rgb), 0.6)",
+  background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 60%, transparent)",
   transition: "all 0.2s ease",
 });
 global.style(".react-resizable-handle-n::after", { top: 2 });
 global.style(".react-resizable-handle-s::after", { bottom: 2 });
 global.style(".react-resizable-handle:hover::after", {
-  background: "var(--token-color-brand-500$1)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
   transform: "scale(1.2)",
 });
 global.style(".react-resizable-handle-e:hover::after, .react-resizable-handle-w:hover::after", {

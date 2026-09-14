@@ -42,8 +42,6 @@ import {
   DocumentCanvas,
   getPresetById,
   THEME_PRESET_OPTIONS,
-  resolveTheme,
-  themeToVars,
   TAILWIND_COLOR_PALETTES,
   TAILWIND_COMPACT_COLOR_SWATCHES,
   TAILWIND_PALETTE_NAMES,
@@ -70,9 +68,8 @@ function createThemeDocumentFromPreset(presetId: string, name: string): ThemeDoc
   };
 }
 
-function themeDocumentToPreviewVars(doc: ThemeDocument, mode: ColorMode) {
-  const resolved = resolveTheme(doc, mode);
-  return themeToVars(resolved);
+function themeDocumentToPreviewVars(_doc: ThemeDocument, _mode: ColorMode): CSSProperties {
+  return {};
 }
 import * as classes from "./ThemeEditor.styles";
 
