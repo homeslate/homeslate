@@ -5,8 +5,8 @@ export const container = styles.class("googlephotoswidget-container", {
   height: "100%",
   position: "relative",
   overflow: "hidden",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
-  backgroundColor: "var(--token-surface-card)",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
+  backgroundColor: "var(--var-ui-color-background-surface)",
 });
 
 export const transparent = styles.class("googlephotoswidget-transparent", {
@@ -32,7 +32,7 @@ export const overlay = styles.class("googlephotoswidget-overlay", {
   right: "0",
   height: "40%",
   background:
-    "linear-gradient(\n    to top,\n    color-mix(in srgb, var(--token-surface-overlay, var(--token-surface-card)) 86%, transparent) 0%,\n    transparent 100%\n  )",
+    "linear-gradient(\n    to top,\n    color-mix(in srgb, var(--var-ui-color-background-popover, var(--var-ui-color-background-surface)) 86%, transparent) 0%,\n    transparent 100%\n  )",
   pointerEvents: "none",
 });
 
@@ -45,10 +45,11 @@ export const caption = styles.class("googlephotoswidget-caption", {
 });
 
 export const captionText = styles.class("googlephotoswidget-captionText", {
-  color: "var(--token-text-inverse)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   fontSize: "14px",
   fontWeight: "500",
-  textShadow: "0 1px 3px var(--token-surface-overlay, var(--token-surface-card))",
+  textShadow:
+    "0 1px 3px var(--var-ui-color-background-popover, var(--var-ui-color-background-surface))",
 });
 
 export const signIn = styles.class("googlephotoswidget-signIn", {
@@ -79,24 +80,24 @@ export const loading = styles.class("googlephotoswidget-loading", {
   height: "100%",
   padding: "20px",
   textAlign: "center",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   marginBottom: "12px",
 });
 
 export const googleIcon = styles.class("googlephotoswidget-googleIcon", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   marginBottom: "12px",
 });
 
 export const emptyIcon = styles.class("googlephotoswidget-emptyIcon", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   marginBottom: "12px",
 });
 
 export const authSection = styles.class("googlephotoswidget-authSection", {
   padding: "12px",
-  backgroundColor: "var(--token-surface-card)",
-  borderRadius: "var(--token-radius-md)",
+  backgroundColor: "var(--var-ui-color-background-surface)",
+  borderRadius: "var(--var-ui-radius-md)",
 });
 
 export const refreshBtn = styles.class("googlephotoswidget-refreshBtn", {
@@ -108,10 +109,10 @@ export const refreshBtn = styles.class("googlephotoswidget-refreshBtn", {
 
 export const refreshButton = styles.class("googlephotoswidget-refreshButton", {
   backgroundColor:
-    "color-mix(\n    in srgb,\n    var(--token-surface-overlay, var(--token-surface-card)) 75%,\n    transparent\n  )",
-  color: "var(--token-text-inverse)",
+    "color-mix(\n    in srgb,\n    var(--var-ui-color-background-popover, var(--var-ui-color-background-surface)) 75%,\n    transparent\n  )",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
   "&:hover": {
     backgroundColor:
-      "color-mix(\n    in srgb,\n    var(--token-surface-overlay, var(--token-surface-card)) 90%,\n    transparent\n  )",
+      "color-mix(\n    in srgb,\n    var(--var-ui-color-background-popover, var(--var-ui-color-background-surface)) 90%,\n    transparent\n  )",
   },
 });

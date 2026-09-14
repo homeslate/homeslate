@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Text } from "@mantine/core";
+import { Text } from "@var-ui/react";
 
 export type WidgetHealthStatus = "idle" | "loading" | "ok" | "stale" | "error";
 
@@ -44,7 +44,7 @@ export function WidgetDataStatus({
   if (!lastUpdated) return null;
 
   return (
-    <Text size="xs" c={error ? "yellow.3" : "dimmed"} ta={align}>
+    <Text size="xs" tone="secondary" style={{ textAlign: align }}>
       {error
         ? `Last updated ${formatLastUpdated(lastUpdated)} (showing cached data)`
         : `Updated ${formatLastUpdated(lastUpdated)}`}

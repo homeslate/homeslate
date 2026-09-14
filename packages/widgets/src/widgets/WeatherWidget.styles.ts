@@ -4,10 +4,10 @@ export const container = styles.class("weatherwidget-container", {
   height: "100%",
   minHeight: "0",
   overflow: "auto",
-  padding: "var(--token-widget-padding, var(--token-spacing-4))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-4))",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-status-warning-fg) 10%, transparent) 0%,\n    color-mix(in srgb, var(--token-color-brand-500) 10%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-warning-foreground) 10%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   display: "flex",
   flexDirection: "column",
   gap: "0.5rem",
@@ -26,7 +26,7 @@ export const header = styles.class("weatherwidget-header", {
 export const location = styles.class("weatherwidget-location", {
   fontWeight: "600",
   fontSize: "1rem",
-  color: "var(--token-status-warning-fg)",
+  color: "var(--var-ui-color-tone-warning-foreground)",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -55,7 +55,7 @@ export const temperature = styles.class("weatherwidget-temperature", {
   fontWeight: "300",
   lineHeight: "1",
   background:
-    "linear-gradient(\n    135deg,\n    var(--token-status-warning-fg) 0%,\n    var(--token-color-brand-500) 100%\n  )",
+    "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-warning-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
   "-webkit-background-clip": "text",
   "-webkit-text-fill-color": "transparent",
   backgroundClip: "text",
@@ -63,7 +63,7 @@ export const temperature = styles.class("weatherwidget-temperature", {
 
 export const condition = styles.class("weatherwidget-condition", {
   fontSize: "1rem",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const transparent = styles.class("weatherwidget-transparent", {
@@ -113,12 +113,12 @@ export const detailItem = styles.class("weatherwidget-detailItem", {
   display: "flex",
   alignItems: "center",
   gap: "0.25rem",
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const hourlySection = styles.class("weatherwidget-hourlySection", {
   paddingTop: "1.25rem",
-  borderTop: "1px solid var(--token-border-default)",
+  borderTop: "1px solid var(--var-ui-color-border-default)",
   flexShrink: "0",
   minWidth: "0",
 });
@@ -141,15 +141,15 @@ export const forecastHour = styles.class("weatherwidget-forecastHour", {
   alignItems: "center",
   gap: "0.2rem",
   padding: "0.4rem 0.35rem",
-  background: "var(--token-surface-card)",
-  borderRadius: "var(--token-radius-sm)",
+  background: "var(--var-ui-color-background-surface)",
+  borderRadius: "var(--var-ui-radius-sm)",
 });
 
 export const forecast = styles.class("weatherwidget-forecast", {
   display: "flex",
   gap: "0.5rem",
   paddingTop: "1.25rem",
-  borderTop: "1px solid var(--token-border-default)",
+  borderTop: "1px solid var(--var-ui-color-border-default)",
   overflowX: "auto",
   flexShrink: "0",
 });
@@ -163,8 +163,8 @@ export const forecastDay = styles.class("weatherwidget-forecastDay", {
   justifyContent: "center",
   gap: "0.35rem",
   padding: "0.6rem 0.5rem",
-  background: "var(--token-surface-card)",
-  borderRadius: "var(--token-radius-sm)",
+  background: "var(--var-ui-color-background-surface)",
+  borderRadius: "var(--var-ui-radius-sm)",
 });
 
 export const forecastDayName = styles.class("weatherwidget-forecastDayName", {
@@ -191,27 +191,27 @@ export const forecastDayTemps = styles.class("weatherwidget-forecastDayTemps", {
 });
 
 export const iconSunny = styles.class("weatherwidget-iconSunny", {
-  color: "var(--token-status-warning-fg)",
+  color: "var(--var-ui-color-tone-warning-foreground)",
 });
 
 export const iconMoon = styles.class("weatherwidget-iconMoon", {
-  color: "var(--token-color-brand-600)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const iconCloudy = styles.class("weatherwidget-iconCloudy", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const iconRainy = styles.class("weatherwidget-iconRainy", {
-  color: "var(--token-status-info-fg, var(--token-color-brand-500))",
+  color: "var(--var-ui-color-tone-info-foreground, var(--var-ui-color-tone-accent-foreground))",
 });
 
 export const iconSnowy = styles.class("weatherwidget-iconSnowy", {
-  color: "var(--token-status-info-fg, var(--token-color-brand-500))",
+  color: "var(--var-ui-color-tone-info-foreground, var(--var-ui-color-tone-accent-foreground))",
 });
 
 export const iconStormy = styles.class("weatherwidget-iconStormy", {
-  color: "var(--token-color-brand-600)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const empty = styles.class("weatherwidget-empty", {
@@ -225,7 +225,7 @@ export const empty = styles.class("weatherwidget-empty", {
 });
 
 export const emptyIcon = styles.class("weatherwidget-emptyIcon", {
-  color: "var(--token-status-warning-fg)",
+  color: "var(--var-ui-color-tone-warning-foreground)",
   opacity: "0.5",
 });
 
@@ -247,24 +247,24 @@ export const error = styles.class("weatherwidget-error", {
 });
 
 export const searchResults = styles.class("weatherwidget-searchResults", {
-  background: "var(--token-surface-overlay, var(--token-surface-card))",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-popover, var(--var-ui-color-background-surface))",
+  border: "1px solid var(--var-ui-color-border-default)",
   maxHeight: "200px",
   overflowY: "auto",
 });
 
 export const searchResult = styles.class("weatherwidget-searchResult", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   fontWeight: "normal",
   "&:hover": {
-    color: "var(--token-text-primary)",
-    background: "color-mix(in srgb, var(--token-color-brand-500) 12%, transparent)",
+    color: "var(--var-ui-color-text-primary)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 12%, transparent)",
   },
 });
 
 export const currentLocation = styles.class("weatherwidget-currentLocation", {
-  background: "var(--token-status-warning-bg)",
-  border: "1px solid var(--token-status-warning-border)",
+  background: "var(--var-ui-color-tone-warning-subtleBackground)",
+  border: "1px solid var(--var-ui-color-tone-warning-border)",
 });
 
 export const aqiBadge = styles.class("weatherwidget-aqiBadge", {

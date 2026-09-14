@@ -1,4 +1,4 @@
-import { Box, Stack, Text, Group, Switch } from "@mantine/core";
+import { Stack, Text, HStack, Switch } from "@var-ui/react";
 import type { WidgetProps, WidgetConfig } from "../types";
 import { useAlarms } from "../alarms/AlarmsContext";
 import { AlarmListEditor } from "../alarms/AlarmListEditor";
@@ -13,7 +13,7 @@ export function AlarmsWidget({ widget }: WidgetProps<AlarmsConfig>) {
   const { provided, alarms, onAlarmsChange, readOnly } = useAlarms();
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {provided ? (
         <AlarmListEditor
           alarms={alarms}
@@ -21,13 +21,13 @@ export function AlarmsWidget({ widget }: WidgetProps<AlarmsConfig>) {
           readOnly={readOnly}
         />
       ) : (
-        <Stack className={classes.empty} gap={4}>
-          <Text size="sm" c="dimmed" ta="center">
+        <Stack className={classes.empty} gap="xs">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             Add alarms in Display Settings
           </Text>
         </Stack>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -37,17 +37,18 @@ export function AlarmsWidgetSettings({ widget, onConfigChange }: WidgetProps<Ala
 
   return (
     <Stack gap="md">
-      <Text size="xs" c="dimmed">
+      <Text size="xs" tone="secondary">
         Manage recurring alarms directly on the widget, or here.
       </Text>
 
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(e) => onConfigChange({ transparentBackground: e.currentTarget.checked })}
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
 
       {provided && (
         <AlarmListEditor

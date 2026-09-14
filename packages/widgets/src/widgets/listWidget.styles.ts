@@ -2,11 +2,11 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("listwidget-container", {
   height: "100%",
-  background: "var(--token-widget-background, var(--token-surface-card))",
+  background: "var(--var-ui-widget-background, var(--var-ui-color-background-surface))",
   border:
-    "var(--token-widget-border-width, 1px) solid\n    var(--token-widget-border-color, var(--token-border-default))",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
-  padding: "var(--token-widget-padding, var(--token-spacing-3))",
+    "var(--var-ui-widget-borderWidth, 1px) solid\n    var(--var-ui-widget-borderColor, var(--var-ui-color-border-default))",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-3))",
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",
@@ -50,12 +50,12 @@ export const row = styles.class("listwidget-row", {
   padding: "0.45rem 0.5rem",
   border: "none",
   background: "transparent",
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
   textAlign: "left",
   cursor: "pointer",
-  borderRadius: "var(--token-radius-sm)",
+  borderRadius: "var(--var-ui-radius-sm)",
   "&:hover": {
-    background: "rgba(var(--token-color-brand-500-rgb), 0.08)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, transparent)",
   },
 });
 
@@ -80,8 +80,8 @@ export const number = styles.class("listwidget-number", {
   justifyContent: "center",
   fontWeight: "700",
   fontSize: "0.9rem",
-  background: "var(--token-color-brand-500)",
-  color: "var(--token-text-inverse)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
 });
 
 export const disc = styles.class("listwidget-disc", {
@@ -94,15 +94,15 @@ export const disc = styles.class("listwidget-disc", {
   justifyContent: "center",
   fontSize: "0.7rem",
   fontWeight: "700",
-  color: "var(--token-text-inverse)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
 });
 
 export const checkbox = styles.class("listwidget-checkbox", {
   width: "1.25rem",
   height: "1.25rem",
   minWidth: "1.25rem",
-  border: "2px solid var(--token-color-brand-500)",
-  borderRadius: "var(--token-radius-sm)",
+  border: "2px solid var(--var-ui-color-tone-accent-foreground)",
+  borderRadius: "var(--var-ui-radius-sm)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -110,8 +110,8 @@ export const checkbox = styles.class("listwidget-checkbox", {
 });
 
 export const checkboxOn = styles.class("listwidget-checkboxOn", {
-  background: "var(--token-color-brand-500)",
-  color: "var(--token-text-inverse)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
 });
 
 export const aisle = styles.class("listwidget-aisle", {
@@ -119,7 +119,7 @@ export const aisle = styles.class("listwidget-aisle", {
   fontWeight: "700",
   letterSpacing: "0.04em",
   textTransform: "uppercase",
-  color: "var(--token-text-secondary)",
+  color: "var(--var-ui-color-text-secondary)",
   marginTop: "0.35rem",
 });
 
@@ -127,19 +127,19 @@ export const addRow = styles.class("listwidget-addRow", {
   display: "flex",
   gap: "0.35rem",
   paddingTop: "0.25rem",
-  borderTop: "1px solid var(--token-border-default)",
+  borderTop: "1px solid var(--var-ui-color-border-default)",
 });
 
 export const countdownValue = styles.class("listwidget-countdownValue", {
   fontWeight: "700",
   lineHeight: "1.1",
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
 });
 
 export const announcement = styles.class("listwidget-announcement", {
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
 });
 
 export const sizeMd = styles.class("listwidget-sizeMd", {

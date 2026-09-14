@@ -2,10 +2,10 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("newswidget-container", {
   height: "100%",
-  padding: "var(--token-widget-padding, var(--token-spacing-4))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-4))",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-color-brand-500) 10%, transparent) 0%,\n    color-mix(in srgb, var(--token-color-brand-600) 10%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   display: "flex",
   flexDirection: "column",
 });
@@ -28,7 +28,7 @@ export const title = styles.class("newswidget-title", {
   gap: "0.5rem",
   fontWeight: "600",
   fontSize: "1rem",
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const newsList = styles.class("newswidget-newsList", {
@@ -38,13 +38,14 @@ export const newsList = styles.class("newswidget-newsList", {
 });
 
 export const newsItem = styles.class("newswidget-newsItem", {
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
   transition: "all 0.2s ease",
   "&:hover": {
-    background: "color-mix(in srgb, var(--token-color-brand-500) 8%, var(--token-surface-card))",
+    background:
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, var(--var-ui-color-background-surface))",
     borderColor:
-      "color-mix(in srgb, var(--token-color-brand-500) 45%, var(--token-border-default))",
+      "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 45%, var(--var-ui-color-border-default))",
   },
 });
 
@@ -60,7 +61,7 @@ export const newsTitle = styles.class("newswidget-newsTitle", {
   flex: "1",
   transition: "color 0.2s ease",
   [`.${newsLink}:hover &`]: {
-    color: "var(--token-text-link)",
+    color: "var(--var-ui-color-link-default)",
   },
 });
 
@@ -78,7 +79,7 @@ export const newsMeta = styles.class("newswidget-newsMeta", {
 });
 
 export const source = styles.class("newswidget-source", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   fontWeight: "500",
 });
 
@@ -93,7 +94,7 @@ export const empty = styles.class("newswidget-empty", {
 });
 
 export const emptyIcon = styles.class("newswidget-emptyIcon", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   opacity: "0.5",
 });
 

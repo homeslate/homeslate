@@ -37,12 +37,12 @@
   },
   "dependencies": {
     "@homeslate/schema": "workspace:*",
-    "@mantine/core": "^8.3.10",
-    "@mantine/dates": "^8.3.10",
-    "@mantine/hooks": "^8.3.10",
+    "@internationalized/date": "^3.12.4",
     "@tabler/icons-react": "^3.35.0",
+    "@var-ui/core": "^0.1.0",
+    "@var-ui/react": "^0.1.0",
     "dayjs": "^1.11.19",
-    "typestyles": "^0.23.0",
+    "typestyles": "^0.23.1",
     "uuid": "^13.0.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.9"

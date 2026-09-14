@@ -1,4 +1,4 @@
-import { Button, ActionIcon, Text } from "@mantine/core";
+import { Button, IconButton, Text } from "@var-ui/react";
 import { IconVolume, IconVolumeOff } from "@tabler/icons-react";
 import { SNOOZE_MINUTES, type SnoozeMinutes } from "./types";
 import type { VoiceStatusReason } from "../voice/useAlarmVoiceCommands";
@@ -50,14 +50,14 @@ export function AlarmDialog({
     <div className={classes.overlay} role="alertdialog" aria-modal="true" aria-label={label}>
       <div className={classes.card}>
         <div className={classes.topRow}>
-          <ActionIcon
-            variant="subtle"
+          <IconButton
+            name={muted ? "stop" : "clock"}
+            icon={muted ? <IconVolumeOff size={22} /> : <IconVolume size={22} />}
+            appearance="ghost"
             size="lg"
-            onClick={onToggleMute}
+            onPress={onToggleMute}
             aria-label={muted ? "Unmute alarm" : "Mute alarm"}
-          >
-            {muted ? <IconVolumeOff size={22} /> : <IconVolume size={22} />}
-          </ActionIcon>
+          />
         </div>
         <div className={`${classes.pulse} ${muted ? classes.pulseSilent : ""}`} />
         <div className={classes.label}>{label || "Alarm"}</div>
@@ -65,7 +65,7 @@ export function AlarmDialog({
         {status ? (
           <Text
             size="sm"
-            c="dimmed"
+            tone="secondary"
             className={classes.voiceStatus}
             data-listening={voiceListening ? "true" : undefined}
           >
@@ -73,24 +73,24 @@ export function AlarmDialog({
           </Text>
         ) : null}
         <div className={classes.actions}>
-          <Button size="xl" onClick={onDismiss}>
+          <Button size="lg" onPress={onDismiss}>
             Dismiss
           </Button>
           {!showSnoozeChoices ? (
-            <Button size="xl" variant="light" onClick={onOpenSnooze}>
+            <Button size="lg" appearance="subtle" onPress={onOpenSnooze}>
               Snooze
             </Button>
           ) : (
             <div className={classes.snoozeRow}>
               {SNOOZE_MINUTES.map((m) => (
-                <Button key={m} size="lg" variant="light" onClick={() => onSnooze(m)}>
+                <Button key={m} size="lg" appearance="subtle" onPress={() => onSnooze(m)}>
                   {m} min
                 </Button>
               ))}
             </div>
           )}
           {showRestart && onRestart && !showSnoozeChoices ? (
-            <Button size="xl" variant="default" onClick={onRestart}>
+            <Button size="lg" appearance="outline" onPress={onRestart}>
               Restart
             </Button>
           ) : null}

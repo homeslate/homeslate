@@ -1,16 +1,15 @@
 import { useEffect, useRef } from "react";
 import {
-  Box,
   Text,
   Stack,
   Switch,
   Button,
-  Group,
-  Loader,
+  HStack,
+  Spinner,
   Alert,
-  Anchor,
-  Progress,
-} from "@mantine/core";
+  Link,
+  ProgressBar,
+} from "@var-ui/react";
 import { IconBrandGoogle, IconPhoto, IconExternalLink } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig } from "../types";
 import { useGooglePhotos } from "../hooks/useGooglePhotos";
@@ -35,101 +34,101 @@ export function GooglePhotosWidget({ widget }: WidgetProps<GooglePhotosConfig>) 
 
   if (!isAuthenticated && pickerStatus === "idle") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.signIn}>
           <IconBrandGoogle size={48} className={classes.googleIcon} />
-          <Text size="lg" fw={500} mb="xs">
+          <Text size="lg" weight="medium">
             Google Photos
           </Text>
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             Sign in using the button in the header to view your photos
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (pickerStatus === "idle") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconPhoto size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             No Photos Selected
           </Text>
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             Open widget settings to pick photos from Google Photos
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (pickerStatus === "pending") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
-          <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed" ta="center">
+          <Spinner size="lg" />
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             Waiting for you to select photos in Google Photos...
           </Text>
           {pickerUri && (
-            <Anchor href={pickerUri} target="_blank" size="sm">
+            <Link href={pickerUri} target="_blank">
               Open Google Photos picker <IconExternalLink size={12} />
-            </Anchor>
+            </Link>
           )}
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (pickerStatus === "uploading") {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
-          <Loader size="lg" color="blue" />
-          <Text size="sm" c="dimmed">
+          <Spinner size="lg" />
+          <Text size="sm" tone="secondary">
             Saving selected photos...
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
-        <Alert color="red" variant="light">
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+        <Alert variant="danger" appearance="subtle">
           <Text size="sm">{error}</Text>
         </Alert>
-      </Box>
+      </div>
     );
   }
 
   if (!currentPhoto) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconPhoto size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             No Photos
           </Text>
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             No images found in your selection
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div
         className={classes.photo}
         style={{ backgroundImage: `url(${currentPhoto.objectUrl})` }}
       />
       <div className={classes.overlay} />
-    </Box>
+    </div>
   );
 }
 
@@ -166,80 +165,70 @@ export function GooglePhotosWidgetSettings({
 
   return (
     <Stack gap="md">
-      <Box className={classes.authSection}>
+      <div className={classes.authSection}>
         {isAuthenticated ? (
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Connected to Google
           </Text>
         ) : (
           <Stack align="center" gap="sm">
-            <Text size="sm" c="dimmed">
+            <Text size="sm" tone="secondary">
               Sign in to select your photos
             </Text>
-            <Button
-              leftSection={<IconBrandGoogle size={16} />}
-              onClick={signIn}
-              loading={isLoading}
-              size="sm"
-            >
+            <Button onPress={signIn} isPending={isLoading} size="sm">
               Sign in with Google
             </Button>
           </Stack>
         )}
-      </Box>
+      </div>
 
       {isAuthenticated && (
         <>
           <Stack gap="xs">
-            <Text size="sm" fw={500}>
+            <Text size="sm" weight="medium">
               Photo Selection
             </Text>
 
             {hasSelection && (
-              <Text size="sm" c="dimmed">
+              <Text size="sm" tone="secondary">
                 {storedImages.length} photo{storedImages.length !== 1 ? "s" : ""} saved
               </Text>
             )}
 
             {pickerStatus === "pending" && pickerUri && (
               <Stack gap="xs">
-                <Text size="sm" c="dimmed">
+                <Text size="sm" tone="secondary">
                   Select photos in Google Photos, then come back here.
                 </Text>
-                <Anchor href={pickerUri} target="_blank" size="sm">
+                <Link href={pickerUri} target="_blank">
                   Open Google Photos <IconExternalLink size={12} />
-                </Anchor>
+                </Link>
               </Stack>
             )}
 
             {pickerStatus === "uploading" && uploadProgress && (
               <Stack gap="xs">
-                <Text size="sm" c="dimmed">
+                <Text size="sm" tone="secondary">
                   Saving photos… {uploadProgress.done}/{uploadProgress.total}
                 </Text>
-                <Progress
-                  value={(uploadProgress.done / uploadProgress.total) * 100}
-                  size="sm"
-                  animated
-                />
+                <ProgressBar value={(uploadProgress.done / uploadProgress.total) * 100} />
               </Stack>
             )}
 
             {error && (
-              <Alert color="red" variant="light">
+              <Alert variant="danger" appearance="subtle">
                 <Text size="sm">{error}</Text>
               </Alert>
             )}
 
-            <Group gap="xs">
+            <HStack gap="xs">
               <Button
                 size="sm"
-                leftSection={<IconPhoto size={16} />}
-                onClick={() => {
+                onPress={() => {
                   void startPicker();
                 }}
-                loading={pickerStatus === "pending" || pickerStatus === "uploading"}
-                disabled={pickerStatus === "pending" || pickerStatus === "uploading"}
+                isPending={pickerStatus === "pending" || pickerStatus === "uploading"}
+                isDisabled={pickerStatus === "pending" || pickerStatus === "uploading"}
               >
                 {hasSelection ? "Change Photos" : "Pick Photos"}
               </Button>
@@ -247,9 +236,9 @@ export function GooglePhotosWidgetSettings({
               {hasSelection && (
                 <Button
                   size="sm"
-                  variant="subtle"
-                  color="red"
-                  onClick={() => {
+                  appearance="ghost"
+                  tone="danger"
+                  onPress={() => {
                     clearSelection();
                     onConfigChange({ savedImages: [] });
                   }}
@@ -257,22 +246,22 @@ export function GooglePhotosWidgetSettings({
                   Clear
                 </Button>
               )}
-            </Group>
+            </HStack>
           </Stack>
 
-          <Group justify="space-between">
+          <HStack justify="between">
             <Text size="sm">Show Caption</Text>
             <Switch
-              checked={showCaption}
-              onChange={(e) => onConfigChange({ showCaption: e.currentTarget.checked })}
+              isSelected={showCaption}
+              onChange={(value) => onConfigChange({ showCaption: value })}
             />
-          </Group>
+          </HStack>
 
           <Stack gap="xs">
-            <Text size="sm" fw={500}>
+            <Text size="sm" weight="medium">
               Refresh Interval
             </Text>
-            <Group gap="xs" wrap="wrap">
+            <HStack gap="xs" wrap>
               {[
                 { value: 30, label: "30s" },
                 { value: 60, label: "1m" },
@@ -283,14 +272,14 @@ export function GooglePhotosWidgetSettings({
               ].map(({ value, label }) => (
                 <Button
                   key={value}
-                  size="xs"
-                  variant={refreshInterval === value ? "filled" : "default"}
-                  onClick={() => onConfigChange({ refreshInterval: value })}
+                  size="sm"
+                  appearance={refreshInterval === value ? "filled" : "outline"}
+                  onPress={() => onConfigChange({ refreshInterval: value })}
                 >
                   {label}
                 </Button>
               ))}
-            </Group>
+            </HStack>
           </Stack>
         </>
       )}

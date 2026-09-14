@@ -6,10 +6,15 @@ export {
   getPresetById,
   pickActiveDocument,
 } from "./theme/defaults";
-export { themeToVars, hexToRgb, getBackgroundStyle } from "./theme/utils";
-export { resolveDisplayThemeVars } from "./theme/resolveDisplayThemeVars";
-export { resolveTheme, ThemeResolutionError } from "./theme/resolver";
-export { mantineThemeFromResolved } from "./theme/mantineBridge";
+export {
+  createDisplayTheme,
+  createInactivePreviewThemeDispose,
+  displayThemeName,
+  getCanvasBackgroundStyle,
+  previewDisplayThemeName,
+  useCompiledDisplayTheme,
+} from "./theme/createDisplayTheme";
+export { hexToRgb, getBackgroundStyle } from "./theme/utils";
 export {
   TAILWIND_COLOR_PALETTES,
   TAILWIND_COMPACT_COLOR_SWATCHES,
@@ -17,7 +22,6 @@ export {
   TAILWIND_PALETTE_STEPS,
   tailwindPaletteToTokenGroup,
 } from "./theme/tailwindPalette";
-export type { ResolvedTheme, ThemeOverride } from "./theme/resolvedTypes";
 export type { ColorMode } from "@homeslate/schema";
 export {
   addWidget,

@@ -27,24 +27,24 @@ export const dayChip = styles.class("alarmlisteditor-dayChip", {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  border: "1px solid var(--mantine-color-default-border)",
-  background: "var(--mantine-color-default)",
-  color: "var(--mantine-color-dimmed)",
-  borderRadius: "var(--mantine-radius-sm)",
+  border: "1px solid var(--var-ui-color-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  color: "var(--var-ui-color-text-secondary)",
+  borderRadius: "var(--var-ui-radius-sm)",
   fontSize: "0.8rem",
   fontWeight: "600",
   cursor: "pointer",
   transition: "background 0.12s ease,\n    border-color 0.12s ease,\n    color 0.12s ease",
   "-webkit-tap-highlight-color": "transparent",
   "&:hover": {
-    borderColor: "var(--mantine-color-brand-5, var(--mantine-color-blue-5))",
+    borderColor: "var(--var-ui-color-tone-accent-foreground)",
   },
 });
 
 export const dayChipActive = styles.class("alarmlisteditor-dayChipActive", {
-  background: "var(--mantine-color-brand-6, var(--mantine-color-blue-6))",
-  borderColor: "var(--mantine-color-brand-6, var(--mantine-color-blue-6))",
-  color: "var(--mantine-color-white)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
+  borderColor: "var(--var-ui-color-tone-accent-foreground)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
 });
 
 export const addBtn = styles.class("alarmlisteditor-addBtn", {

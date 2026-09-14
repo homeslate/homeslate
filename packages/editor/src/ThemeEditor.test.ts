@@ -14,7 +14,7 @@ const source = readFileSync(new URL("./ThemeEditor.tsx", import.meta.url), "utf8
 describe("ThemeEditor markup", () => {
   it("does not render the dirty badge inside a paragraph", () => {
     expect(source).toMatch(
-      /<Text\s+size="sm"\s+c="dimmed"\s+component="div">[\s\S]*?<Badge\s+ml="xs"\s+size="xs"\s+color="orange"\s+variant="light">/,
+      /<Text\s+size="sm"\s+tone="secondary"\s+as="div">[\s\S]*?<Badge[\s\S]*?tone="warning"/,
     );
   });
 
@@ -90,5 +90,18 @@ describe("ThemeEditor markup", () => {
     expect(source).toContain("getInitialThemeId");
     expect(source).toContain("activeThemeDocumentId");
     expect(source).toMatch(/useState<string \| null>\(initialThemeId\)/);
+  });
+
+  it("previews a draft theme through a nested DesignSystemProvider and live replace", () => {
+    expect(source).toMatch(/from ["']@var-ui\/react["']/);
+    expect(source).toContain("DesignSystemProvider");
+    expect(source).toContain("useDebouncedValue");
+    expect(source).toContain("createDisplayTheme");
+    expect(source).toContain("previewDisplayThemeName");
+    expect(source).toMatch(/customTheme=\{previewTheme\}/);
+    expect(source).toContain("createInactivePreviewThemeDispose");
+    expect(source).not.toContain("themeDocumentToPreviewVars");
+    expect(source).not.toMatch(/applyToDocument/);
+    expect(source).not.toMatch(/document\.documentElement/);
   });
 });

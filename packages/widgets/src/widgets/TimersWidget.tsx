@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActionIcon,
-  Box,
+  IconButton,
   Button,
-  Group,
+  HStack,
   NumberInput,
-  Paper,
+  Surface,
   Select,
   Stack,
   Switch,
   Text,
-  TextInput,
-} from "@mantine/core";
+  TextField,
+} from "@var-ui/react";
 import { IconPlayerPause, IconPlayerPlay, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { AlarmToneId } from "@homeslate/schema";
@@ -20,6 +19,7 @@ import { useTimers } from "../timers/TimersContext";
 import { formatDurationMs, remainingMs } from "../timers/format";
 import type { TimerPreset, TimersWidgetConfig } from "../timers/types";
 import type { WidgetConfig, WidgetProps } from "../types";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import * as classes from "./TimersWidget.styles";
 
 export interface TimersConfig extends TimersWidgetConfig, WidgetConfig {
@@ -28,6 +28,11 @@ export interface TimersConfig extends TimersWidgetConfig, WidgetConfig {
 }
 
 const TONE_IDS = new Set<AlarmToneId>(ALARM_TONE_OPTIONS.map((tone) => tone.value));
+
+const TONE_SELECT_OPTIONS = ALARM_TONE_OPTIONS.map((tone) => ({
+  id: tone.value,
+  label: tone.label,
+}));
 
 export function coerceTimerPresets(value: unknown): TimerPreset[] {
   if (!Array.isArray(value)) return [];
@@ -73,6 +78,7 @@ export function TimersWidget({ widget, onConfigChange }: WidgetProps<TimersConfi
   const [now, setNow] = useState(() => Date.now());
   const presets = useMemo(() => coerceTimerPresets(widget.config.presets), [widget.config.presets]);
   const transparentBackground = widget.config.transparentBackground ?? false;
+  const portalContainer = useOverlayPortalContainer();
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 250);
@@ -114,17 +120,14 @@ export function TimersWidget({ widget, onConfigChange }: WidgetProps<TimersConfi
   const noTimers = runtimes.length === 0 && presets.length === 0;
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {noTimers ? (
         <Stack className={classes.empty} gap="sm">
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Add a timer to get started
           </Text>
-          <Button
-            leftSection={<IconPlus size={18} />}
-            onClick={addPreset}
-            className={classes.touchButton}
-          >
+          <Button onPress={addPreset} className={classes.touchButton}>
+            <IconPlus size={18} />
             Add timer
           </Button>
         </Stack>
@@ -132,20 +135,19 @@ export function TimersWidget({ widget, onConfigChange }: WidgetProps<TimersConfi
         <Stack gap="sm" className={classes.list}>
           {runtimes.length > 0 && (
             <Stack gap="xs">
-              <Text size="xs" fw={700} tt="uppercase" c="dimmed">
+              <Text
+                size="xs"
+                weight="semibold"
+                tone="secondary"
+                style={{ textTransform: "uppercase" }}
+              >
                 Active timers
               </Text>
               {runtimes.map((runtime) => (
-                <Paper
-                  key={runtime.id}
-                  withBorder
-                  p="sm"
-                  radius="md"
-                  className={classes.runtimeCard}
-                >
-                  <Group justify="space-between" wrap="nowrap" gap="xs">
-                    <Stack gap={0} className={classes.runtimeDetails}>
-                      <Text fw={600} truncate>
+                <Surface key={runtime.id} padding="sm" className={classes.runtimeCard}>
+                  <HStack justify="between" gap="xs">
+                    <Stack gap="none" className={classes.runtimeDetails}>
+                      <Text weight="semibold" lineClamp={1}>
                         {runtime.label || "Timer"}
                       </Text>
                       <Text
@@ -155,11 +157,19 @@ export function TimersWidget({ widget, onConfigChange }: WidgetProps<TimersConfi
                         {formatDurationMs(remainingMs(runtime, now))}
                       </Text>
                     </Stack>
-                    <Group gap="xs" wrap="nowrap">
-                      <ActionIcon
+                    <HStack gap="xs">
+                      <IconButton
+                        name={runtime.status === "running" ? "stop" : "chevronRight"}
+                        icon={
+                          runtime.status === "running" ? (
+                            <IconPlayerPause size={20} />
+                          ) : (
+                            <IconPlayerPlay size={20} />
+                          )
+                        }
                         size="lg"
-                        variant="light"
-                        onClick={() =>
+                        appearance="subtle"
+                        onPress={() =>
                           runtime.status === "running" ? pause(runtime.id) : resume(runtime.id)
                         }
                         aria-label={
@@ -168,118 +178,109 @@ export function TimersWidget({ widget, onConfigChange }: WidgetProps<TimersConfi
                             : `Resume ${runtime.label || "Timer"}`
                         }
                         className={classes.touchAction}
-                      >
-                        {runtime.status === "running" ? (
-                          <IconPlayerPause size={20} />
-                        ) : (
-                          <IconPlayerPlay size={20} />
-                        )}
-                      </ActionIcon>
-                      <ActionIcon
+                      />
+                      <IconButton
+                        name="close"
+                        icon={<IconX size={20} />}
                         size="lg"
-                        variant="light"
-                        color="red"
-                        onClick={() => cancel(runtime.id)}
+                        appearance="subtle"
+                        tone="danger"
+                        onPress={() => cancel(runtime.id)}
                         aria-label={`Cancel ${runtime.label || "Timer"}`}
                         className={classes.touchAction}
-                      >
-                        <IconX size={20} />
-                      </ActionIcon>
-                    </Group>
-                  </Group>
-                </Paper>
+                      />
+                    </HStack>
+                  </HStack>
+                </Surface>
               ))}
             </Stack>
           )}
 
           <Stack gap="xs">
-            <Group justify="space-between">
-              <Text size="xs" fw={700} tt="uppercase" c="dimmed">
+            <HStack justify="between">
+              <Text
+                size="xs"
+                weight="semibold"
+                tone="secondary"
+                style={{ textTransform: "uppercase" }}
+              >
                 Presets
               </Text>
-              <ActionIcon
-                variant="light"
+              <IconButton
+                name="check"
+                icon={<IconPlus size={20} />}
+                appearance="subtle"
                 size="lg"
-                onClick={addPreset}
+                onPress={addPreset}
                 aria-label="Add timer"
                 className={classes.touchAction}
-              >
-                <IconPlus size={20} />
-              </ActionIcon>
-            </Group>
+              />
+            </HStack>
             {presets.map((preset) => {
               const minutes = Math.floor(preset.durationSeconds / 60);
               const seconds = preset.durationSeconds % 60;
               return (
-                <Paper key={preset.id} withBorder p="sm" radius="md">
+                <Surface key={preset.id} padding="sm">
                   <Stack gap="xs">
-                    <Group gap="xs" wrap="nowrap">
-                      <TextInput
+                    <HStack gap="xs">
+                      <TextField
                         value={preset.label}
-                        onChange={(event) =>
-                          updatePreset(preset.id, { label: event.currentTarget.value })
-                        }
+                        onChange={(value) => updatePreset(preset.id, { label: value })}
                         aria-label="Timer label"
                         size="sm"
                         className={classes.labelInput}
                       />
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
+                      <IconButton
+                        name="close"
+                        icon={<IconTrash size={18} />}
+                        appearance="ghost"
+                        tone="danger"
                         size="lg"
-                        onClick={() => deletePreset(preset.id)}
+                        onPress={() => deletePreset(preset.id)}
                         aria-label={`Delete ${preset.label || "Timer"}`}
                         className={classes.touchAction}
-                      >
-                        <IconTrash size={18} />
-                      </ActionIcon>
-                    </Group>
-                    <Group gap="xs" grow>
+                      />
+                    </HStack>
+                    <HStack gap="xs">
                       <NumberInput
                         value={minutes}
                         onChange={(value) => updateDuration(preset.id, "minutes", value)}
-                        min={0}
-                        suffix=" min"
-                        hideControls
+                        minValue={0}
                         aria-label="Timer minutes"
-                        size="sm"
+                        label="min"
                       />
                       <NumberInput
                         value={seconds}
                         onChange={(value) => updateDuration(preset.id, "seconds", value)}
-                        min={0}
-                        max={59}
-                        suffix=" sec"
-                        hideControls
+                        minValue={0}
+                        maxValue={59}
                         aria-label="Timer seconds"
-                        size="sm"
+                        label="sec"
                       />
                       <Select
-                        data={ALARM_TONE_OPTIONS}
-                        value={preset.toneId}
-                        onChange={(value) =>
-                          value && updatePreset(preset.id, { toneId: value as AlarmToneId })
-                        }
-                        allowDeselect={false}
                         aria-label="Timer tone"
-                        size="sm"
+                        options={TONE_SELECT_OPTIONS}
+                        selectedKey={preset.toneId}
+                        onSelectionChange={(key) => {
+                          if (key && TONE_IDS.has(String(key) as AlarmToneId)) {
+                            updatePreset(preset.id, { toneId: String(key) as AlarmToneId });
+                          }
+                        }}
+                        portalContainer={portalContainer}
                       />
-                    </Group>
-                    <Button
-                      leftSection={<IconPlayerPlay size={18} />}
-                      onClick={() => startFromPreset(preset)}
-                      className={classes.touchButton}
-                    >
+                    </HStack>
+                    <Button onPress={() => startFromPreset(preset)} className={classes.touchButton}>
+                      <IconPlayerPlay size={18} />
                       Start
                     </Button>
                   </Stack>
-                </Paper>
+                </Surface>
               );
             })}
           </Stack>
         </Stack>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -288,18 +289,17 @@ export function TimersWidgetSettings({ widget, onConfigChange }: WidgetProps<Tim
 
   return (
     <Stack gap="md">
-      <Text size="xs" c="dimmed">
+      <Text size="xs" tone="secondary">
         Create timer presets here, then start and manage timers directly on the display.
       </Text>
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

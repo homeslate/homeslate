@@ -1,14 +1,4 @@
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Group,
-  Select,
-  Stack,
-  Switch,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { IconButton, Button, HStack, Select, Stack, Switch, Text, TextField } from "@var-ui/react";
 import { IconCheck, IconPlus, IconTrash } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { WidgetConfig, WidgetProps } from "../types";
@@ -20,6 +10,7 @@ import {
   toggleChoreCompletion,
   type ChoreCompletion,
 } from "./chores";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import * as classes from "./listWidget.styles";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -63,16 +54,16 @@ export function ChoresWidget({ widget, onConfigChange }: WidgetProps<ChoresConfi
   };
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {chores.length === 0 && members.length === 0 ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Add people under Household, then add chores.
           </Text>
         </div>
       ) : visible.length === 0 ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             {chores.length === 0 ? "Add chores in settings." : "Nothing due today."}
           </Text>
         </div>
@@ -91,7 +82,7 @@ export function ChoresWidget({ widget, onConfigChange }: WidgetProps<ChoresConfi
                 <span
                   className={classes.disc}
                   style={{
-                    background: member?.color ?? "var(--token-text-secondary)",
+                    background: member?.color ?? "var(--var-ui-color-text-secondary)",
                   }}
                   aria-hidden
                 >
@@ -106,7 +97,7 @@ export function ChoresWidget({ widget, onConfigChange }: WidgetProps<ChoresConfi
           })}
         </div>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -118,6 +109,7 @@ export function ChoresWidgetSettings({ widget, onConfigChange }: WidgetProps<Cho
     transparentBackground,
   } = widget.config;
   const { members } = useHousehold();
+  const portalContainer = useOverlayPortalContainer();
 
   const update = (id: string, patch: Partial<Chore>) => {
     onConfigChange({
@@ -127,49 +119,53 @@ export function ChoresWidgetSettings({ widget, onConfigChange }: WidgetProps<Cho
 
   return (
     <Stack gap="md">
-      <Text size="xs" c="dimmed">
+      <Text size="xs" tone="secondary">
         Household members are edited in the Household panel, not here.
       </Text>
       {chores.map((chore) => (
-        <Stack key={chore.id} gap={6}>
-          <Group gap="xs" wrap="nowrap">
-            <TextInput
+        <Stack key={chore.id} gap="xs">
+          <HStack gap="xs">
+            <TextField
               size="sm"
               value={chore.title}
-              onChange={(event) => update(chore.id, { title: event.currentTarget.value })}
+              onChange={(value) => update(chore.id, { title: value })}
               style={{ flex: 1 }}
               aria-label="Chore title"
             />
-            <ActionIcon
-              variant="subtle"
-              color="red"
+            <IconButton
+              name="close"
+              icon={<IconTrash size={14} />}
+              appearance="ghost"
+              tone="danger"
               aria-label="Remove chore"
-              onClick={() =>
+              onPress={() =>
                 onConfigChange({ chores: chores.filter((item) => item.id !== chore.id) })
               }
-            >
-              <IconTrash size={14} />
-            </ActionIcon>
-          </Group>
+            />
+          </HStack>
           <Select
-            size="xs"
             label="Assignee"
-            data={[
-              { value: "", label: "Unassigned" },
-              ...members.map((member) => ({ value: member.id, label: member.name })),
+            options={[
+              { id: "unassigned", label: "Unassigned" },
+              ...members.map((member) => ({ id: member.id, label: member.name })),
             ]}
-            value={chore.assigneeId ?? ""}
-            onChange={(value) => update(chore.id, { assigneeId: value || undefined })}
+            selectedKey={chore.assigneeId ?? "unassigned"}
+            onSelectionChange={(key) =>
+              update(chore.id, {
+                assigneeId: !key || key === "unassigned" ? undefined : String(key),
+              })
+            }
+            portalContainer={portalContainer}
           />
-          <Group gap={4}>
+          <HStack gap="xs">
             {DAY_LABELS.map((label, day) => {
               const active = chore.days.includes(day);
               return (
                 <Button
                   key={`${chore.id}-${day}`}
-                  size="compact-xs"
-                  variant={active ? "filled" : "default"}
-                  onClick={() => {
+                  size="sm"
+                  appearance={active ? "filled" : "outline"}
+                  onPress={() => {
                     const days = active
                       ? chore.days.filter((item) => item !== day)
                       : [...chore.days, day].sort((a, b) => a - b);
@@ -180,44 +176,45 @@ export function ChoresWidgetSettings({ widget, onConfigChange }: WidgetProps<Cho
                 </Button>
               );
             })}
-          </Group>
+          </HStack>
         </Stack>
       ))}
       <Button
-        variant="light"
-        size="xs"
-        leftSection={<IconPlus size={14} />}
-        onClick={() =>
+        appearance="subtle"
+        size="sm"
+        onPress={() =>
           onConfigChange({
             chores: [...chores, { id: uuidv4(), title: "New chore", days: [] }],
           })
         }
       >
+        <IconPlus size={14} />
         Add chore
       </Button>
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Show completed</Text>
         <Switch
-          checked={showCompleted}
-          onChange={(event) => onConfigChange({ showCompleted: event.currentTarget.checked })}
+          aria-label="Show completed"
+          isSelected={showCompleted}
+          onChange={(value) => onConfigChange({ showCompleted: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Only today</Text>
         <Switch
-          checked={onlyToday}
-          onChange={(event) => onConfigChange({ onlyToday: event.currentTarget.checked })}
+          aria-label="Only today"
+          isSelected={onlyToday}
+          onChange={(value) => onConfigChange({ onlyToday: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

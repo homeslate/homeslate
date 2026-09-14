@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { DEFAULT_THEME_DOCUMENTS } from "./defaults";
 import { validateThemeDocument } from "@homeslate/schema";
-import { resolveTheme } from "./resolver";
 
 describe("DEFAULT_THEME_DOCUMENTS — validation", () => {
   for (const doc of DEFAULT_THEME_DOCUMENTS) {
@@ -15,32 +14,31 @@ describe("DEFAULT_THEME_DOCUMENTS — validation", () => {
   }
 });
 
-describe("DEFAULT_THEME_DOCUMENTS — Tailwind palettes", () => {
-  it("includes Tailwind 4 OKLCH color palettes as foundation tokens", () => {
+describe("DEFAULT_THEME_DOCUMENTS — VarUI token JSON", () => {
+  it("stores flattened VarUI tokens without DTCG wrappers", () => {
     const doc = DEFAULT_THEME_DOCUMENTS[0];
-
-    expect(doc.tokens.foundation.color.red["500"]).toEqual({
-      $type: "color",
-      $value: "oklch(63.7% 0.237 25.331)",
-    });
-    expect(doc.tokens.foundation.color.sky["950"]).toEqual({
-      $type: "color",
-      $value: "oklch(29.3% 0.066 243.157)",
-    });
-    expect(doc.tokens.foundation.color.mauve["500"]).toEqual({
-      $type: "color",
-      $value: "oklch(54.2% 0.034 322.5)",
-    });
+    const json = JSON.stringify(doc);
+    expect(json).not.toContain("$type");
+    expect(json).not.toContain("$value");
+    expect(json).not.toContain("$schema");
+    expect(doc.version).toBe(2);
+    expect(doc.tokens?.fontFamily).toEqual(
+      expect.objectContaining({ body: expect.any(String), display: expect.any(String) }),
+    );
+    expect(doc.colorMode?.light).toEqual(
+      expect.objectContaining({
+        background: expect.objectContaining({ app: expect.any(String) }),
+        text: expect.objectContaining({
+          primary: expect.any(String),
+          secondary: expect.any(String),
+        }),
+      }),
+    );
+    expect(doc.extend?.widget).toEqual(
+      expect.objectContaining({
+        background: expect.any(Object),
+        radius: "12px",
+      }),
+    );
   });
-});
-
-describe("DEFAULT_THEME_DOCUMENTS — resolveTheme snapshots", () => {
-  for (const doc of DEFAULT_THEME_DOCUMENTS) {
-    for (const mode of ["dark", "light"] as const) {
-      it(`resolves: ${doc.name} (${mode})`, () => {
-        const resolved = resolveTheme(doc, mode);
-        expect(resolved).toMatchSnapshot();
-      });
-    }
-  }
 });

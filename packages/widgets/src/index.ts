@@ -38,3 +38,4 @@ export {
 } from "./widgets/googleCalendarError";
 export { displayCalendarUrl } from "./hooks/useDisplayCalendar";
 export { UnknownWidget } from "./UnknownWidget";
+export { OverlayPortalContext, useOverlayPortalContainer } from "./overlayPortal";

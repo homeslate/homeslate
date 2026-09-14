@@ -1,4 +1,4 @@
-import { Text } from "@mantine/core";
+import { Text } from "@var-ui/react";
 import { IconBrandGoogle, IconCalendarEvent } from "@tabler/icons-react";
 
 type Variant = "signIn" | "noCalendars" | "displayError";
@@ -40,14 +40,14 @@ export function GoogleCalendarEmptyState({
   return (
     <div className={className}>
       <Icon size={48} style={iconStyle} />
-      <Text size="lg" fw={500} mb={variant === "signIn" ? "xs" : 0}>
+      <Text size="lg" weight="medium">
         {title}
       </Text>
-      <Text size="sm" c="dimmed" ta="center">
+      <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
         {subtitle}
       </Text>
       {detail ? (
-        <Text size="xs" c="dimmed" ta="center" mt="xs">
+        <Text size="xs" tone="secondary" style={{ textAlign: "center", marginTop: "0.5rem" }}>
           {detail}
         </Text>
       ) : null}

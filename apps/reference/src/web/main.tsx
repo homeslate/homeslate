@@ -1,14 +1,17 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { MantineProvider } from "@mantine/core";
-import "@mantine/core/styles.css";
-import "@mantine/dates/styles.css";
+import { DesignSystemProvider, IconProvider, LayerProvider } from "@var-ui/react";
+import { defaultIcons } from "@var-ui/icons";
 import { App } from "./App";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MantineProvider defaultColorScheme="dark">
-      <App />
-    </MantineProvider>
+    <DesignSystemProvider applyToDocument defaultColorMode="dark">
+      <IconProvider icons={defaultIcons}>
+        <LayerProvider>
+          <App />
+        </LayerProvider>
+      </IconProvider>
+    </DesignSystemProvider>
   </StrictMode>,
 );

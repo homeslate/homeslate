@@ -22,7 +22,17 @@ Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the 
 
 This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. `build:web` (`vp build`) extracts TypeStyles CSS via `@typestyles/vite` from `typestyles-entry.ts`.
 
-Hosts that want zero-runtime production CSS should add `@typestyles/vite` and import `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`. Skipping the plugin still styles the UI via TypeStyles runtime injection.
+## Host contract
+
+Copy this when wrapping `@homeslate/editor` and `@homeslate/display` in another app (including hosted). One extract, one provider tree, one copy of VarUI CSS.
+
+1. Depend on `@homeslate/editor`, `@homeslate/display`, and `@homeslate/widgets` (they pull `@var-ui/react` and `@var-ui/core`).
+2. In the TypeStyles extract entry, import `@var-ui/core/styles` **before** `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`.
+3. Wrap the root tree in `DesignSystemProvider` with `applyToDocument` on full-page host routes, plus `IconProvider` (`defaultIcons` from `@var-ui/icons`) and `LayerProvider` as in the VarUI Vite example. Install VarUI peer dependencies npm warns about (`react-aria-components` and `@internationalized/date`) so the host does not rely on accidental hoisting.
+4. `Editor` and `Display` nest their own `DesignSystemProvider` with the compiled theme and controlled `colorMode`. They do not set `document.documentElement` (no `applyToDocument`).
+5. Themed-subtree overlays pass `portalContainer` so portaled UI stays on the nested theme.
+6. Do not also import `@var-ui/core/styles` from a JS entry if the extract entry already registered it.
+7. Keep `@typestyles/vite`. Skipping the plugin still styles the UI via TypeStyles runtime injection.
 
 ## Typecheck
 

@@ -2,11 +2,11 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("todowidget-container", {
   height: "100%",
-  background: "var(--token-widget-background, var(--token-surface-card))",
+  background: "var(--var-ui-widget-background, var(--var-ui-color-background-surface))",
   border:
-    "var(--token-widget-border-width, 1px) solid\n    var(--token-widget-border-color, var(--token-border-default))",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
-  padding: "var(--token-widget-padding, var(--token-spacing-3))",
+    "var(--var-ui-widget-borderWidth, 1px) solid\n    var(--var-ui-widget-borderColor, var(--var-ui-color-border-default))",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-3))",
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",
@@ -34,7 +34,7 @@ export const deleteBtn = styles.class("todowidget-deleteBtn", {});
 export const addRow = styles.class("todowidget-addRow", {
   marginTop: "0.25rem",
   paddingTop: "0.25rem",
-  borderTop: "1px solid var(--token-border-default)",
+  borderTop: "1px solid var(--var-ui-color-border-default)",
 });
 
 export const item = styles.class("todowidget-item", {
@@ -47,15 +47,15 @@ export const item = styles.class("todowidget-item", {
   cursor: "pointer",
   textAlign: "left",
   width: "100%",
-  borderRadius: "var(--token-radius-sm)",
+  borderRadius: "var(--var-ui-radius-sm)",
   transition: "background 0.12s ease",
   "&:hover": {
-    background: "rgba(var(--token-color-brand-500-rgb), 0.08)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, transparent)",
   },
 });
 
 export const itemText = styles.class("todowidget-itemText", {
-  color: "var(--token-text-primary)",
+  color: "var(--var-ui-color-text-primary)",
   flex: "1",
   wordBreak: "break-word",
   lineHeight: "1.4",
@@ -65,8 +65,8 @@ export const checkbox = styles.class("todowidget-checkbox", {
   width: "18px",
   height: "18px",
   minWidth: "18px",
-  border: "2px solid var(--token-color-brand-500)",
-  borderRadius: "var(--token-radius-sm)",
+  border: "2px solid var(--var-ui-color-tone-accent-foreground)",
+  borderRadius: "var(--var-ui-radius-sm)",
   marginTop: "1px",
   display: "flex",
   alignItems: "center",
@@ -76,8 +76,8 @@ export const checkbox = styles.class("todowidget-checkbox", {
 });
 
 export const checkboxChecked = styles.class("todowidget-checkboxChecked", {
-  background: "var(--token-color-brand-500)",
-  color: "var(--token-text-inverse)",
+  background: "var(--var-ui-color-tone-accent-foreground)",
+  color: "var(--var-ui-color-tone-accent-foregroundOnBackground)",
 });
 
 export const itemRow = styles.class("todowidget-itemRow", {

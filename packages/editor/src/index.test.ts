@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import { EDITOR_PACKAGE_NAME, Editor } from "@homeslate/editor";
 
@@ -17,6 +19,20 @@ describe("@homeslate/editor", () => {
     expect(source).not.toMatch(/apiClient/);
     expect(source).not.toMatch(/dashboardStore/);
     expect(source).not.toMatch(/react-router/);
+  });
+
+  it("nests DesignSystemProvider with the active compiled theme, not applyToDocument", () => {
+    const source = readFileSync(new URL("./Editor.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/from ["']@var-ui\/react["']/);
+    expect(source).toMatch(/DesignSystemProvider/);
+    expect(source).toMatch(/useCompiledDisplayTheme/);
+    expect(source).toMatch(/pickActiveDocument/);
+    expect(source).toMatch(/customTheme=\{theme\}/);
+    expect(source).not.toMatch(/tokenVars/);
+    expect(source).not.toMatch(/resolveDisplayThemeVars/);
+    expect(source).not.toMatch(/applyToDocument/);
+    expect(source).not.toMatch(/document\.documentElement/);
+    expect(source).toMatch(/getCanvasBackgroundStyle/);
   });
 
   it("WidgetPanel source does not import hosted auth, api, or store", () => {
@@ -53,4 +69,34 @@ describe("@homeslate/editor", () => {
     expect(source).toMatch(/previewViews/);
     expect(source).toMatch(/DocumentCanvas/);
   });
+
+  it("uses public VarUI radius and tone tokens, not invented names", () => {
+    assertNoInventedVarUiTokens(dirname(fileURLToPath(import.meta.url)));
+  });
 });
+
+function walkSourceFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walkSourceFiles(full));
+      continue;
+    }
+    if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+    if (/\.test\.(ts|tsx)$/.test(entry.name)) continue;
+    out.push(full);
+  }
+  return out;
+}
+
+function assertNoInventedVarUiTokens(root: string) {
+  const files = walkSourceFiles(root);
+  expect(files.length).toBeGreaterThan(0);
+  for (const file of files) {
+    const source = readFileSync(file, "utf8");
+    expect(source, file).not.toMatch(/--var-ui-color-danger(?!-)/);
+    expect(source, file).not.toMatch(/--var-ui-color-success(?!-)/);
+    expect(source, file).not.toMatch(/--var-ui-radius-xs/);
+  }
+}

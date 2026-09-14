@@ -5,8 +5,8 @@ export const container = styles.class("googlephotocollagewidget-container", {
   height: "100%",
   position: "relative",
   overflow: "hidden",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
-  backgroundColor: "var(--token-surface-card)",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
+  backgroundColor: "var(--var-ui-color-background-surface)",
 });
 
 export const transparent = styles.class("googlephotocollagewidget-transparent", {
@@ -17,16 +17,16 @@ export const grid = styles.class("googlephotocollagewidget-grid", {
   width: "100%",
   height: "100%",
   display: "grid",
-  gap: "var(--token-spacing-1, 4px)",
-  padding: "var(--token-spacing-1, 4px)",
+  gap: "var(--var-ui-space-1, 4px)",
+  padding: "var(--var-ui-space-1, 4px)",
   boxSizing: "border-box",
 });
 
 export const cell = styles.class("googlephotocollagewidget-cell", {
   position: "relative",
   overflow: "hidden",
-  borderRadius: "var(--token-radius-sm)",
-  backgroundColor: "var(--token-border-default)",
+  borderRadius: "var(--var-ui-radius-sm)",
+  backgroundColor: "var(--var-ui-color-border-default)",
   minHeight: "0",
 });
 
@@ -45,7 +45,7 @@ export const fading = styles.class("googlephotocollagewidget-fading", {
 export const photoSkeleton = styles.class("googlephotocollagewidget-photoSkeleton", {
   width: "100%",
   height: "100%",
-  backgroundColor: "var(--token-border-default)",
+  backgroundColor: "var(--var-ui-color-border-default)",
   opacity: "0.5",
 });
 
@@ -60,15 +60,15 @@ export const stateContainer = styles.class("googlephotocollagewidget-stateContai
 });
 
 export const emptyIcon = styles.class("googlephotocollagewidget-emptyIcon", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   marginBottom: "12px",
 });
 
 export const thumbWrapper = styles.class("googlephotocollagewidget-thumbWrapper", {
   position: "relative",
-  borderRadius: "var(--token-radius-sm)",
+  borderRadius: "var(--var-ui-radius-sm)",
   overflow: "hidden",
-  background: "var(--token-surface-card)",
+  background: "var(--var-ui-color-background-surface)",
 });
 
 export const thumb = styles.class("googlephotocollagewidget-thumb", {
@@ -81,8 +81,8 @@ export const thumbPlaceholder = styles.class("googlephotocollagewidget-thumbPlac
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "var(--token-border-default)",
-  borderRadius: "var(--token-radius-sm)",
+  background: "var(--var-ui-color-border-default)",
+  borderRadius: "var(--var-ui-radius-sm)",
 });
 
 export const thumbRemove = styles.class("googlephotocollagewidget-thumbRemove", {

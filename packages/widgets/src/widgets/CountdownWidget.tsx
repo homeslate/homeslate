@@ -1,6 +1,23 @@
 import { useEffect, useState } from "react";
-import { Box, Group, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
+import {
+  DateInput,
+  DateTimeInput,
+  HStack,
+  Select,
+  Stack,
+  Switch,
+  Text,
+  TextField,
+} from "@var-ui/react";
+import type { CalendarDate, CalendarDateTime } from "@internationalized/date";
 import type { TextAlign, WidgetConfig, WidgetProps } from "../types";
+import {
+  calendarDateFromIso,
+  dateTimeFromLocalInput,
+  isoFromCalendarDate,
+  localInputFromDateTime,
+} from "../dateValue";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { countdownRemaining, formatCountdownParts } from "./countdown";
 import * as classes from "./listWidget.styles";
 
@@ -12,6 +29,12 @@ export interface CountdownConfig extends WidgetConfig {
   transparentBackground: boolean;
   textAlign: TextAlign;
 }
+
+const ALIGN_OPTIONS = [
+  { id: "left", label: "Left" },
+  { id: "center", label: "Center" },
+  { id: "right", label: "Right" },
+];
 
 export function CountdownWidget({ widget }: WidgetProps<CountdownConfig>) {
   const {
@@ -34,19 +57,19 @@ export function CountdownWidget({ widget }: WidgetProps<CountdownConfig>) {
     label.trim() || (remaining.kind === "past" ? remaining.dateLabel : target) || "Countdown";
 
   return (
-    <Box
+    <div
       className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}
       style={{ textAlign }}
     >
       {remaining.kind === "invalid" ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Pick a date in settings.
           </Text>
         </div>
       ) : (
         <>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             {title}
           </Text>
           {remaining.kind === "past" ? (
@@ -59,13 +82,13 @@ export function CountdownWidget({ widget }: WidgetProps<CountdownConfig>) {
             </Text>
           )}
           {remaining.kind === "past" && (
-            <Text size="sm" c="dimmed">
+            <Text size="sm" tone="secondary">
               {remaining.dateLabel}
             </Text>
           )}
         </>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -78,57 +101,69 @@ export function CountdownWidgetSettings({ widget, onConfigChange }: WidgetProps<
     transparentBackground,
     textAlign = "center",
   } = widget.config;
+  const portalContainer = useOverlayPortalContainer();
 
   return (
     <Stack gap="md">
-      <TextInput
+      <TextField
         label="Label"
         value={label}
-        onChange={(event) => onConfigChange({ label: event.currentTarget.value })}
+        onChange={(value) => onConfigChange({ label: value })}
       />
-      <TextInput
-        label={allDay ? "Date" : "Date and time"}
-        type={allDay ? "date" : "datetime-local"}
-        value={target}
-        onChange={(event) => onConfigChange({ target: event.currentTarget.value })}
-      />
-      <Group justify="space-between">
+      {allDay ? (
+        <DateInput
+          label="Date"
+          value={calendarDateFromIso(target)}
+          onChange={(value) =>
+            onConfigChange({ target: isoFromCalendarDate(value as CalendarDate | null) })
+          }
+        />
+      ) : (
+        <DateTimeInput
+          label="Date and time"
+          value={dateTimeFromLocalInput(target)}
+          onChange={(value) =>
+            onConfigChange({
+              target: localInputFromDateTime(value as CalendarDateTime | null) ?? "",
+            })
+          }
+        />
+      )}
+      <HStack justify="between">
         <Text size="sm">All-day</Text>
         <Switch
-          checked={allDay}
-          onChange={(event) => onConfigChange({ allDay: event.currentTarget.checked })}
+          aria-label="All-day"
+          isSelected={allDay}
+          onChange={(value) => onConfigChange({ allDay: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Show seconds</Text>
         <Switch
-          checked={showSeconds}
-          onChange={(event) => onConfigChange({ showSeconds: event.currentTarget.checked })}
+          aria-label="Show seconds"
+          isSelected={showSeconds}
+          onChange={(value) => onConfigChange({ showSeconds: value })}
         />
-      </Group>
+      </HStack>
       <Select
         label="Text align"
-        data={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Center" },
-          { value: "right", label: "Right" },
-        ]}
-        value={textAlign}
-        onChange={(value) => {
-          if (value === "left" || value === "center" || value === "right") {
-            onConfigChange({ textAlign: value });
+        options={ALIGN_OPTIONS}
+        selectedKey={textAlign}
+        onSelectionChange={(key) => {
+          if (key === "left" || key === "center" || key === "right") {
+            onConfigChange({ textAlign: key });
           }
         }}
+        portalContainer={portalContainer}
       />
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
   );
 }

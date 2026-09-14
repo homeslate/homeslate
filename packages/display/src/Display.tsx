@@ -8,17 +8,25 @@ import {
   type CSSProperties,
   type JSX,
 } from "react";
-import { ActionIcon, Tooltip } from "@mantine/core";
+import { DesignSystemProvider, IconButton, SimpleTooltip } from "@var-ui/react";
 import * as TablerIcons from "@tabler/icons-react";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import type { ColorMode, DisplayDocument, StickyNote, ThemeDocument } from "@homeslate/schema";
-import { AlarmsProvider, HouseholdProvider, TimersProvider, useTimers } from "@homeslate/widgets";
+import {
+  AlarmsProvider,
+  HouseholdProvider,
+  OverlayPortalContext,
+  TimersProvider,
+  useTimers,
+} from "@homeslate/widgets";
 import {
   BackgroundSlideshow,
   DocumentCanvas,
+  getCanvasBackgroundStyle,
   patchViewNotes,
   patchWidgetConfig,
-  resolveDisplayThemeVars,
+  pickActiveDocument,
+  useCompiledDisplayTheme,
   type WidgetRegistryApi,
 } from "./canvas";
 import { AlarmRuntime } from "./alarms/AlarmRuntime";
@@ -54,6 +62,7 @@ export function Display(props: {
   const [localColorMode, setLocalColorMode] = useState<ColorMode | null>(null);
   const rotationClockRef = useRef(createViewRotationClock());
   const rootRef = useRef<HTMLDivElement>(null);
+  const [portalContainer, setPortalContainer] = useState<Element | undefined>(undefined);
   const [progressKey, setProgressKey] = useState(0);
   const documentRef = useRef(document);
   // eslint-disable-next-line react-hooks/refs -- keeps the ref current for edits that land in the same tick
@@ -62,16 +71,16 @@ export function Display(props: {
   const alarms = useMemo(() => coerceAlarms(document.alarms), [document.alarms]);
 
   const effectiveColorMode: ColorMode = localColorMode ?? colorMode ?? document.colorMode ?? "dark";
-
-  const tokenVars = useMemo(
-    () =>
-      resolveDisplayThemeVars(
-        document.themes as ThemeDocument[],
-        document.activeThemeId,
-        effectiveColorMode,
-      ),
-    [document.themes, document.activeThemeId, effectiveColorMode],
+  const themeDocument = useMemo(
+    () => pickActiveDocument(document.themes as ThemeDocument[], document.activeThemeId),
+    [document.themes, document.activeThemeId],
   );
+  const theme = useCompiledDisplayTheme(themeDocument);
+  const canvasBackground = getCanvasBackgroundStyle(themeDocument, effectiveColorMode);
+
+  useEffect(() => {
+    setPortalContainer(rootRef.current ?? undefined);
+  }, []);
 
   useEffect(() => {
     const visibleViews = document.views.filter((view) => !view.hidden);
@@ -264,125 +273,138 @@ export function Display(props: {
     <TimersProvider>
       <HouseholdProvider members={document.household?.members ?? []} readOnly>
         <AlarmsProvider alarms={alarms} readOnly>
-          <div ref={rootRef} className={classes.root} style={tokenVars as CSSProperties}>
-            {schemaView && <BackgroundSlideshow view={schemaView} />}
-            {document.settings.holidayEffectsEnabled && (
-              <HolidayEffects previewHolidayId={document.settings.holidayPreviewId} />
-            )}
-            {schemaView && (
-              <DocumentCanvas
-                view={schemaView}
-                isEditing={false}
-                stickyNotesEnabled={document.settings.stickyNotesEnabled}
-                widgetRegistry={widgetRegistry}
-                onAddNote={handleAddNote}
-                onRemoveNote={handleRemoveNote}
-                onUpdateNote={handleUpdateNote}
-                onWidgetConfigChange={handleWidgetConfigChange}
-              />
-            )}
-            {showDots && (
-              <>
-                <button
-                  className={classes.navPrev}
-                  onClick={() => {
-                    navigate("prev");
-                    resetRotation();
-                  }}
-                  aria-label="Previous view"
-                />
-                <button
-                  className={classes.navNext}
-                  onClick={() => {
-                    navigate("next");
-                    resetRotation();
-                  }}
-                  aria-label="Next view"
-                />
-                <div className={classes.dots}>
-                  {visibleViews.map((view) => {
-                    const IconComp = view.icon
-                      ? ((TablerIcons as Record<string, unknown>)[view.icon] as
-                          | ComponentType<{ size?: number; stroke?: number }>
-                          | undefined)
-                      : undefined;
-                    const isActive = view.id === activeViewId;
-                    const showProgress = isActive && rotationEnabled;
-                    const circumference = 2 * Math.PI * 20;
-                    return (
-                      <button
-                        key={view.id}
-                        className={`${classes.iconIndicator} ${isActive ? classes.iconIndicatorActive : ""} ${showProgress ? classes.iconIndicatorWithProgress : ""}`}
-                        onClick={() => {
-                          setActiveViewId(view.id);
-                          resetRotation();
-                        }}
-                        aria-label={`Switch to ${view.name}`}
-                      >
-                        {showProgress && (
-                          <svg
-                            key={progressKey}
-                            className={classes.progressRing}
-                            viewBox="0 0 44 44"
-                            width="44"
-                            height="44"
-                            style={
-                              {
-                                "--rotation-duration": `${rotationIntervalMs}ms`,
-                                "--circumference": circumference,
-                              } as CSSProperties
-                            }
+          <DesignSystemProvider
+            customTheme={theme}
+            colorMode={effectiveColorMode === "dark" ? "dark" : "light"}
+          >
+            <OverlayPortalContext.Provider value={portalContainer}>
+              <div ref={rootRef} className={classes.root} style={canvasBackground}>
+                {schemaView && <BackgroundSlideshow view={schemaView} />}
+                {document.settings.holidayEffectsEnabled && (
+                  <HolidayEffects previewHolidayId={document.settings.holidayPreviewId} />
+                )}
+                {schemaView && (
+                  <DocumentCanvas
+                    view={schemaView}
+                    isEditing={false}
+                    stickyNotesEnabled={document.settings.stickyNotesEnabled}
+                    widgetRegistry={widgetRegistry}
+                    portalContainer={portalContainer}
+                    onAddNote={handleAddNote}
+                    onRemoveNote={handleRemoveNote}
+                    onUpdateNote={handleUpdateNote}
+                    onWidgetConfigChange={handleWidgetConfigChange}
+                  />
+                )}
+                {showDots && (
+                  <>
+                    <button
+                      className={classes.navPrev}
+                      onClick={() => {
+                        navigate("prev");
+                        resetRotation();
+                      }}
+                      aria-label="Previous view"
+                    />
+                    <button
+                      className={classes.navNext}
+                      onClick={() => {
+                        navigate("next");
+                        resetRotation();
+                      }}
+                      aria-label="Next view"
+                    />
+                    <div className={classes.dots}>
+                      {visibleViews.map((view) => {
+                        const IconComp = view.icon
+                          ? ((TablerIcons as Record<string, unknown>)[view.icon] as
+                              | ComponentType<{ size?: number; stroke?: number }>
+                              | undefined)
+                          : undefined;
+                        const isActive = view.id === activeViewId;
+                        const showProgress = isActive && rotationEnabled;
+                        const circumference = 2 * Math.PI * 20;
+                        return (
+                          <button
+                            key={view.id}
+                            className={`${classes.iconIndicator} ${isActive ? classes.iconIndicatorActive : ""} ${showProgress ? classes.iconIndicatorWithProgress : ""}`}
+                            onClick={() => {
+                              setActiveViewId(view.id);
+                              resetRotation();
+                            }}
+                            aria-label={`Switch to ${view.name}`}
                           >
-                            <circle
-                              className={classes.progressRingFill}
-                              cx="22"
-                              cy="22"
-                              r="20"
-                              fill="none"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        )}
-                        {IconComp ? (
-                          <IconComp size={20} stroke={isActive ? 2 : 1.5} />
+                            {showProgress && (
+                              <svg
+                                key={progressKey}
+                                className={classes.progressRing}
+                                viewBox="0 0 44 44"
+                                width="44"
+                                height="44"
+                                style={
+                                  {
+                                    "--rotation-duration": `${rotationIntervalMs}ms`,
+                                    "--circumference": circumference,
+                                  } as CSSProperties
+                                }
+                              >
+                                <circle
+                                  className={classes.progressRingFill}
+                                  cx="22"
+                                  cy="22"
+                                  r="20"
+                                  fill="none"
+                                  strokeWidth="2"
+                                />
+                              </svg>
+                            )}
+                            {IconComp ? (
+                              <IconComp size={20} stroke={isActive ? 2 : 1.5} />
+                            ) : (
+                              <span className={classes.iconPlaceholder} aria-hidden="true" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+                <div className={classes.colorModeToggle}>
+                  <SimpleTooltip
+                    content={
+                      effectiveColorMode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+                    }
+                    placement="left"
+                    portalContainer={portalContainer}
+                  >
+                    <IconButton
+                      name={effectiveColorMode === "dark" ? "colorModeLight" : "colorModeDark"}
+                      icon={
+                        effectiveColorMode === "dark" ? (
+                          <IconSun size={16} />
                         ) : (
-                          <span className={classes.iconPlaceholder} aria-hidden="true" />
-                        )}
-                      </button>
-                    );
-                  })}
+                          <IconMoon size={16} />
+                        )
+                      }
+                      appearance="ghost"
+                      className={classes.colorModeBtn}
+                      onPress={() =>
+                        setLocalColorMode(effectiveColorMode === "dark" ? "light" : "dark")
+                      }
+                      aria-label="Toggle light/dark mode"
+                    />
+                  </SimpleTooltip>
                 </div>
-              </>
-            )}
-            <div className={classes.colorModeToggle}>
-              <Tooltip
-                label={
-                  effectiveColorMode === "dark" ? "Switch to light mode" : "Switch to dark mode"
-                }
-                position="left"
-                withArrow
-              >
-                <ActionIcon
-                  variant="subtle"
-                  size="md"
-                  className={classes.colorModeBtn}
-                  onClick={() =>
-                    setLocalColorMode(effectiveColorMode === "dark" ? "light" : "dark")
-                  }
-                  aria-label="Toggle light/dark mode"
-                >
-                  {effectiveColorMode === "dark" ? <IconSun size={16} /> : <IconMoon size={16} />}
-                </ActionIcon>
-              </Tooltip>
-            </div>
-            {!isPreview && (
-              <AlarmRuntimeBridge
-                alarms={alarms}
-                enabled
-                voiceEnabled={document.settings.voiceEnabled ?? false}
-              />
-            )}
-          </div>
+                {!isPreview && (
+                  <AlarmRuntimeBridge
+                    alarms={alarms}
+                    enabled
+                    voiceEnabled={document.settings.voiceEnabled ?? false}
+                  />
+                )}
+              </div>
+            </OverlayPortalContext.Provider>
+          </DesignSystemProvider>
         </AlarmsProvider>
       </HouseholdProvider>
     </TimersProvider>

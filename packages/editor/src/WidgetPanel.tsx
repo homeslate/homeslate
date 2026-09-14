@@ -1,31 +1,27 @@
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import {
-  Stack,
-  Text,
-  UnstyledButton,
-  Tooltip,
-  ActionIcon,
-  Group,
-  Button,
-  TextInput,
-  Select,
-  Slider,
-  Box,
-  Tabs,
   Alert,
-  Image,
+  Button,
+  HStack,
+  IconButton,
+  Link,
+  ProgressBar,
+  Select,
   SimpleGrid,
-  Loader,
-  Progress,
-  Anchor,
-} from "@mantine/core";
+  SimpleTooltip,
+  Slider,
+  Spinner,
+  Stack,
+  Tabs,
+  Text,
+  TextField,
+} from "@var-ui/react";
 import {
   IconChevronLeft,
   IconChevronRight,
   IconX,
   IconUpload,
   IconPhoto,
-  IconLink,
   IconBrandGoogle,
   IconPlus,
   IconTrash,
@@ -37,6 +33,7 @@ import {
   useGooglePhotos,
   loadStoredImage,
   useGoogleRuntime,
+  useOverlayPortalContainer,
 } from "@homeslate/widgets";
 import type { Photo, StoredPhoto } from "@homeslate/widgets";
 import type { DisplayDocument, View, ViewBackground, WidgetInstance } from "@homeslate/schema";
@@ -53,8 +50,6 @@ type UploadBackgroundPhoto = (payload: {
   filename?: string;
 }) => Promise<{ key: string; filename: string }>;
 
-// ── Interval presets ───────────────────────────────────────────────────────────
-
 const INTERVAL_PRESETS = [
   { value: 5, label: "5s" },
   { value: 10, label: "10s" },
@@ -63,6 +58,12 @@ const INTERVAL_PRESETS = [
   { value: 300, label: "5m" },
 ];
 const INTERVAL_PRESET_VALUES = INTERVAL_PRESETS.map((p) => p.value);
+
+const IMAGE_SIZE_OPTIONS = [
+  { id: "cover", label: "Cover (fill screen)" },
+  { id: "contain", label: "Contain (fit inside)" },
+  { id: "tile", label: "Tile (repeat)" },
+];
 
 function asPhotos(value: unknown[] | undefined): Photo[] {
   if (!value) return [];
@@ -74,8 +75,6 @@ function asPhotos(value: unknown[] | undefined): Photo[] {
     return false;
   });
 }
-
-// ── Thumbnail grid ─────────────────────────────────────────────────────────────
 
 interface BgThumbGridProps {
   photos: Photo[];
@@ -129,51 +128,46 @@ function BgThumbGrid({ photos, onRemove }: BgThumbGridProps) {
   if (photos.length === 0) return null;
 
   return (
-    <SimpleGrid cols={3} spacing={4}>
+    <SimpleGrid cols={3} spacing="xs">
       {photos.map((photo, index) => {
         const id = photo.type === "url" ? photo.url : photo.key;
         const src = thumbUrls.get(id);
         return (
-          <Box
+          <div
             key={index}
-            pos="relative"
-            style={{ borderRadius: 4, overflow: "hidden", height: 52 }}
+            style={{ position: "relative", borderRadius: 4, overflow: "hidden", height: 52 }}
           >
             {src ? (
-              <Image src={src} height={52} fit="cover" radius={0} />
+              <img src={src} alt="" style={{ width: "100%", height: 52, objectFit: "cover" }} />
             ) : (
-              <Box
+              <div
                 style={{
                   height: 52,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "var(--mantine-color-default-border)",
+                  background: "var(--var-ui-color-border-default)",
                 }}
               >
-                <Loader size="xs" />
-              </Box>
+                <Spinner size="sm" label="Loading thumbnail" />
+              </div>
             )}
-            <ActionIcon
-              pos="absolute"
-              top={2}
-              right={2}
-              size="xs"
-              color="red"
-              variant="filled"
-              style={{ opacity: 0.85 }}
-              onClick={() => onRemove(index)}
-            >
-              <IconX size={8} />
-            </ActionIcon>
-          </Box>
+            <IconButton
+              name="close"
+              icon={<IconX size={8} />}
+              aria-label="Remove photo"
+              size="sm"
+              tone="danger"
+              appearance="filled"
+              onPress={() => onRemove(index)}
+              style={{ position: "absolute", top: 2, right: 2, opacity: 0.85 }}
+            />
+          </div>
         );
       })}
     </SimpleGrid>
   );
 }
-
-// ── Background settings panel ──────────────────────────────────────────────────
 
 export function BgSettings(props: {
   view: View;
@@ -181,6 +175,7 @@ export function BgSettings(props: {
   onUploadBackgroundPhoto?: UploadBackgroundPhoto;
 }): JSX.Element {
   const { view, updateBg, onUploadBackgroundPhoto } = props;
+  const portalContainer = useOverlayPortalContainer();
   const photos: Photo[] = useMemo(
     () => asPhotos(view.background?.photos),
     [view.background?.photos],
@@ -190,17 +185,14 @@ export function BgSettings(props: {
   const image = view.background?.image;
   const imageSize = view.background?.imageSize ?? "cover";
 
-  // URL tab
   const [newUrl, setNewUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [urlUploading, setUrlUploading] = useState(false);
 
-  // Upload tab
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Google Photos tab
   const { isAuthenticated, isLoading: authLoading, signIn } = useGoogleRuntime();
   const {
     pickerStatus,
@@ -212,7 +204,6 @@ export function BgSettings(props: {
     clearSelection: clearGoogleSelection,
   } = useGooglePhotos({ savedImages: [] });
 
-  // When Google picker completes, add photos
   const savedGoogleRef = useRef(false);
   useEffect(() => {
     if (pickerStatus === "ready" && storedImages.length > 0 && !savedGoogleRef.current) {
@@ -287,290 +278,261 @@ export function BgSettings(props: {
 
   const hasBackground = photos.length > 0 || !!image;
 
+  const addPhotoTabs = [
+    {
+      id: "url",
+      label: "URL",
+      content: (
+        <Stack gap="xs">
+          <HStack gap="xs">
+            <TextField
+              aria-label="Photo URL"
+              style={{ flex: 1 }}
+              size="sm"
+              placeholder="https://example.com/photo.jpg"
+              value={newUrl}
+              onChange={setNewUrl}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void addUrlPhoto();
+              }}
+            />
+            <Button
+              size="sm"
+              appearance="outline"
+              isDisabled={!newUrl.trim()}
+              isPending={urlUploading}
+              onPress={() => void addUrlPhoto()}
+            >
+              <IconPlus size={12} />
+              Add
+            </Button>
+          </HStack>
+          {urlError && (
+            <Alert variant="danger" appearance="subtle">
+              <Text size="xs">{urlError}</Text>
+            </Alert>
+          )}
+        </Stack>
+      ),
+    },
+    ...(onUploadBackgroundPhoto
+      ? [
+          {
+            id: "upload",
+            label: "Device",
+            content: (
+              <Stack gap="xs">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={(e) => void handleFileUpload(e.currentTarget.files)}
+                />
+                <Button
+                  size="sm"
+                  appearance="outline"
+                  isPending={uploading}
+                  onPress={() => fileInputRef.current?.click()}
+                  style={{ width: "100%" }}
+                >
+                  <IconUpload size={12} />
+                  {uploading ? "Uploading…" : "Choose from Device"}
+                </Button>
+                {uploadError && (
+                  <Alert variant="danger" appearance="subtle">
+                    <Text size="xs">{uploadError}</Text>
+                  </Alert>
+                )}
+                <Text size="xs" tone="secondary">
+                  JPEG, PNG, GIF, WebP — max 20 MB
+                </Text>
+              </Stack>
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "google",
+      label: "Google",
+      content: (
+        <Stack gap="xs">
+          {!isAuthenticated ? (
+            <>
+              <Text size="xs" tone="secondary">
+                Sign in to pick from Google Photos
+              </Text>
+              <Button size="sm" isPending={authLoading} onPress={signIn}>
+                <IconBrandGoogle size={12} />
+                Sign in with Google
+              </Button>
+            </>
+          ) : (
+            <>
+              <Text size="xs" tone="secondary">
+                Connected to Google
+              </Text>
+              {pickerStatus === "pending" && pickerUri && (
+                <Stack gap="xs">
+                  <Text size="xs" tone="secondary">
+                    Select photos, then come back here.
+                  </Text>
+                  <Link href={pickerUri} target="_blank">
+                    Open Google Photos <IconExternalLink size={10} />
+                  </Link>
+                </Stack>
+              )}
+              {pickerStatus === "uploading" && uploadProgress && (
+                <Stack gap="xs">
+                  <Text size="xs" tone="secondary">
+                    Saving… {uploadProgress.done}/{uploadProgress.total}
+                  </Text>
+                  <ProgressBar value={(uploadProgress.done / uploadProgress.total) * 100} />
+                </Stack>
+              )}
+              {googleError && (
+                <Alert variant="danger" appearance="subtle">
+                  <Text size="xs">{googleError}</Text>
+                </Alert>
+              )}
+              <HStack gap="xs">
+                <Button
+                  size="sm"
+                  isPending={pickerStatus === "pending" || pickerStatus === "uploading"}
+                  isDisabled={pickerStatus === "pending" || pickerStatus === "uploading"}
+                  onPress={() => void startPicker()}
+                >
+                  <IconPhoto size={12} />
+                  Pick Photos
+                </Button>
+                {storedImages.length > 0 && (
+                  <Button size="sm" appearance="ghost" tone="danger" onPress={clearGoogleSelection}>
+                    Cancel
+                  </Button>
+                )}
+              </HStack>
+            </>
+          )}
+        </Stack>
+      ),
+    },
+  ];
+
   return (
     <Stack gap="xs">
-      {/* Thumbnail strip */}
       {photos.length > 0 && <BgThumbGrid photos={photos} onRemove={removePhoto} />}
 
-      {/* Legacy single backgroundImage preview */}
       {photos.length === 0 && image && (
-        <Box pos="relative" style={{ borderRadius: 6, overflow: "hidden", height: 64 }}>
+        <div style={{ position: "relative", borderRadius: 6, overflow: "hidden", height: 64 }}>
           <img
             src={image}
             alt="Background preview"
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
-          <ActionIcon
-            pos="absolute"
-            top={4}
-            right={4}
+          <IconButton
+            name="close"
+            icon={<IconX size={12} />}
+            aria-label="Remove background image"
             size="sm"
-            variant="filled"
-            color="red"
-            onClick={() => updateBg({ image: undefined })}
-          >
-            <IconX size={12} />
-          </ActionIcon>
-        </Box>
+            appearance="filled"
+            tone="danger"
+            onPress={() => updateBg({ image: undefined })}
+            style={{ position: "absolute", top: 4, right: 4 }}
+          />
+        </div>
       )}
 
-      {/* Add photos tabs */}
-      <Tabs defaultValue="url" variant="pills">
-        <Tabs.List grow>
-          <Tabs.Tab value="url" leftSection={<IconLink size={12} />}>
-            URL
-          </Tabs.Tab>
-          {onUploadBackgroundPhoto && (
-            <Tabs.Tab value="upload" leftSection={<IconUpload size={12} />}>
-              Device
-            </Tabs.Tab>
-          )}
-          <Tabs.Tab value="google" leftSection={<IconBrandGoogle size={12} />}>
-            Google
-          </Tabs.Tab>
-        </Tabs.List>
+      <Tabs defaultSelectedKey="url" tabs={addPhotoTabs} />
 
-        {/* URL tab */}
-        <Tabs.Panel value="url" pt="xs">
-          <Stack gap={4}>
-            <Group gap={4}>
-              <TextInput
-                style={{ flex: 1 }}
-                size="xs"
-                placeholder="https://example.com/photo.jpg"
-                value={newUrl}
-                onChange={(e) => {
-                  setNewUrl(e.currentTarget.value);
-                  setUrlError(null);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void addUrlPhoto();
-                }}
-                leftSection={<IconPhoto size={12} />}
-              />
-              <Button
-                size="xs"
-                variant="default"
-                disabled={!newUrl.trim()}
-                loading={urlUploading}
-                onClick={() => void addUrlPhoto()}
-                px={8}
-                leftSection={<IconPlus size={12} />}
-              >
-                Add
-              </Button>
-            </Group>
-            {urlError && (
-              <Alert color="red" variant="light" p="xs">
-                <Text size="xs">{urlError}</Text>
-              </Alert>
-            )}
-          </Stack>
-        </Tabs.Panel>
-
-        {/* Device upload tab */}
-        {onUploadBackgroundPhoto && (
-          <Tabs.Panel value="upload" pt="xs">
-            <Stack gap={4}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                style={{ display: "none" }}
-                onChange={(e) => void handleFileUpload(e.currentTarget.files)}
-              />
-              <Button
-                size="xs"
-                variant="default"
-                leftSection={<IconUpload size={12} />}
-                loading={uploading}
-                onClick={() => fileInputRef.current?.click()}
-                fullWidth
-              >
-                {uploading ? "Uploading…" : "Choose from Device"}
-              </Button>
-              {uploadError && (
-                <Alert color="red" variant="light" p="xs">
-                  <Text size="xs">{uploadError}</Text>
-                </Alert>
-              )}
-              <Text size="xs" c="dimmed">
-                JPEG, PNG, GIF, WebP — max 20 MB
-              </Text>
-            </Stack>
-          </Tabs.Panel>
-        )}
-
-        {/* Google Photos tab */}
-        <Tabs.Panel value="google" pt="xs">
-          <Stack gap={4}>
-            {!isAuthenticated ? (
-              <>
-                <Text size="xs" c="dimmed">
-                  Sign in to pick from Google Photos
-                </Text>
-                <Button
-                  size="xs"
-                  leftSection={<IconBrandGoogle size={12} />}
-                  loading={authLoading}
-                  onClick={signIn}
-                >
-                  Sign in with Google
-                </Button>
-              </>
-            ) : (
-              <>
-                <Text size="xs" c="dimmed">
-                  Connected to Google
-                </Text>
-                {pickerStatus === "pending" && pickerUri && (
-                  <Stack gap={2}>
-                    <Text size="xs" c="dimmed">
-                      Select photos, then come back here.
-                    </Text>
-                    <Anchor href={pickerUri} target="_blank" size="xs">
-                      Open Google Photos <IconExternalLink size={10} />
-                    </Anchor>
-                  </Stack>
-                )}
-                {pickerStatus === "uploading" && uploadProgress && (
-                  <Stack gap={2}>
-                    <Text size="xs" c="dimmed">
-                      Saving… {uploadProgress.done}/{uploadProgress.total}
-                    </Text>
-                    <Progress
-                      value={(uploadProgress.done / uploadProgress.total) * 100}
-                      size="xs"
-                      animated
-                    />
-                  </Stack>
-                )}
-                {googleError && (
-                  <Alert color="red" variant="light" p="xs">
-                    <Text size="xs">{googleError}</Text>
-                  </Alert>
-                )}
-                <Group gap={4}>
-                  <Button
-                    size="xs"
-                    leftSection={<IconPhoto size={12} />}
-                    loading={pickerStatus === "pending" || pickerStatus === "uploading"}
-                    disabled={pickerStatus === "pending" || pickerStatus === "uploading"}
-                    onClick={() => void startPicker()}
-                  >
-                    Pick Photos
-                  </Button>
-                  {storedImages.length > 0 && (
-                    <Button size="xs" variant="subtle" color="red" onClick={clearGoogleSelection}>
-                      Cancel
-                    </Button>
-                  )}
-                </Group>
-              </>
-            )}
-          </Stack>
-        </Tabs.Panel>
-      </Tabs>
-
-      {/* Interval (only when multiple photos) */}
       {photos.length > 1 && (
-        <Stack gap={4}>
-          <Text size="xs" c="dimmed">
+        <Stack gap="xs">
+          <Text size="xs" tone="secondary">
             Slideshow interval
           </Text>
-          <Group gap={4} wrap="wrap">
+          <HStack gap="xs" wrap>
             {INTERVAL_PRESETS.map(({ value, label }) => (
               <Button
                 key={value}
-                size="xs"
-                variant={interval === value ? "filled" : "default"}
-                onClick={() => updateBg({ intervalSeconds: value })}
+                size="sm"
+                appearance={interval === value ? "filled" : "outline"}
+                onPress={() => updateBg({ intervalSeconds: value })}
               >
                 {label}
               </Button>
             ))}
             <Button
-              size="xs"
-              variant={!INTERVAL_PRESET_VALUES.includes(interval) ? "filled" : "default"}
-              onClick={() => {
+              size="sm"
+              appearance={!INTERVAL_PRESET_VALUES.includes(interval) ? "filled" : "outline"}
+              onPress={() => {
                 if (INTERVAL_PRESET_VALUES.includes(interval)) updateBg({ intervalSeconds: 20 });
               }}
             >
               Custom
             </Button>
-          </Group>
+          </HStack>
           {!INTERVAL_PRESET_VALUES.includes(interval) && (
-            <TextInput
-              size="xs"
+            <TextField
+              size="sm"
+              aria-label="Custom interval seconds"
               placeholder="Seconds"
               value={String(interval)}
-              onChange={(e) => {
-                const num = parseInt(e.currentTarget.value, 10);
+              onChange={(value) => {
+                const num = parseInt(value, 10);
                 if (!isNaN(num) && num >= 3) updateBg({ intervalSeconds: num });
               }}
-              w={100}
-              rightSection={
-                <Text size="xs" c="dimmed">
-                  s
-                </Text>
-              }
+              style={{ width: 100 }}
             />
           )}
         </Stack>
       )}
 
-      {/* Fit + Overlay (only when there's a background) */}
       {hasBackground && (
         <>
           <Select
-            size="xs"
-            data={[
-              { value: "cover", label: "Cover (fill screen)" },
-              { value: "contain", label: "Contain (fit inside)" },
-              { value: "tile", label: "Tile (repeat)" },
-            ]}
-            value={imageSize}
-            onChange={(v) => v && updateBg({ imageSize: v as ViewBackground["imageSize"] })}
+            aria-label="Image size"
+            options={IMAGE_SIZE_OPTIONS}
+            selectedKey={imageSize}
+            onSelectionChange={(key) => {
+              if (key === "cover" || key === "contain" || key === "tile") {
+                updateBg({ imageSize: key });
+              }
+            }}
+            portalContainer={portalContainer}
           />
-          <Stack gap={2}>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
+          <Stack gap="xs">
+            <HStack justify="between">
+              <Text size="xs" tone="secondary">
                 Overlay darkness
               </Text>
-              <Text size="xs" c="dimmed">
+              <Text size="xs" tone="secondary">
                 {Math.round(overlay * 100)}%
               </Text>
-            </Group>
+            </HStack>
             <Slider
+              aria-label="Overlay darkness"
               value={overlay * 100}
-              onChange={(v) => updateBg({ overlayOpacity: v / 100 })}
-              min={0}
-              max={90}
+              onChange={(v) =>
+                updateBg({ overlayOpacity: (typeof v === "number" ? v : (v[0] ?? 0)) / 100 })
+              }
+              minValue={0}
+              maxValue={90}
               step={5}
-              size="xs"
+              showOutput={false}
             />
           </Stack>
         </>
       )}
 
-      {/* Remove all */}
       {photos.length > 0 && (
-        <Button
-          size="xs"
-          variant="subtle"
-          color="red"
-          leftSection={<IconTrash size={12} />}
-          onClick={() => updateBg({ photos: [] })}
-        >
+        <Button size="sm" appearance="ghost" tone="danger" onPress={() => updateBg({ photos: [] })}>
+          <IconTrash size={12} />
           Remove All
         </Button>
       )}
     </Stack>
   );
 }
-
-// ── Main panel ─────────────────────────────────────────────────────────────────
 
 export function WidgetPanel(props: {
   document: DisplayDocument;
@@ -579,6 +541,7 @@ export function WidgetPanel(props: {
   widgetRegistry?: WidgetRegistryApi;
 }): JSX.Element {
   const { document, viewId, onChange, widgetRegistry } = props;
+  const portalContainer = useOverlayPortalContainer();
   const [collapsed, setCollapsed] = useState(false);
   const documentRef = useRef(document);
   // eslint-disable-next-line react-hooks/refs -- keeps the ref current for edits that land in the same tick
@@ -619,42 +582,49 @@ export function WidgetPanel(props: {
   return (
     <aside className={`${classes.panel} ${collapsed ? classes.collapsed : ""}`}>
       <div className={classes.toggleBar}>
-        <ActionIcon
-          variant="subtle"
-          onClick={() => setCollapsed((c) => !c)}
+        <IconButton
+          name={collapsed ? "chevronRight" : "chevronLeft"}
+          icon={collapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
+          appearance="ghost"
+          onPress={() => setCollapsed((c) => !c)}
           className={classes.toggleBtn}
-          title={collapsed ? "Expand widget panel" : "Collapse widget panel"}
-        >
-          {collapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
-        </ActionIcon>
+          aria-label={collapsed ? "Expand widget panel" : "Collapse widget panel"}
+        />
       </div>
 
       {collapsed ? (
-        <Stack gap={4} align="center" pt="xs">
+        <Stack gap="xs" align="center">
           {widgetTypes.map((widget) => {
             const Icon = widget.icon;
             return (
-              <Tooltip key={widget.type} label={widget.name} position="right">
-                <UnstyledButton
+              <SimpleTooltip
+                key={widget.type}
+                content={widget.name}
+                placement="right"
+                portalContainer={portalContainer}
+              >
+                <button
+                  type="button"
                   className={classes.iconOnly}
                   onClick={() => handleAddWidget(widget.type)}
                 >
                   <Icon size={20} />
-                </UnstyledButton>
-              </Tooltip>
+                </button>
+              </SimpleTooltip>
             );
           })}
         </Stack>
       ) : (
         <div className={classes.content}>
-          <Text size="xs" fw={600} c="dimmed" className={classes.panelTitle}>
+          <Text size="xs" weight="semibold" tone="secondary" className={classes.panelTitle}>
             ADD WIDGETS
           </Text>
-          <Stack gap={2}>
+          <Stack gap="xs">
             {widgetTypes.map((widget) => {
               const Icon = widget.icon;
               return (
-                <UnstyledButton
+                <button
+                  type="button"
                   key={widget.type}
                   className={classes.widgetRow}
                   onClick={() => handleAddWidget(widget.type)}
@@ -663,14 +633,14 @@ export function WidgetPanel(props: {
                     <Icon size={18} />
                   </div>
                   <div>
-                    <Text size="sm" fw={500}>
+                    <Text size="sm" weight="medium">
                       {widget.name}
                     </Text>
-                    <Text size="xs" c="dimmed" lineClamp={1}>
+                    <Text size="xs" tone="secondary" lineClamp={1}>
                       {widget.description}
                     </Text>
                   </div>
-                </UnstyledButton>
+                </button>
               );
             })}
           </Stack>

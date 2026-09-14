@@ -1,14 +1,14 @@
 import {
-  ActionIcon,
-  Box,
-  Group,
+  Button,
+  IconButton,
+  HStack,
   NumberInput,
   Select,
   Stack,
   Switch,
   Text,
-  TextInput,
-} from "@mantine/core";
+  TextField,
+} from "@var-ui/react";
 import {
   IconBackpack,
   IconBed,
@@ -31,6 +31,7 @@ import type { ComponentType } from "react";
 import type { WidgetConfig, WidgetProps } from "../types";
 import { HoldToConfirm } from "../household/HoldToConfirm";
 import { effectiveCompletedStepIds, routineDayKey, toggleRoutineStep } from "./dailyRoutine";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import * as classes from "./listWidget.styles";
 
 export const ROUTINE_ICON_IDS = [
@@ -76,6 +77,11 @@ const ICONS: Record<RoutineIconId, ComponentType<{ size?: number }>> = {
   star: IconStar,
 };
 
+const ICON_OPTIONS = [
+  { id: "none", label: "No icon" },
+  ...ROUTINE_ICON_IDS.map((id) => ({ id, label: id })),
+];
+
 function iconOf(id: RoutineIconId | undefined) {
   return id && ICONS[id] ? ICONS[id] : null;
 }
@@ -112,35 +118,35 @@ export function DailyRoutineWidget({
   };
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {steps.length === 0 ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Add morning steps in the editor.
           </Text>
         </div>
       ) : (
         <>
           <div className={classes.header}>
-            <Text size="sm" c="dimmed">
+            <Text size="sm" tone="secondary">
               {doneCount} of {steps.length}
             </Text>
             {showReset &&
               (isEditing ? (
-                <ActionIcon
-                  variant="subtle"
+                <IconButton
+                  name="close"
+                  icon={<IconTrash size={14} />}
+                  appearance="ghost"
                   size="sm"
                   aria-label="Reset day"
-                  onClick={persistReset}
-                >
-                  <IconTrash size={14} />
-                </ActionIcon>
+                  onPress={persistReset}
+                />
               ) : (
                 <HoldToConfirm label="Reset day" onConfirm={persistReset} />
               ))}
           </div>
           {doneCount === steps.length && (
-            <Text size="sm" fw={600}>
+            <Text size="sm" weight="semibold">
               All done
             </Text>
           )}
@@ -167,7 +173,7 @@ export function DailyRoutineWidget({
           </div>
         </>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -176,6 +182,7 @@ export function DailyRoutineWidgetSettings({
   onConfigChange,
 }: WidgetProps<DailyRoutineConfig>) {
   const { steps = [], resetHour = 4, showReset = true, transparentBackground } = widget.config;
+  const portalContainer = useOverlayPortalContainer();
 
   const updateStep = (id: string, patch: Partial<RoutineStep>) => {
     onConfigChange({
@@ -195,81 +202,90 @@ export function DailyRoutineWidgetSettings({
   return (
     <Stack gap="md">
       {steps.map((step, index) => (
-        <Stack key={step.id} gap={6}>
-          <TextInput
+        <Stack key={step.id} gap="xs">
+          <TextField
             size="sm"
             value={step.label}
-            onChange={(event) => updateStep(step.id, { label: event.currentTarget.value })}
+            onChange={(value) => updateStep(step.id, { label: value })}
             aria-label={`Step ${index + 1} label`}
           />
-          <Group gap="xs">
+          <HStack gap="xs">
             <Select
-              size="xs"
-              data={ROUTINE_ICON_IDS.map((id) => ({ value: id, label: id }))}
-              value={step.icon ?? null}
-              clearable
-              onChange={(value) =>
-                updateStep(step.id, { icon: (value as RoutineIconId | null) ?? undefined })
+              aria-label={`Step ${index + 1} icon`}
+              options={ICON_OPTIONS}
+              selectedKey={step.icon ?? "none"}
+              onSelectionChange={(key) =>
+                updateStep(step.id, {
+                  icon:
+                    !key || key === "none" ? undefined : (String(key) as RoutineIconId | undefined),
+                })
               }
               style={{ flex: 1 }}
+              portalContainer={portalContainer}
             />
-            <ActionIcon variant="subtle" aria-label="Move up" onClick={() => move(index, -1)}>
-              <IconArrowUp size={14} />
-            </ActionIcon>
-            <ActionIcon variant="subtle" aria-label="Move down" onClick={() => move(index, 1)}>
-              <IconArrowDown size={14} />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              color="red"
+            <IconButton
+              name="arrowUp"
+              icon={<IconArrowUp size={14} />}
+              appearance="ghost"
+              aria-label="Move up"
+              onPress={() => move(index, -1)}
+            />
+            <IconButton
+              name="arrowDown"
+              icon={<IconArrowDown size={14} />}
+              appearance="ghost"
+              aria-label="Move down"
+              onPress={() => move(index, 1)}
+            />
+            <IconButton
+              name="close"
+              icon={<IconTrash size={14} />}
+              appearance="ghost"
+              tone="danger"
               aria-label="Remove step"
-              onClick={() => onConfigChange({ steps: steps.filter((item) => item.id !== step.id) })}
-            >
-              <IconTrash size={14} />
-            </ActionIcon>
-          </Group>
+              onPress={() => onConfigChange({ steps: steps.filter((item) => item.id !== step.id) })}
+            />
+          </HStack>
         </Stack>
       ))}
-      <ButtonLikeAdd
-        onClick={() =>
+      <Button
+        appearance="subtle"
+        size="sm"
+        aria-label="Add step"
+        onPress={() =>
           onConfigChange({
             steps: [...steps, { id: uuidv4(), label: "New step", icon: "star" }],
           })
         }
-      />
+      >
+        <IconPlus size={16} />
+        Add step
+      </Button>
       <NumberInput
         label="Reset hour"
-        min={0}
-        max={23}
+        minValue={0}
+        maxValue={23}
         value={resetHour}
         onChange={(value) => {
           if (typeof value === "number") onConfigChange({ resetHour: value });
         }}
       />
-      <Group justify="space-between">
+      <HStack justify="between">
         <Text size="sm">Show reset control</Text>
         <Switch
-          checked={showReset}
-          onChange={(event) => onConfigChange({ showReset: event.currentTarget.checked })}
+          aria-label="Show reset control"
+          isSelected={showReset}
+          onChange={(value) => onConfigChange({ showReset: value })}
         />
-      </Group>
-      <Group justify="space-between">
+      </HStack>
+      <HStack justify="between">
         <Text size="sm">Transparent background</Text>
         <Switch
-          checked={transparentBackground}
-          onChange={(event) =>
-            onConfigChange({ transparentBackground: event.currentTarget.checked })
-          }
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
         />
-      </Group>
+      </HStack>
     </Stack>
-  );
-}
-
-function ButtonLikeAdd({ onClick }: { onClick: () => void }) {
-  return (
-    <ActionIcon variant="light" onClick={onClick} aria-label="Add step">
-      <IconPlus size={16} />
-    </ActionIcon>
   );
 }

@@ -2,10 +2,10 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("sportswidget-container", {
   height: "100%",
-  padding: "var(--token-widget-padding, var(--token-spacing-4))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-4))",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-color-brand-500) 10%, transparent) 0%,\n    color-mix(in srgb, var(--token-color-brand-600) 10%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 10%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   display: "flex",
   flexDirection: "column",
 });
@@ -28,14 +28,14 @@ export const title = styles.class("sportswidget-title", {
   gap: "0.5rem",
   fontWeight: "600",
   fontSize: "1rem",
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const refreshBtn = styles.class("sportswidget-refreshBtn", {
-  color: "var(--token-text-muted)",
+  color: "var(--var-ui-color-text-secondary)",
   "&:hover": {
-    color: "var(--token-text-primary)",
-    background: "color-mix(in srgb, var(--token-color-brand-500) 12%, transparent)",
+    color: "var(--var-ui-color-text-primary)",
+    background: "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 12%, transparent)",
   },
 });
 
@@ -99,7 +99,7 @@ export const empty = styles.class("sportswidget-empty", {
 });
 
 export const emptyIcon = styles.class("sportswidget-emptyIcon", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   opacity: "0.5",
 });
 

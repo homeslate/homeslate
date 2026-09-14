@@ -1,17 +1,16 @@
 import { useState } from "react";
 import {
-  Box,
   Text,
   Stack,
-  Loader,
+  Spinner,
   Button,
-  Paper,
-  TextInput,
+  Surface,
+  TextField,
   PasswordInput,
-  Anchor,
-  Group,
-} from "@mantine/core";
-import { IconChartLine, IconRefresh, IconExternalLink } from "@tabler/icons-react";
+  Link,
+  HStack,
+} from "@var-ui/react";
+import { IconChartLine, IconRefresh } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig } from "../types";
 import { useStocks } from "../hooks/useStocks";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
@@ -38,41 +37,40 @@ function StockRow({
   const change = quote.change ?? 0;
   const changePercent = quote.changePercent ?? 0;
   const isPositive = change > 0;
-  const isNegative = change < 0;
 
   return (
-    <Group justify="space-between" wrap="nowrap" className={classes.stockRow}>
-      <Group gap="xs" wrap="nowrap">
-        <Text fw={600} size="sm">
+    <HStack justify="between" className={classes.stockRow}>
+      <HStack gap="xs">
+        <Text weight="semibold" size="sm">
           {quote.symbol}
         </Text>
-        <Text size="xs" c="dimmed">
+        <Text size="sm" tone="secondary">
           {quote.name}
         </Text>
-      </Group>
-      <Group gap="xs" wrap="nowrap">
-        <Text size="sm" fw={500}>
+      </HStack>
+      <HStack gap="xs">
+        <Text size="sm" weight="medium">
           ${quote.currentPrice?.toFixed(2) ?? "—"}
         </Text>
         {showChange && (
           <>
-            <Text size="xs" c={isPositive ? "teal" : isNegative ? "red" : "dimmed"}>
+            <Text size="sm">
               {isPositive ? "+" : ""}
               {change?.toFixed(2) ?? "—"}
             </Text>
-            <Text size="xs" c={isPositive ? "teal" : isNegative ? "red" : "dimmed"}>
+            <Text size="sm">
               ({isPositive ? "+" : ""}
               {changePercent?.toFixed(2) ?? "—"}%)
             </Text>
           </>
         )}
         {showDayRange && (
-          <Text size="xs" c="dimmed">
+          <Text size="sm" tone="secondary">
             {quote.lowPrice?.toFixed(2) ?? "—"} - {quote.highPrice?.toFixed(2) ?? "—"}
           </Text>
         )}
-      </Group>
-    </Group>
+      </HStack>
+    </HStack>
   );
 }
 
@@ -88,67 +86,67 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
   // No API key configured
   if (!apiKey) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconChartLine size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             API Key Required
           </Text>
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             Get a free API key from{" "}
-            <Anchor href="https://finnhub.io" target="_blank" rel="noopener">
+            <Link href="https://finnhub.io" target="_blank" rel="noopener">
               finnhub.io
-            </Anchor>
+            </Link>
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   // No symbols configured
   if (symbols.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconChartLine size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             No Stocks Selected
           </Text>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" tone="secondary">
             Add stock symbols in widget settings
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   // Loading state
   if (isLoading && quotes.size === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
-          <Loader size="lg" color="green" />
-          <Text size="sm" c="dimmed" mt="sm">
+          <Spinner size="lg" tone="success" />
+          <Text size="sm" tone="secondary">
             Loading stocks...
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.header}>
         <Text className={classes.title}>
           <IconChartLine size={18} />
           Stocks
         </Text>
-        <Group gap="xs">
-          {isLoading && <Loader size="xs" color="green" />}
-          <Button variant="subtle" size="xs" p={4} onClick={refresh} className={classes.refreshBtn}>
+        <HStack gap="xs">
+          {isLoading && <Spinner size="sm" tone="success" />}
+          <Button appearance="ghost" size="sm" onPress={refresh} className={classes.refreshBtn}>
             <IconRefresh size={14} />
           </Button>
-        </Group>
+        </HStack>
       </div>
       <WidgetDataStatus
         widgetId={widget.id}
@@ -165,25 +163,25 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
 
             if (error) {
               return (
-                <Paper key={symbol} className={classes.stockRow} p="xs">
-                  <Text size="sm" fw={600}>
+                <Surface key={symbol} className={classes.stockRow} padding="sm">
+                  <Text size="sm" weight="semibold">
                     {symbol}
                   </Text>
-                  <Text size="xs" c="red">
+                  <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
                     {error}
                   </Text>
-                </Paper>
+                </Surface>
               );
             }
 
             if (!quote) {
               return (
-                <Paper key={symbol} className={classes.stockRow} p="xs">
-                  <Text size="sm" fw={600}>
+                <Surface key={symbol} className={classes.stockRow} padding="sm">
+                  <Text size="sm" weight="semibold">
                     {symbol}
                   </Text>
-                  <Loader size="xs" />
-                </Paper>
+                  <Spinner size="sm" />
+                </Surface>
               );
             }
 
@@ -199,10 +197,15 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
         </Stack>
       </div>
 
-      <Text size="xs" c="dimmed" ta="center" mt="xs" className={classes.attribution}>
+      <Text
+        size="sm"
+        tone="secondary"
+        style={{ textAlign: "center" }}
+        className={classes.attribution}
+      >
         Data from Finnhub
       </Text>
-    </Box>
+    </div>
   );
 }
 
@@ -273,92 +276,87 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
       <PasswordInput
         label="Finnhub API Key"
         placeholder="Enter your API key"
-        description={
-          <>
-            Get a free key at{" "}
-            <Anchor href="https://finnhub.io" target="_blank" size="xs">
-              finnhub.io <IconExternalLink size={10} style={{ display: "inline" }} />
-            </Anchor>
-          </>
-        }
+        description="Get a free key at finnhub.io"
         value={apiKey}
-        onChange={(e) => onConfigChange({ apiKey: e.currentTarget.value })}
+        onChange={(value) => onConfigChange({ apiKey: value })}
       />
+      <Text size="xs" tone="secondary">
+        Get a free key at{" "}
+        <Link href="https://finnhub.io" target="_blank">
+          finnhub.io
+        </Link>
+      </Text>
 
       <div>
-        <Text size="sm" fw={500} mb={4}>
+        <Text size="sm" weight="medium">
           Search Stocks
         </Text>
-        <TextInput
+        <TextField
           placeholder="Search by symbol or company name..."
           value={searchQuery}
-          onChange={(e) => handleSearch(e.currentTarget.value)}
-          rightSection={isSearching ? <Loader size="xs" /> : null}
+          onChange={(value) => handleSearch(value)}
         />
+        {isSearching && <Spinner size="sm" />}
         {!apiKey && (
-          <Text size="xs" c="dimmed" mt={4}>
+          <Text size="sm" tone="secondary">
             Add API key to search all stocks
           </Text>
         )}
 
         {searchResults.length > 0 && (
-          <Paper className={classes.searchResults} mt="xs" p="xs">
-            <Stack gap={4}>
+          <Surface className={classes.searchResults} padding="sm">
+            <Stack gap="xs">
               {searchResults.map((result) => (
                 <Button
                   key={result.symbol}
-                  variant="subtle"
+                  appearance="ghost"
                   size="sm"
-                  fullWidth
-                  justify="flex-start"
-                  onClick={() => addSymbol(result.symbol)}
-                  disabled={symbols.includes(result.symbol) || symbols.length >= 10}
+
+                  onPress={() => addSymbol(result.symbol)}
+                  isDisabled={symbols.includes(result.symbol) || symbols.length >= 10}
                   className={classes.searchResult}
                 >
-                  <Text fw={600} size="sm" mr="xs">
+                  <Text weight="semibold" size="sm">
                     {result.symbol}
                   </Text>
-                  <Text size="xs" c="dimmed" style={{ flex: 1 }} lineClamp={1}>
+                  <Text size="sm" tone="secondary" style={{ flex: 1 }} lineClamp={1}>
                     {result.name}
                   </Text>
                   {symbols.includes(result.symbol) && (
-                    <Text size="xs" c="green">
+                    <Text
+                      size="sm"
+                      style={{ color: "var(--var-ui-color-tone-success-foreground)" }}
+                    >
                       Added
                     </Text>
                   )}
                 </Button>
               ))}
             </Stack>
-          </Paper>
+          </Surface>
         )}
       </div>
 
       {symbols.length > 0 && (
         <div>
-          <Text size="sm" fw={500} mb={4}>
+          <Text size="sm" weight="medium">
             Selected Stocks ({symbols.length}/10)
           </Text>
-          <Group gap="xs">
+          <HStack gap="xs">
             {symbols.map((symbol) => {
               const info = allSymbols.find((s) => s.symbol === symbol);
               return (
                 <Button
                   key={symbol}
-                  variant="light"
-                  size="xs"
-                  rightSection={
-                    <Text size="xs" ml={4}>
-                      ×
-                    </Text>
-                  }
-                  onClick={() => removeSymbol(symbol)}
-                  title={info?.name}
+                  appearance="subtle"
+                  size="sm"
+                  onPress={() => removeSymbol(symbol)}
                 >
-                  {symbol}
+                  {info?.name ?? symbol} ×
                 </Button>
               );
             })}
-          </Group>
+          </HStack>
         </div>
       )}
 

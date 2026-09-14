@@ -2,10 +2,10 @@ import { styles } from "../typeStyles";
 
 export const container = styles.class("calendarwidget-container", {
   height: "100%",
-  padding: "var(--token-widget-padding, var(--token-spacing-4))",
+  padding: "var(--var-ui-widget-padding, var(--var-ui-space-4))",
   background:
-    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--token-color-brand-500) 8%, transparent) 0%,\n    color-mix(in srgb, var(--token-color-brand-600) 8%, transparent) 100%\n  )",
-  borderRadius: "var(--token-widget-radius, var(--token-radius-md))",
+    "linear-gradient(\n    135deg,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, transparent) 0%,\n    color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 8%, transparent) 100%\n  )",
+  borderRadius: "var(--var-ui-widget-radius, var(--var-ui-radius-md))",
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
@@ -32,6 +32,18 @@ export const calendarSection = styles.class("calendarwidget-calendarSection", {
   },
 });
 
+export const calendar = styles.class("calendarwidget-calendar", {
+  color: "var(--var-ui-color-tone-accent-foreground)",
+  "& header": {
+    color: "var(--var-ui-color-tone-accent-foreground)",
+  },
+  "& [data-selected] > *": {
+    background:
+      "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-accent-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
+    color: "var(--var-ui-color-background-app)",
+  },
+});
+
 export const eventsSection = styles.class("calendarwidget-eventsSection", {
   flex: "1",
   minWidth: "0",
@@ -54,7 +66,7 @@ export const eventsTitle = styles.class("calendarwidget-eventsTitle", {
   gap: "0.5rem",
   fontSize: "0.875rem",
   fontWeight: "600",
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const eventsList = styles.class("calendarwidget-eventsList", {
@@ -63,47 +75,16 @@ export const eventsList = styles.class("calendarwidget-eventsList", {
   minHeight: "0",
 });
 
-export const calendarHeader = styles.class("calendarwidget-calendarHeader", {
-  color: "var(--token-color-brand-500)",
-});
-
-export const day = styles.class("calendarwidget-day", {
-  "&[data-selected]": {
-    background:
-      "linear-gradient(\n    135deg,\n    var(--token-color-brand-500) 0%,\n    var(--token-color-brand-600) 100%\n  )",
-  },
-});
-
-export const dayCell = styles.class("calendarwidget-dayCell", {
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  height: "100%",
-});
-
-export const eventDot = styles.class("calendarwidget-eventDot", {
-  position: "absolute",
-  bottom: "2px",
-  left: "50%",
-  transform: "translateX(-50%)",
-  width: "4px",
-  height: "4px",
-  borderRadius: "50%",
-  background: "var(--token-color-brand-500)",
-});
-
 export const eventCard = styles.class("calendarwidget-eventCard", {
   display: "flex",
   alignItems: "flex-start",
   gap: "0.75rem",
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
   transition: "transform 0.2s ease,\n    box-shadow 0.2s ease",
   "&:hover": {
     transform: "translateX(4px)",
-    boxShadow: "var(--token-widget-shadow, 0 4px 12px var(--token-glow))",
+    boxShadow: "var(--var-ui-shadow-md, 0 4px 12px var(--var-ui-color-ring-default))",
   },
 });
 
@@ -131,7 +112,7 @@ export const empty = styles.class("calendarwidget-empty", {
 });
 
 export const emptyIcon = styles.class("calendarwidget-emptyIcon", {
-  color: "var(--token-color-brand-500)",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   opacity: "0.5",
 });
 
@@ -154,8 +135,8 @@ export const error = styles.class("calendarwidget-error", {
 });
 
 export const helpBox = styles.class("calendarwidget-helpBox", {
-  background: "var(--token-surface-card)",
-  border: "1px solid var(--token-border-default)",
+  background: "var(--var-ui-color-background-surface)",
+  border: "1px solid var(--var-ui-color-border-default)",
   "& ol": {
     lineHeight: "1.8",
   },

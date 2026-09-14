@@ -1,20 +1,20 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, type Key } from "react";
 import {
-  Box,
   Text,
   Stack,
-  Loader,
-  Group,
+  Spinner,
+  HStack,
   Button,
   Select,
   Badge,
   ScrollArea,
-  MultiSelect,
+  MultiSelector,
   Divider,
   Switch,
-} from "@mantine/core";
+} from "@var-ui/react";
 import { IconTrophy, IconRefresh } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig } from "../types";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { useScores } from "../hooks/useScores";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { LEAGUES, fetchLeagueTeams, type SportsTeam } from "../services/sports";
@@ -41,34 +41,32 @@ function GameCard({ game }: { game: SportGame }) {
   const isFinal = game.status === "post";
   const isPre = game.status === "pre";
 
-  const statusColor = isLive ? "green" : isFinal ? "dimmed" : "blue";
-
   const awayWon = isFinal && away.winner;
   const homeWon = isFinal && home.winner;
 
   return (
-    <Box className={classes.gameCard}>
+    <div className={classes.gameCard}>
       {/* Status row */}
-      <Group justify="center" mb={4}>
+      <HStack justify="center">
         {isLive ? (
-          <Badge color="green" size="xs" variant="dot" className={classes.liveBadge}>
+          <Badge tone="success" className={classes.liveBadge}>
             {game.clock && game.period
               ? `${formatPeriod(game.period, game.statusDetail)} · ${game.clock}`
               : game.statusDetail}
           </Badge>
         ) : (
-          <Text size="xs" c={statusColor} className={isFinal ? classes.finalText : ""}>
+          <Text size="sm" className={isFinal ? classes.finalText : ""}>
             {game.statusDetail}
           </Text>
         )}
-      </Group>
+      </HStack>
 
       {/* Teams & scores */}
-      <Stack gap={2}>
+      <Stack gap="xs">
         <TeamRow team={away.team} score={away.score} isWinner={awayWon} showScore={!isPre} />
         <TeamRow team={home.team} score={home.score} isWinner={homeWon} showScore={!isPre} />
       </Stack>
-    </Box>
+    </div>
   );
 }
 
@@ -84,19 +82,24 @@ function TeamRow({
   showScore: boolean;
 }) {
   return (
-    <Group justify="space-between" wrap="nowrap" className={classes.teamRow}>
-      <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+    <HStack justify="between" className={classes.teamRow}>
+      <HStack gap="xs" style={{ flex: 1, minWidth: 0 }}>
         {team.logo && <img src={team.logo} alt={team.abbreviation} className={classes.teamLogo} />}
-        <Text size="sm" fw={isWinner ? 700 : 400} className={classes.teamName} truncate>
+        <Text
+          size="sm"
+          weight={isWinner ? "semibold" : undefined}
+          className={classes.teamName}
+          lineClamp={1}
+        >
           {team.shortDisplayName || team.abbreviation}
         </Text>
-      </Group>
+      </HStack>
       {showScore && (
-        <Text size="sm" fw={isWinner ? 700 : 500} className={classes.score}>
+        <Text size="sm" weight={isWinner ? "semibold" : undefined} className={classes.score}>
           {score}
         </Text>
       )}
-    </Group>
+    </HStack>
   );
 }
 
@@ -116,42 +119,40 @@ function RaceCard({ game }: { game: SportGame }) {
   const isLive = game.status === "in";
   const isFinal = game.status === "post";
 
-  const statusColor = isLive ? "green" : isFinal ? "dimmed" : "blue";
-
   return (
-    <Box className={classes.gameCard}>
-      <Group justify="center" mb={4}>
+    <div className={classes.gameCard}>
+      <HStack justify="center">
         {isLive ? (
-          <Badge color="green" size="xs" variant="dot" className={classes.liveBadge}>
+          <Badge tone="success" className={classes.liveBadge}>
             {game.statusDetail}
           </Badge>
         ) : (
-          <Text size="xs" c={statusColor} className={isFinal ? classes.finalText : ""}>
+          <Text size="sm" className={isFinal ? classes.finalText : ""}>
             {game.statusDetail}
           </Text>
         )}
-      </Group>
-      <Text size="sm" fw={600} className={classes.teamName} mb="xs">
+      </HStack>
+      <Text size="sm" weight="semibold" className={classes.teamName}>
         {game.shortName || game.name}
       </Text>
-      <Stack gap={2}>
+      <Stack gap="xs">
         {sessions.map((session: RaceSession) => (
-          <Group
+          <HStack
             key={session.type}
-            justify="space-between"
-            wrap="nowrap"
+            justify="between"
+
             className={classes.teamRow}
           >
-            <Text size="xs" c="dimmed">
+            <Text size="sm" tone="secondary">
               {session.type}
             </Text>
-            <Text size="xs" c={session.status === "post" ? "dimmed" : undefined}>
+            <Text size="sm">
               {session.statusDetail || (session.status === "pre" ? "Scheduled" : "—")}
             </Text>
-          </Group>
+          </HStack>
         ))}
       </Stack>
-    </Box>
+    </div>
   );
 }
 
@@ -212,51 +213,51 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
 
   if (!leagueId) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconTrophy size={48} className={classes.emptyIcon} />
-          <Text size="lg" fw={500}>
+          <Text size="lg" weight="medium">
             No League Selected
           </Text>
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             Choose a league in widget settings
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (isLoading && games.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.loading}>
-          <Loader size="lg" color="green" />
-          <Text size="sm" c="dimmed" mt="sm">
+          <Spinner size="lg" tone="success" />
+          <Text size="sm" tone="secondary">
             Loading scores...
           </Text>
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (error && games.length === 0) {
     return (
-      <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
           <IconTrophy size={48} className={classes.emptyIcon} />
-          <Text size="sm" c="red" ta="center">
+          <Text size="sm" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
             {error}
           </Text>
-          <Button size="xs" variant="subtle" onClick={refresh} mt="sm">
+          <Button size="sm" appearance="ghost" onPress={refresh}>
             Retry
           </Button>
         </div>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+    <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {/* Header */}
       <div className={classes.header}>
         <Text className={classes.title}>
@@ -267,12 +268,12 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
           )}
           {leagueName}
         </Text>
-        <Group gap="xs">
-          {isLoading && <Loader size="xs" color="green" />}
-          <Button variant="subtle" size="xs" p={4} onClick={refresh} className={classes.refreshBtn}>
+        <HStack gap="xs">
+          {isLoading && <Spinner size="sm" tone="success" />}
+          <Button appearance="ghost" size="sm" onPress={refresh} className={classes.refreshBtn}>
             <IconRefresh size={14} />
           </Button>
-        </Group>
+        </HStack>
       </div>
       <WidgetDataStatus
         widgetId={widget.id}
@@ -283,41 +284,46 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
 
       {games.length === 0 ? (
         <div className={classes.empty}>
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
             {leagueId === "f1" ? "No races today" : "No games scheduled today"}
           </Text>
           {!showAllGames && favoriteTeamIds.length > 0 && (
-            <Text size="xs" c="dimmed" ta="center" mt={4}>
+            <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
               (filtered to favorite teams)
             </Text>
           )}
         </div>
       ) : (
-        <ScrollArea className={classes.gamesList} scrollbarSize={4}>
+        <ScrollArea className={classes.gamesList}>
           <Stack gap="xs">
             {games.map((game, i) => (
               <div key={game.id}>
-                {i > 0 && <Divider opacity={0.3} />}
+                {i > 0 && <Divider />}
                 {game.raceSessions?.length ? <RaceCard game={game} /> : <GameCard game={game} />}
               </div>
             ))}
             <div ref={loadMoreSentinelRef} style={{ minHeight: 1 }} aria-hidden />
             {isLoadingMore && (
-              <Group justify="center" py="xs">
-                <Loader size="sm" color="dimmed" />
-                <Text size="xs" c="dimmed">
+              <HStack justify="center">
+                <Spinner size="sm" />
+                <Text size="sm" tone="secondary">
                   Loading earlier games…
                 </Text>
-              </Group>
+              </HStack>
             )}
           </Stack>
         </ScrollArea>
       )}
 
-      <Text size="xs" c="dimmed" ta="center" mt="xs" className={classes.attribution}>
+      <Text
+        size="sm"
+        tone="secondary"
+        style={{ textAlign: "center" }}
+        className={classes.attribution}
+      >
         Data from ESPN
       </Text>
-    </Box>
+    </div>
   );
 }
 
@@ -326,6 +332,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
 // ---------------------------------------------------------------------------
 
 export function SportsWidgetSettings({ widget, onConfigChange }: WidgetProps<SportsConfig>) {
+  const portalContainer = useOverlayPortalContainer();
   const { leagueId, favoriteTeamIds, showAllGames, showCurrentGames } = widget.config;
 
   const [availableTeams, setAvailableTeams] = useState<SportsTeam[]>([]);
@@ -344,17 +351,17 @@ export function SportsWidgetSettings({ widget, onConfigChange }: WidgetProps<Spo
   }, [leagueId]);
 
   const leagueOptions = LEAGUES.map((l) => ({
-    value: l.id,
+    id: l.id,
     label: l.name,
   }));
 
   const teamOptions = availableTeams.map((t) => ({
-    value: t.id,
+    id: t.id,
     label: t.displayName,
   }));
 
-  const handleLeagueChange = (value: string | null) => {
-    onConfigChange({ leagueId: value ?? "", favoriteTeamIds: [] });
+  const handleLeagueChange = (key: Key | null) => {
+    onConfigChange({ leagueId: key == null ? "" : String(key), favoriteTeamIds: [] });
   };
 
   const handleTeamsChange = (values: string[]) => {
@@ -366,42 +373,51 @@ export function SportsWidgetSettings({ widget, onConfigChange }: WidgetProps<Spo
       <Select
         label="League"
         placeholder="Select a league"
-        data={leagueOptions}
-        value={leagueId || null}
-        onChange={handleLeagueChange}
-        searchable
+        options={leagueOptions}
+        selectedKey={leagueId || null}
+        onSelectionChange={handleLeagueChange}
+        portalContainer={portalContainer}
       />
 
       {leagueId && (
-        <MultiSelect
+        <MultiSelector
           label="Favorite Teams"
           description="Only games featuring these teams will be shown (unless 'Show all games' is on)"
           placeholder={loadingTeams ? "Loading teams..." : "Search for teams…"}
-          data={teamOptions}
+          options={teamOptions}
           value={favoriteTeamIds}
           onChange={handleTeamsChange}
-          searchable
-          clearable
-          disabled={loadingTeams}
-          rightSection={loadingTeams ? <Loader size="xs" /> : undefined}
-          maxDropdownHeight={200}
-          limit={50}
+          isDisabled={loadingTeams}
         />
       )}
 
-      <Switch
-        label="Show all games"
-        description="Show every game instead of just your favorite teams"
-        checked={showAllGames}
-        onChange={(e) => onConfigChange({ showAllGames: e.currentTarget.checked })}
-      />
+      <HStack justify="between">
+        <Stack gap="none">
+          <Text size="sm">Show all games</Text>
+          <Text size="xs" tone="secondary">
+            Show every game instead of just your favorite teams
+          </Text>
+        </Stack>
+        <Switch
+          aria-label="Show all games"
+          isSelected={showAllGames}
+          onChange={(value) => onConfigChange({ showAllGames: value })}
+        />
+      </HStack>
 
-      <Switch
-        label="Show current games"
-        description="Include games that are currently in progress"
-        checked={showCurrentGames ?? true}
-        onChange={(e) => onConfigChange({ showCurrentGames: e.currentTarget.checked })}
-      />
+      <HStack justify="between">
+        <Stack gap="none">
+          <Text size="sm">Show current games</Text>
+          <Text size="xs" tone="secondary">
+            Include games that are currently in progress
+          </Text>
+        </Stack>
+        <Switch
+          aria-label="Show current games"
+          isSelected={showCurrentGames ?? true}
+          onChange={(value) => onConfigChange({ showCurrentGames: value })}
+        />
+      </HStack>
     </Stack>
   );
 }
