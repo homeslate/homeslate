@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import {
   ActionIcon,
   Alert,
@@ -20,7 +20,6 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { DesignSystemProvider, useDebouncedValue } from "@var-ui/react";
-import { disposeDesignTheme } from "@var-ui/core";
 import {
   IconAlertCircle,
   IconCheck,
@@ -42,7 +41,7 @@ import {
 import {
   BackgroundSlideshow,
   createDisplayTheme,
-  displayThemeName,
+  createInactivePreviewThemeDispose,
   DocumentCanvas,
   getCanvasBackgroundStyle,
   getPresetById,
@@ -91,14 +90,13 @@ function ThemePreviewIsland(props: {
     [debouncedDoc.id, tokensKey, colorModeKey, extendKey],
   );
 
+  const activeIdRef = useRef(activeThemeDocumentId);
+  // eslint-disable-next-line react-hooks/refs -- cleanup must read the latest active id
+  activeIdRef.current = activeThemeDocumentId;
   useEffect(() => {
     const id = debouncedDoc.id;
-    return () => {
-      if (id !== activeThemeDocumentId) {
-        disposeDesignTheme(displayThemeName(id));
-      }
-    };
-  }, [activeThemeDocumentId, debouncedDoc.id]);
+    return createInactivePreviewThemeDispose(id, activeIdRef);
+  }, [debouncedDoc.id]);
 
   const canvasBackground = getCanvasBackgroundStyle(debouncedDoc, colorMode);
 

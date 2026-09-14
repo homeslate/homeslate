@@ -35,6 +35,17 @@ export function getCanvasBackgroundStyle(doc: ThemeDocument, mode: ColorMode): C
   return backgroundImage ? { backgroundImage } : {};
 }
 
+export function createInactivePreviewThemeDispose(
+  previewId: string,
+  activeIdRef: { current: string | null | undefined },
+): () => void {
+  return () => {
+    if (previewId !== activeIdRef.current) {
+      disposeDesignTheme(displayThemeName(previewId));
+    }
+  };
+}
+
 export function useCompiledDisplayTheme(doc: ThemeDocument): DesignTheme {
   const tokensKey = JSON.stringify(doc.tokens ?? null);
   const colorModeKey = JSON.stringify(doc.colorMode ?? null);

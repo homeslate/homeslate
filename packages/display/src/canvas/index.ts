@@ -8,6 +8,7 @@ export {
 } from "./theme/defaults";
 export {
   createDisplayTheme,
+  createInactivePreviewThemeDispose,
   displayThemeName,
   getCanvasBackgroundStyle,
   useCompiledDisplayTheme,
