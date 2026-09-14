@@ -36,19 +36,10 @@ interface WidgetTokenSectionDef {
 
 type JsonRecord = Record<string, unknown>;
 
+const SKIP_TOKEN_NAMESPACES = new Set(["fontWeight", "lineHeight"]);
+
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function isEditableToken(
-  value: unknown,
-  types: readonly EditableTokenType[],
-): value is { $type: EditableTokenType; $value: string } {
-  return (
-    isRecord(value) &&
-    types.includes(value.$type as EditableTokenType) &&
-    typeof value.$value === "string"
-  );
 }
 
 function titleize(value: string): string {
@@ -62,32 +53,55 @@ function formatLabel(path: string[]): string {
   return path.map(titleize).join(" / ");
 }
 
-const KEBAB_RE = /([a-z0-9])([A-Z])/g;
+function isModeAwareLeaf(value: unknown): value is { light?: string; dark?: string } {
+  if (!isRecord(value)) return false;
+  const keys = Object.keys(value);
+  if (keys.length === 0) return false;
+  return keys.every((key) => (key === "light" || key === "dark") && typeof value[key] === "string");
+}
 
-function kebab(value: string): string {
-  return value.replace(KEBAB_RE, "$1-$2").toLowerCase();
+function looksLikeColor(value: string): boolean {
+  return (
+    /^(#|rgba?\(|hsla?\(|oklch\(|oklab\(|lab\(|lch\(|hwb\(|color-mix\(|transparent\b|currentcolor\b)/i.test(
+      value,
+    ) || /gradient\(/i.test(value)
+  );
+}
+
+function looksLikeDimension(value: string): boolean {
+  return /^-?[\d.]+(?:px|rem|em|%|vh|vw|ch|ex|fr|svh|svw)?$/i.test(value.trim());
+}
+
+function inferType(referencePath: string[], value: string): EditableTokenType | null {
+  const ns = referencePath[0];
+  if (ns === "fontFamily") return "fontFamily";
+  if (ns === "color") return "color";
+  if (ns === "space" || ns === "radius" || ns === "fontSize" || ns === "size") return "dimension";
+  if (looksLikeColor(value)) return "color";
+  if (looksLikeDimension(value)) return "dimension";
+  return null;
+}
+
+function inferTypeFromTokenPath(tokenPath: string[], value: string): EditableTokenType | null {
+  if (tokenPath[0] === "colorMode") return "color";
+  if (tokenPath[0] === "tokens" && tokenPath[1] === "fontFamily") return "fontFamily";
+  if (
+    tokenPath[0] === "tokens" &&
+    (tokenPath[1] === "space" || tokenPath[1] === "radius" || tokenPath[1] === "fontSize")
+  ) {
+    return "dimension";
+  }
+  const referencePath =
+    tokenPath[0] === "extend"
+      ? tokenPath.filter((segment) => segment !== "light" && segment !== "dark")
+      : tokenPath.slice(tokenPath[0] === "tokens" ? 1 : 0);
+  return inferType(referencePath, value);
 }
 
 export function tokenCssVarName(referencePath: string): string {
-  const path = referencePath.split(".");
-  if (path[0] === "foundation" && path[1] === "typography") {
-    if (path[2] === "family") {
-      const tail = path.slice(3);
-      return `--token-font${tail.length ? `-${tail.map(kebab).join("-")}` : ""}`;
-    }
-    if (path[2] === "lineHeight") {
-      return `--token-line-height-${path.slice(3).map(kebab).join("-")}`;
-    }
-    return `--token-font-${kebab(path[2])}-${path.slice(3).map(kebab).join("-")}`;
-  }
-  if (path[0] === "foundation" && path[1] === "zIndex") {
-    return `--token-z-${path.slice(2).map(kebab).join("-")}`;
-  }
-  const stripped =
-    path[0] === "foundation" || path[0] === "semantic" || path[0] === "components"
-      ? path.slice(1)
-      : path;
-  return `--token-${stripped.map(kebab).join("-")}`;
+  const segments = referencePath.split(".").filter(Boolean);
+  const stripped = segments[0] === "extend" ? segments.slice(1) : segments;
+  return `--var-ui-${stripped.join("-")}`;
 }
 
 const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
@@ -97,12 +111,11 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
     description:
       "Direct widget container tokens: card background, border, radius, padding, and shadow.",
     paths: [
-      "components.widget.background",
-      "components.widget.borderColor",
-      "components.widget.borderWidth",
-      "components.widget.radius",
-      "components.widget.shadow",
-      "components.widget.padding",
+      "extend.widget.background",
+      "extend.widget.borderColor",
+      "extend.widget.borderWidth",
+      "extend.widget.radius",
+      "extend.widget.padding",
     ],
   },
   {
@@ -111,14 +124,16 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
     description:
       "Shared surfaces and border colors used inside widget content, overlays, lists, and cards.",
     paths: [
-      "semantic.surface.canvas",
-      "semantic.surface.sunken",
-      "semantic.surface.card",
-      "semantic.surface.overlay",
-      "semantic.border.subtle",
-      "semantic.border.default",
-      "semantic.border.strong",
-      "semantic.focus.ring",
+      "color.background.app",
+      "color.background.surface",
+      "color.background.subtle",
+      "color.background.elevated",
+      "color.background.popover",
+      "color.border.subtle",
+      "color.border.default",
+      "color.border.strong",
+      "color.border.focus",
+      "color.ring.default",
     ],
   },
   {
@@ -127,34 +142,26 @@ const WIDGET_TOKEN_SECTION_DEFS: readonly WidgetTokenSectionDef[] = [
     description:
       "Primary widget text, muted labels, inverse text over media, links, and font families.",
     paths: [
-      "semantic.text.primary",
-      "semantic.text.muted",
-      "semantic.text.inverse",
-      "semantic.text.link",
-      "foundation.typography.family.base",
-      "foundation.typography.family.mono",
+      "color.text.primary",
+      "color.text.secondary",
+      "color.text.disabled",
+      "color.link.default",
+      "fontFamily.body",
+      "fontFamily.mono",
     ],
   },
   {
     id: "brand-status",
     title: "Brand, status, and interactions",
     description: "Accent colors, status chips, buttons, hover states, and live/current indicators.",
-    prefixes: [
-      "foundation.color.brand.",
-      "foundation.color.success.",
-      "foundation.color.warning.",
-      "foundation.color.danger.",
-      "foundation.color.info.",
-      "semantic.status.",
-      "semantic.interactive.",
-    ],
+    prefixes: ["color.tone."],
   },
   {
     id: "shape",
     title: "Shape and spacing",
     description:
       "Foundation radius and spacing tokens that widget modules use for density and layout rhythm.",
-    prefixes: ["foundation.radius.", "foundation.spacing."],
+    prefixes: ["radius.", "space."],
   },
 ] as const;
 
@@ -176,23 +183,43 @@ function walkEditableTokens(
   tokenPath: string[],
   referencePath: string[],
   types: readonly EditableTokenType[],
+  mode: ColorMode,
   out: EditableTokenEntry[],
+  typeHint?: EditableTokenType,
 ): void {
-  if (isEditableToken(node, types)) {
+  if (typeof node === "string" || typeof node === "number") {
+    const value = String(node);
+    const type = typeHint ?? inferType(referencePath, value);
+    if (!type || !types.includes(type)) return;
     out.push({
       label: formatLabel(referencePath),
       tokenPath,
       referencePath: referencePath.join("."),
-      type: node.$type,
-      value: node.$value,
+      type,
+      value,
     });
+    return;
+  }
+
+  if (isModeAwareLeaf(node)) {
+    const value = node[mode] ?? node.light ?? node.dark;
+    if (typeof value !== "string") return;
+    walkEditableTokens(value, [...tokenPath, mode], referencePath, types, mode, out, typeHint);
     return;
   }
 
   if (!isRecord(node)) return;
 
   for (const [key, value] of Object.entries(node)) {
-    walkEditableTokens(value, [...tokenPath, key], [...referencePath, key], types, out);
+    walkEditableTokens(
+      value,
+      [...tokenPath, key],
+      [...referencePath, key],
+      types,
+      mode,
+      out,
+      typeHint,
+    );
   }
 }
 
@@ -203,28 +230,26 @@ export function getEditableTokenEntries(
 ): EditableTokenEntry[] {
   const entries: EditableTokenEntry[] = [];
 
-  walkEditableTokens(
-    doc.tokens.foundation,
-    ["tokens", "foundation"],
-    ["foundation"],
-    types,
-    entries,
-  );
-  walkEditableTokens(
-    doc.tokens.modes[mode].semantic,
-    ["tokens", "modes", mode, "semantic"],
-    ["semantic"],
-    types,
-    entries,
-  );
-  if (doc.tokens.modes[mode].components) {
-    walkEditableTokens(
-      doc.tokens.modes[mode].components,
-      ["tokens", "modes", mode, "components"],
-      ["components"],
-      types,
-      entries,
-    );
+  if (isRecord(doc.tokens)) {
+    for (const [namespace, value] of Object.entries(doc.tokens)) {
+      if (SKIP_TOKEN_NAMESPACES.has(namespace)) continue;
+      const hint: EditableTokenType | undefined =
+        namespace === "fontFamily"
+          ? "fontFamily"
+          : namespace === "space" || namespace === "radius" || namespace === "fontSize"
+            ? "dimension"
+            : undefined;
+      walkEditableTokens(value, ["tokens", namespace], [namespace], types, mode, entries, hint);
+    }
+  }
+
+  const modeColors = doc.colorMode?.[mode];
+  if (modeColors) {
+    walkEditableTokens(modeColors, ["colorMode", mode], ["color"], types, mode, entries, "color");
+  }
+
+  if (doc.extend) {
+    walkEditableTokens(doc.extend, ["extend"], ["extend"], types, mode, entries);
   }
 
   return entries;
@@ -285,22 +310,29 @@ export function setTokenValue(
 ): ThemeDocument {
   const next = structuredClone(doc) as ThemeDocument;
   let cursor: unknown = next;
+  let parent: JsonRecord | undefined;
+  let last: string | undefined;
 
   for (const segment of tokenPath) {
     if (!isRecord(cursor)) {
       throw new Error(`Invalid theme token path: ${tokenPath.join(".")}`);
     }
+    parent = cursor;
+    last = segment;
     cursor = cursor[segment];
   }
 
-  if (!isRecord(cursor) || typeof cursor.$type !== "string" || !("$value" in cursor)) {
+  if ((typeof cursor !== "string" && typeof cursor !== "number") || !parent || last === undefined) {
     throw new Error(`Theme token path is not an editable token: ${tokenPath.join(".")}`);
   }
-  if (expectedType && cursor.$type !== expectedType) {
-    throw new Error(`Theme token path is not a ${expectedType} token: ${tokenPath.join(".")}`);
+  if (expectedType) {
+    const inferred = inferTypeFromTokenPath(tokenPath, String(cursor));
+    if (inferred !== expectedType) {
+      throw new Error(`Theme token path is not a ${expectedType} token: ${tokenPath.join(".")}`);
+    }
   }
 
-  cursor.$value = value;
+  parent[last] = value;
   return next;
 }
 

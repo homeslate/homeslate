@@ -177,7 +177,7 @@ function TokenControl({ entry, references, onChange }: TokenControlProps) {
             <Text size="sm" fw={600} className={classes.tokenLabel}>
               {entry.label}
             </Text>
-            {entry.referencePath.startsWith("components.widget.") && (
+            {entry.referencePath.startsWith("extend.widget.") && (
               <Badge size="xs" variant="light" color="indigo">
                 Widget-related
               </Badge>

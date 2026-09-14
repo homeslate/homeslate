@@ -13,24 +13,24 @@ import {
 
 describe("theme editor model", () => {
   it("lists editable foundation and mode color tokens", () => {
-    const doc = getPresetById("theme_cosmos");
+    const doc = getPresetById("theme-cosmos");
     const entries = getColorTokenEntries(doc, "dark");
 
     expect(entries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Foundation / Color / Brand / 500",
-          referencePath: "foundation.color.brand.500",
+          label: "Color / Tone / Accent / Foreground",
+          referencePath: "color.tone.accent.foreground",
           value: "#6366f1",
         }),
         expect.objectContaining({
-          label: "Semantic / Surface / Canvas",
-          referencePath: "semantic.surface.canvas",
+          label: "Color / Background / App",
+          referencePath: "color.background.app",
           value: expect.stringContaining("#0a0a0f"),
         }),
         expect.objectContaining({
-          label: "Components / Widget / Background",
-          referencePath: "components.widget.background",
+          label: "Extend / Widget / Background",
+          referencePath: "extend.widget.background",
           value: expect.stringContaining("rgba("),
         }),
       ]),
@@ -38,70 +38,62 @@ describe("theme editor model", () => {
   });
 
   it("builds reference options for foundation and the selected mode", () => {
-    const doc = getPresetById("theme_cosmos");
-    const options = buildColorReferenceOptions(doc, "dark", "semantic.text.link");
+    const doc = getPresetById("theme-cosmos");
+    const options = buildColorReferenceOptions(doc, "dark", "color.link.default");
 
     expect(options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Foundation / Color / Brand / 500 (#6366f1)",
-          value: "{foundation.color.brand.500}",
+          label: "Color / Tone / Accent / Foreground (#6366f1)",
+          value: "{color.tone.accent.foreground}",
         }),
         expect.objectContaining({
-          label: "Semantic / Surface / Card (rgba(30, 30, 40, 0.6))",
-          value: "{semantic.surface.card}",
-        }),
-        expect.objectContaining({
-          label: "Foundation / Color / Red / 500 (oklch(63.7% 0.237 25.331))",
-          value: "{foundation.color.red.500}",
+          label: "Color / Background / Surface (rgba(30, 30, 40, 0.6))",
+          value: "{color.background.surface}",
         }),
       ]),
     );
     expect(options).not.toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ value: "{semantic.text.link}" }),
-        expect.objectContaining({ value: "{modes.light.semantic.surface.card}" }),
+        expect.objectContaining({ value: "{color.link.default}" }),
+        expect.objectContaining({ value: "{colorMode.light.background.surface}" }),
       ]),
     );
   });
 
   it("updates a color token value without mutating the original document", () => {
-    const doc = getPresetById("theme_cosmos");
-    const updated = setColorTokenValue(
-      doc,
-      ["tokens", "modes", "dark", "semantic", "text", "link"],
-      "#ff00aa",
-    );
+    const doc = getPresetById("theme-cosmos");
+    const updated = setColorTokenValue(doc, ["colorMode", "dark", "link", "default"], "#ff00aa");
 
-    expect(updated.tokens.modes.dark.semantic.text.link.$value).toBe("#ff00aa");
-    expect(doc.tokens.modes.dark.semantic.text.link.$value).toBe("{foundation.color.brand.500}");
-    expect(updated.tokens.modes.light.semantic.text.link.$value).toBe(
-      "{foundation.color.brand.500}",
+    expect((updated.colorMode?.dark as { link: { default: string } }).link.default).toBe("#ff00aa");
+    expect((doc.colorMode?.dark as { link: { default: string } }).link.default).toBe("#6366f1");
+    expect((updated.colorMode?.light as { link: { default: string } }).link.default).toBe(
+      "#6366f1",
     );
   });
 
   it("lists editable font family and dimension tokens", () => {
-    const doc = getPresetById("theme_cosmos");
+    const doc = getPresetById("theme-cosmos");
     const entries = getEditableTokenEntries(doc, "dark", ["fontFamily", "dimension"]);
 
     expect(entries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           type: "fontFamily",
-          label: "Foundation / Typography / Family / Base",
-          referencePath: "foundation.typography.family.base",
+          label: "Font Family / Body",
+          referencePath: "fontFamily.body",
           value: "'Outfit', 'Inter', sans-serif",
         }),
         expect.objectContaining({
           type: "dimension",
-          label: "Foundation / Radius / Md",
-          referencePath: "foundation.radius.md",
+          label: "Radius / Md",
+          referencePath: "radius.md",
           value: "10px",
         }),
         expect.objectContaining({
           type: "dimension",
-          label: "Components / Widget / Border Width",
-          referencePath: "components.widget.borderWidth",
+          label: "Extend / Widget / Border Width",
+          referencePath: "extend.widget.borderWidth",
           value: "1px",
         }),
       ]),
@@ -109,63 +101,52 @@ describe("theme editor model", () => {
   });
 
   it("builds type-aware reference options", () => {
-    const doc = getPresetById("theme_cosmos");
+    const doc = getPresetById("theme-cosmos");
     const dimensionOptions = buildReferenceOptions(
       doc,
       "dark",
       "dimension",
-      "components.widget.radius",
+      "extend.widget.radius",
     );
     const fontOptions = buildReferenceOptions(doc, "dark", "fontFamily");
 
     expect(dimensionOptions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: "Foundation / Radius / Md (10px)",
-          value: "{foundation.radius.md}",
+          label: "Radius / Md (10px)",
+          value: "{radius.md}",
         }),
       ]),
     );
     expect(dimensionOptions).not.toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ value: "{components.widget.radius}" }),
-        expect.objectContaining({ value: "{foundation.typography.family.base}" }),
+        expect.objectContaining({ value: "{extend.widget.radius}" }),
+        expect.objectContaining({ value: "{fontFamily.body}" }),
       ]),
     );
     expect(fontOptions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ value: "{foundation.typography.family.base}" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ value: "{fontFamily.body}" })]),
     );
   });
 
   it("updates non-color token values without mutating the original document", () => {
-    const doc = getPresetById("theme_cosmos");
+    const doc = getPresetById("theme-cosmos");
     const withFont = setTokenValue(
       doc,
-      ["tokens", "foundation", "typography", "family", "base"],
+      ["tokens", "fontFamily", "body"],
       "'Aptos', sans-serif",
       "fontFamily",
     );
-    const withRadius = setTokenValue(
-      doc,
-      ["tokens", "modes", "dark", "components", "widget", "radius"],
-      "{foundation.radius.lg}",
-      "dimension",
-    );
+    const withRadius = setTokenValue(doc, ["extend", "widget", "radius"], "18px", "dimension");
 
-    expect(withFont.tokens.foundation.typography.family.base.$value).toBe("'Aptos', sans-serif");
-    expect(doc.tokens.foundation.typography.family.base.$value).toBe(
-      "'Outfit', 'Inter', sans-serif",
-    );
-    expect(withRadius.tokens.modes.dark.components?.widget?.radius?.$value).toBe(
-      "{foundation.radius.lg}",
-    );
-    expect(doc.tokens.modes.dark.components?.widget?.radius?.$value).toBe("12px");
+    expect((withFont.tokens?.fontFamily as { body: string }).body).toBe("'Aptos', sans-serif");
+    expect((doc.tokens?.fontFamily as { body: string }).body).toBe("'Outfit', 'Inter', sans-serif");
+    expect((withRadius.extend?.widget as { radius: string }).radius).toBe("18px");
+    expect((doc.extend?.widget as { radius: string }).radius).toBe("12px");
   });
 
   it("groups widget-impacting tokens by editable token family", () => {
-    const doc = getPresetById("theme_cosmos");
+    const doc = getPresetById("theme-cosmos");
     const sections = getWidgetTokenSections(getEditableTokenEntries(doc, "dark"));
 
     expect(sections.map((section) => section.id)).toEqual([
@@ -179,43 +160,43 @@ describe("theme editor model", () => {
       expect.objectContaining({
         title: "Widget component",
         entries: expect.arrayContaining([
-          expect.objectContaining({ referencePath: "components.widget.background" }),
-          expect.objectContaining({ referencePath: "components.widget.borderColor" }),
-          expect.objectContaining({ referencePath: "components.widget.padding" }),
+          expect.objectContaining({ referencePath: "extend.widget.background" }),
+          expect.objectContaining({ referencePath: "extend.widget.borderColor" }),
+          expect.objectContaining({ referencePath: "extend.widget.padding" }),
         ]),
       }),
     );
     expect(sections.find((section) => section.id === "text")?.entries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ referencePath: "semantic.text.primary" }),
-        expect.objectContaining({ referencePath: "semantic.text.muted" }),
+        expect.objectContaining({ referencePath: "color.text.primary" }),
+        expect.objectContaining({ referencePath: "color.text.secondary" }),
       ]),
     );
   });
 
   it("filters widget token sections by label, path, and CSS variable", () => {
-    const doc = getPresetById("theme_cosmos");
+    const doc = getPresetById("theme-cosmos");
     const entries = getEditableTokenEntries(doc, "dark");
 
-    expect(getWidgetTokenSections(entries, "muted")).toEqual([
+    expect(getWidgetTokenSections(entries, "text.secondary")).toEqual([
       expect.objectContaining({
         id: "text",
-        entries: [expect.objectContaining({ referencePath: "semantic.text.muted" })],
+        entries: [expect.objectContaining({ referencePath: "color.text.secondary" })],
       }),
     ]);
 
-    expect(getWidgetTokenSections(entries, "--token-widget-border-color")).toEqual([
+    expect(getWidgetTokenSections(entries, "--var-ui-widget-borderColor")).toEqual([
       expect.objectContaining({
         id: "widget",
-        entries: [expect.objectContaining({ referencePath: "components.widget.borderColor" })],
+        entries: [expect.objectContaining({ referencePath: "extend.widget.borderColor" })],
       }),
     ]);
   });
 
   it("formats generated CSS variable names for token paths", () => {
-    expect(tokenCssVarName("components.widget.borderColor")).toBe("--token-widget-border-color");
-    expect(tokenCssVarName("semantic.text.primary")).toBe("--token-text-primary");
-    expect(tokenCssVarName("foundation.typography.family.base")).toBe("--token-font-base");
-    expect(tokenCssVarName("foundation.radius.md")).toBe("--token-radius-md");
+    expect(tokenCssVarName("extend.widget.borderColor")).toBe("--var-ui-widget-borderColor");
+    expect(tokenCssVarName("color.text.primary")).toBe("--var-ui-color-text-primary");
+    expect(tokenCssVarName("fontFamily.body")).toBe("--var-ui-fontFamily-body");
+    expect(tokenCssVarName("radius.md")).toBe("--var-ui-radius-md");
   });
 });
