@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react";
 const workspaceSrc = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
 
 export default defineConfig({
+  staged: {
+    "*": "vp check --fix",
+  },
   plugins: lazyPlugins(() => [react()]),
   resolve: {
     alias: {

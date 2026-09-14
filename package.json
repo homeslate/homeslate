@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "vp config",
     "build": "pnpm -r --if-present run build",
     "test": "vp test",
     "test:run": "vp test run",
