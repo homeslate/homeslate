@@ -109,11 +109,11 @@ export function useCommute(routes: CommuteRouteQuery[], units: CommuteUnits): Us
       setConsecutiveFailures((value) => value + 1);
     }
     setIsLoading(false);
-  }, [routeKey, units]);
+  }, [units]);
 
   useEffect(() => {
     void fetchData();
-  }, [fetchData]);
+  }, [fetchData, routeKey]);
 
   useEffect(() => {
     if (routes.length === 0) return;
