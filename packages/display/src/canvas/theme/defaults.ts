@@ -11,6 +11,7 @@ interface ThemeSeed {
 
 interface ModeSeed {
   canvas: string;
+  canvasImage?: string;
   card: string;
   border: string;
   textPrimary: string;
@@ -75,7 +76,8 @@ const SEEDS: ThemeSeed[] = [
     brand: { "500": "#6366f1", "600": "#a855f7" },
     fontFamily: "'Outfit', 'Inter', sans-serif",
     dark: {
-      canvas: [
+      canvas: "#0a0a0f",
+      canvasImage: [
         "radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%)",
         "radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%)",
         "radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)",
@@ -88,7 +90,8 @@ const SEEDS: ThemeSeed[] = [
       glow: "rgba(99, 102, 241, 0.3)",
     },
     light: {
-      canvas: [
+      canvas: "#f5f4ff",
+      canvasImage: [
         "radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)",
         "radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 50%)",
         "#f5f4ff",
@@ -128,7 +131,8 @@ const SEEDS: ThemeSeed[] = [
     brand: { "500": "#10b981", "600": "#34d399" },
     fontFamily: "'DM Sans', 'Inter', sans-serif",
     dark: {
-      canvas: [
+      canvas: "#060f0d",
+      canvasImage: [
         "radial-gradient(ellipse at 30% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 60%)",
         "radial-gradient(ellipse at 70% 20%, rgba(52, 211, 153, 0.08) 0%, transparent 50%)",
         "#060f0d",
@@ -140,7 +144,8 @@ const SEEDS: ThemeSeed[] = [
       glow: "rgba(16, 185, 129, 0.25)",
     },
     light: {
-      canvas: [
+      canvas: "#f0fdf8",
+      canvasImage: [
         "radial-gradient(ellipse at 30% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 60%)",
         "#f0fdf8",
       ].join(", "),
@@ -157,7 +162,8 @@ const SEEDS: ThemeSeed[] = [
     brand: { "500": "#f59e0b", "600": "#ef4444" },
     fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
     dark: {
-      canvas: [
+      canvas: "#100804",
+      canvasImage: [
         "radial-gradient(ellipse at 20% 80%, rgba(245, 158, 11, 0.15) 0%, transparent 60%)",
         "radial-gradient(ellipse at 75% 15%, rgba(239, 68, 68, 0.1) 0%, transparent 50%)",
         "#100804",
@@ -169,7 +175,8 @@ const SEEDS: ThemeSeed[] = [
       glow: "rgba(245, 158, 11, 0.25)",
     },
     light: {
-      canvas: [
+      canvas: "#fffbf0",
+      canvasImage: [
         "radial-gradient(ellipse at 20% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 60%)",
         "radial-gradient(ellipse at 75% 15%, rgba(239, 68, 68, 0.05) 0%, transparent 50%)",
         "#fffbf0",
@@ -187,7 +194,8 @@ const SEEDS: ThemeSeed[] = [
     brand: { "500": "#f0abfc", "600": "#67e8f9" },
     fontFamily: "'Sora', 'Inter', sans-serif",
     dark: {
-      canvas: [
+      canvas: "#02020a",
+      canvasImage: [
         "radial-gradient(ellipse at 30% 40%, rgba(240, 171, 252, 0.1) 0%, transparent 50%)",
         "radial-gradient(ellipse at 70% 60%, rgba(103, 232, 249, 0.07) 0%, transparent 50%)",
         "#02020a",
@@ -199,7 +207,8 @@ const SEEDS: ThemeSeed[] = [
       glow: "rgba(240, 171, 252, 0.3)",
     },
     light: {
-      canvas: [
+      canvas: "#fdf4ff",
+      canvasImage: [
         "radial-gradient(ellipse at 30% 40%, rgba(192, 38, 211, 0.06) 0%, transparent 50%)",
         "radial-gradient(ellipse at 70% 60%, rgba(6, 182, 212, 0.05) 0%, transparent 50%)",
         "#fdf4ff",
@@ -217,7 +226,8 @@ const SEEDS: ThemeSeed[] = [
     brand: { "500": "#06b6d4", "600": "#0ea5e9" },
     fontFamily: "'Nunito', 'Inter', sans-serif",
     dark: {
-      canvas: [
+      canvas: "#020b14",
+      canvasImage: [
         "radial-gradient(ellipse at 40% 60%, rgba(6, 182, 212, 0.15) 0%, transparent 60%)",
         "radial-gradient(ellipse at 70% 20%, rgba(14, 165, 233, 0.1) 0%, transparent 50%)",
         "#020b14",
@@ -229,7 +239,8 @@ const SEEDS: ThemeSeed[] = [
       glow: "rgba(6, 182, 212, 0.25)",
     },
     light: {
-      canvas: [
+      canvas: "#f0f9ff",
+      canvasImage: [
         "radial-gradient(ellipse at 40% 60%, rgba(6, 182, 212, 0.07) 0%, transparent 60%)",
         "#f0f9ff",
       ].join(", "),
@@ -246,7 +257,8 @@ const SEEDS: ThemeSeed[] = [
     brand: { "500": "#22c55e", "600": "#86efac" },
     fontFamily: "'DM Sans', 'Inter', sans-serif",
     dark: {
-      canvas: [
+      canvas: "#030f06",
+      canvasImage: [
         "radial-gradient(ellipse at 30% 60%, rgba(34, 197, 94, 0.12) 0%, transparent 60%)",
         "radial-gradient(ellipse at 70% 20%, rgba(134, 239, 172, 0.07) 0%, transparent 50%)",
         "#030f06",
@@ -258,7 +270,8 @@ const SEEDS: ThemeSeed[] = [
       glow: "rgba(34, 197, 94, 0.2)",
     },
     light: {
-      canvas: [
+      canvas: "#f0fdf4",
+      canvasImage: [
         "radial-gradient(ellipse at 30% 60%, rgba(34, 197, 94, 0.07) 0%, transparent 60%)",
         "#f0fdf4",
       ].join(", "),
@@ -378,6 +391,16 @@ function buildDocument(seed: ThemeSeed): ThemeDocument {
         radius: "12px",
         padding: "12px",
       },
+      ...(seed.light.canvasImage || seed.dark.canvasImage
+        ? {
+            canvas: {
+              backgroundImage: {
+                light: seed.light.canvasImage ?? seed.light.canvas,
+                dark: seed.dark.canvasImage ?? seed.dark.canvas,
+              },
+            },
+          }
+        : {}),
     },
   };
 }
