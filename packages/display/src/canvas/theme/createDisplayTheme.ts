@@ -13,9 +13,16 @@ export function displayThemeName(docId: string): string {
   return `homeslate-${docId}`;
 }
 
-export function createDisplayTheme(doc: ThemeDocument): DesignTheme {
+export function previewDisplayThemeName(docId: string): string {
+  return `${displayThemeName(docId)}-preview`;
+}
+
+export function createDisplayTheme(
+  doc: ThemeDocument,
+  name = displayThemeName(doc.id),
+): DesignTheme {
   return createDesignTheme({
-    name: displayThemeName(doc.id),
+    name,
     tokens: doc.tokens as DesignThemeTokenValues | undefined,
     colorMode: doc.colorMode as DesignThemeColorMode | undefined,
     extend: doc.extend as Record<string, ExtendTokenValues> | undefined,
@@ -35,14 +42,9 @@ export function getCanvasBackgroundStyle(doc: ThemeDocument, mode: ColorMode): C
   return backgroundImage ? { backgroundImage } : {};
 }
 
-export function createInactivePreviewThemeDispose(
-  previewId: string,
-  activeIdRef: { current: string | null | undefined },
-): () => void {
+export function createInactivePreviewThemeDispose(previewId: string): () => void {
   return () => {
-    if (previewId !== activeIdRef.current) {
-      disposeDesignTheme(displayThemeName(previewId));
-    }
+    disposeDesignTheme(previewDisplayThemeName(previewId));
   };
 }
 

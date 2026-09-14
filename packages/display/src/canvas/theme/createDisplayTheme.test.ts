@@ -4,6 +4,7 @@ import {
   createDisplayTheme,
   createInactivePreviewThemeDispose,
   getCanvasBackgroundStyle,
+  previewDisplayThemeName,
 } from "./createDisplayTheme";
 import { DEFAULT_THEME_DOCUMENTS } from "./defaults";
 
@@ -61,27 +62,27 @@ describe("createDisplayTheme", () => {
     expect(getCanvasBackgroundStyle(paper!, "dark")).toEqual({});
   });
 
-  it("does not dispose preview CSS when that theme is activated before cleanup", () => {
-    const doc = { ...DEFAULT_THEME_DOCUMENTS[0], id: "preview-b" };
-    const theme = createDisplayTheme(doc);
-    expect(getRegisteredCss()).toContain(`.${theme.className}`);
+  it("registers preview CSS under a distinct name from the live theme", () => {
+    const doc = { ...DEFAULT_THEME_DOCUMENTS[0], id: "theme-a" };
+    const live = createDisplayTheme(doc);
+    const preview = createDisplayTheme(doc, previewDisplayThemeName(doc.id));
 
-    const activeIdRef = { current: "theme-a" as string | null };
-    const cleanup = createInactivePreviewThemeDispose(doc.id, activeIdRef);
-    activeIdRef.current = doc.id;
-    cleanup();
-
-    expect(getRegisteredCss()).toContain(`.${theme.className}`);
+    expect(live.className).toBe("theme-var-ui-homeslate-theme-a");
+    expect(preview.className).toBe("theme-var-ui-homeslate-theme-a-preview");
+    const css = getRegisteredCss();
+    expect(css).toContain(`.${live.className} {`);
+    expect(css).toContain(`.${preview.className} {`);
   });
 
-  it("disposes preview CSS when cleanup runs for a theme that is still inactive", () => {
-    const doc = { ...DEFAULT_THEME_DOCUMENTS[0], id: "preview-b" };
-    const theme = createDisplayTheme(doc);
-    expect(getRegisteredCss()).toContain(`.${theme.className}`);
+  it("disposes preview CSS without removing the live theme of the same document id", () => {
+    const doc = { ...DEFAULT_THEME_DOCUMENTS[0], id: "theme-a" };
+    const live = createDisplayTheme(doc);
+    const preview = createDisplayTheme(doc, previewDisplayThemeName(doc.id));
 
-    const activeIdRef = { current: "theme-a" as string | null };
-    createInactivePreviewThemeDispose(doc.id, activeIdRef)();
+    createInactivePreviewThemeDispose(doc.id)();
 
-    expect(getRegisteredCss()).not.toContain(`.${theme.className}`);
+    const css = getRegisteredCss();
+    expect(css).toContain(`.${live.className} {`);
+    expect(css).not.toContain(`.${preview.className} {`);
   });
 });

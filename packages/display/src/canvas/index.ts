@@ -11,6 +11,7 @@ export {
   createInactivePreviewThemeDispose,
   displayThemeName,
   getCanvasBackgroundStyle,
+  previewDisplayThemeName,
   useCompiledDisplayTheme,
 } from "./theme/createDisplayTheme";
 export { hexToRgb, getBackgroundStyle } from "./theme/utils";

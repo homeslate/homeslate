@@ -97,9 +97,9 @@ describe("ThemeEditor markup", () => {
     expect(source).toContain("DesignSystemProvider");
     expect(source).toContain("useDebouncedValue");
     expect(source).toContain("createDisplayTheme");
+    expect(source).toContain("previewDisplayThemeName");
     expect(source).toMatch(/customTheme=\{previewTheme\}/);
     expect(source).toContain("createInactivePreviewThemeDispose");
-    expect(source).toContain("activeIdRef");
     expect(source).not.toContain("themeDocumentToPreviewVars");
     expect(source).not.toMatch(/applyToDocument/);
     expect(source).not.toMatch(/document\.documentElement/);

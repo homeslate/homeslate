@@ -47,6 +47,7 @@ import {
   createInactivePreviewThemeDispose,
   DocumentCanvas,
   getCanvasBackgroundStyle,
+  previewDisplayThemeName,
   getPresetById,
   THEME_PRESET_OPTIONS,
   TAILWIND_COLOR_PALETTES,
@@ -80,25 +81,21 @@ function ThemePreviewIsland(props: {
   doc: ThemeDocument;
   colorMode: ColorMode;
   view: View | null;
-  activeThemeDocumentId: string | null | undefined;
 }): JSX.Element {
-  const { doc, colorMode, view, activeThemeDocumentId } = props;
+  const { doc, colorMode, view } = props;
   const debouncedDoc = useDebouncedValue(doc, 80);
   const tokensKey = JSON.stringify(debouncedDoc.tokens ?? null);
   const colorModeKey = JSON.stringify(debouncedDoc.colorMode ?? null);
   const extendKey = JSON.stringify(debouncedDoc.extend ?? null);
   const previewTheme = useMemo(
-    () => createDisplayTheme(debouncedDoc),
+    () => createDisplayTheme(debouncedDoc, previewDisplayThemeName(debouncedDoc.id)),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- serialized token trees
     [debouncedDoc.id, tokensKey, colorModeKey, extendKey],
   );
 
-  const activeIdRef = useRef(activeThemeDocumentId);
-  // eslint-disable-next-line react-hooks/refs -- cleanup must read the latest active id
-  activeIdRef.current = activeThemeDocumentId;
   useEffect(() => {
     const id = debouncedDoc.id;
-    return createInactivePreviewThemeDispose(id, activeIdRef);
+    return createInactivePreviewThemeDispose(id);
   }, [debouncedDoc.id]);
 
   const canvasBackground = getCanvasBackgroundStyle(debouncedDoc, colorMode);
@@ -1152,7 +1149,6 @@ export function ThemeEditor({
                             doc={previewResult.doc}
                             colorMode={previewMode}
                             view={activePreviewView}
-                            activeThemeDocumentId={activeThemeDocumentId}
                           />
                         ) : (
                           <div className={classes.previewPlaceholder}>

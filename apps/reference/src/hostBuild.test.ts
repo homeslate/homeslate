@@ -68,6 +68,23 @@ describe("reference app build boundary", () => {
     expect(entry).toContain("@homeslate/editor/styles");
   });
 
+  it("pins TypeStyles ^0.23.1 on widgets, display, editor, and the reference app", () => {
+    const manifests = [
+      "../../../packages/widgets/package.json",
+      "../../../packages/display/package.json",
+      "../../../packages/editor/package.json",
+      "../package.json",
+    ];
+    for (const relative of manifests) {
+      const manifest = readJson<{
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      }>(relative);
+      const range = manifest.dependencies?.typestyles ?? manifest.devDependencies?.typestyles;
+      expect(range, relative).toBe("^0.23.1");
+    }
+  });
+
   it("does not depend on the dropped Mantine packages", () => {
     const droppedPrefix = `@${"mantine"}/`;
     const manifests = [
