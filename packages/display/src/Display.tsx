@@ -26,7 +26,7 @@ import type { AlarmDefinition } from "./alarms/types";
 import { coerceAlarms } from "./alarms/schedule";
 import { HolidayEffects } from "./HolidayEffects";
 import { createViewRotationClock } from "./viewRotationClock";
-import classes from "./Display.module.css";
+import * as classes from "./Display.styles";
 
 const SWIPE_THRESHOLD = 60;
 const SWIPE_ANGLE_RATIO = 1.2;

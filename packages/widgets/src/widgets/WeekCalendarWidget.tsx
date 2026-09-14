@@ -26,7 +26,7 @@ import { useGoogleCalendar } from "../hooks/useGoogleCalendar";
 import { useDisplayCalendar } from "../hooks/useDisplayCalendar";
 import { useGoogleRuntime } from "../googleRuntime";
 import type { ParsedCalendarEvent, CalendarEventInput } from "../services/googleCalendar";
-import classes from "./WeekCalendarWidget.module.css";
+import * as classes from "./WeekCalendarWidget.styles";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 

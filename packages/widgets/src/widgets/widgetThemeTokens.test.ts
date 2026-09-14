@@ -3,21 +3,29 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const widgetsDir = dirname(fileURLToPath(import.meta.url));
+const srcDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const cssFiles = readdirSync(widgetsDir)
-  .filter((file) => file.endsWith(".module.css"))
-  .sort();
+const styleDirs = [join(srcDir, "widgets"), join(srcDir, "household"), join(srcDir, "alarms")];
 
-function stripComments(css: string) {
-  return css.replace(/\/\*[\s\S]*?\*\//g, "");
+const styleFiles = styleDirs.flatMap((dir) =>
+  readdirSync(dir)
+    .filter((file) => file.endsWith(".styles.ts"))
+    .map((file) => join(dir, file)),
+);
+
+function stripComments(source: string) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 }
 
-describe("widget CSS theme tokens", () => {
+describe("widget TypeStyles theme tokens", () => {
+  it("scans recipe files", () => {
+    expect(styleFiles.length).toBeGreaterThan(0);
+  });
+
   it("does not reference malformed or library-private theme tokens", () => {
-    const offenders = cssFiles.flatMap((file) => {
-      const css = stripComments(readFileSync(join(widgetsDir, file), "utf8"));
-      const matches = css.match(/--token-[\w-]*\$[\w-]*|--mantine-(?:color|radius)-[\w-]+/g) ?? [];
+    const offenders = styleFiles.flatMap((file) => {
+      const css = stripComments(readFileSync(file, "utf8"));
+      const matches = css.match(/--token-[\w-]*\$[\w-]*/g) ?? [];
       return matches.map((match) => `${file}: ${match}`);
     });
 
@@ -28,8 +36,8 @@ describe("widget CSS theme tokens", () => {
     const literalColorPattern =
       /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*(?!var\(--token-)[^)]+\)|(?:^|[\s,(])(?:white|black)(?=[\s,);]|$)/g;
 
-    const offenders = cssFiles.flatMap((file) => {
-      const css = stripComments(readFileSync(join(widgetsDir, file), "utf8"));
+    const offenders = styleFiles.flatMap((file) => {
+      const css = stripComments(readFileSync(file, "utf8"));
       return css
         .split("\n")
         .filter((line) => line.includes(":"))

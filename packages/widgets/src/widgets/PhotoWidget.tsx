@@ -33,7 +33,7 @@ import type { WidgetProps, WidgetConfig } from "../types";
 import { useGooglePhotos } from "../hooks/useGooglePhotos";
 import { useGoogleRuntime } from "../googleRuntime";
 import { loadStoredImage } from "../services/googlePhotos";
-import classes from "./PhotoWidget.module.css";
+import * as classes from "./PhotoWidget.styles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

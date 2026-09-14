@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { WidgetConfig, WidgetProps } from "../types";
 import { HoldToConfirm } from "../household/HoldToConfirm";
 import { clearCheckedGroceryItems, visibleGroceryItems, type GroceryItem } from "./grocery";
-import classes from "./listWidget.module.css";
+import * as classes from "./listWidget.styles";
 
 export interface GroceryConfig extends WidgetConfig {
   items: GroceryItem[];

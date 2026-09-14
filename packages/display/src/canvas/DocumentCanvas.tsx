@@ -8,7 +8,7 @@ import { StickyNote as StickyNoteWidget } from "./StickyNote";
 import { useElementSize } from "@mantine/hooks";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import classes from "./DocumentCanvas.module.css";
+import * as classes from "./DocumentCanvas.styles";
 
 export type { WidgetRegistryApi };
 

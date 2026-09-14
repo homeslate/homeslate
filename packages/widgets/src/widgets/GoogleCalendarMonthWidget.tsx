@@ -36,7 +36,7 @@ import { useDisplayCalendar } from "../hooks/useDisplayCalendar";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { useGoogleRuntime } from "../googleRuntime";
 import type { ParsedCalendarEvent, CalendarEventInput } from "../services/googleCalendar";
-import classes from "./GoogleCalendarMonthWidget.module.css";
+import * as classes from "./GoogleCalendarMonthWidget.styles";
 import dayjs from "dayjs";
 
 export interface GoogleCalendarMonthConfig extends WidgetConfig {

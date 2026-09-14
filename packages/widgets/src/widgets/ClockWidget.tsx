@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Box, Text, Stack, Switch, Select, Group } from "@mantine/core";
 import type { WidgetProps, WidgetConfig, TextAlign } from "../types";
-import classes from "./ClockWidget.module.css";
+import { clock } from "./ClockWidget.styles";
 
 export interface ClockConfig extends WidgetConfig {
   showSeconds: boolean;
@@ -80,16 +80,13 @@ export function ClockWidget({ widget }: WidgetProps<ClockConfig>) {
   const align = alignMap[textAlign];
 
   return (
-    <Box
-      ref={containerRef}
-      className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}
-    >
+    <Box ref={containerRef} className={clock({ transparent: transparentBackground }).root}>
       <Stack gap={0} align={align} justify="center" h="100%" style={{ textAlign, width: "100%" }}>
-        <Text className={classes.time} style={{ fontSize: `${fontSize}px` }}>
+        <Text className={clock().time} style={{ fontSize: `${fontSize}px` }}>
           {formatTime()}
         </Text>
         {showDate && (
-          <Text className={classes.date} style={{ fontSize: `${dateSize}px` }}>
+          <Text className={clock().date} style={{ fontSize: `${dateSize}px` }}>
             {formatDate()}
           </Text>
         )}

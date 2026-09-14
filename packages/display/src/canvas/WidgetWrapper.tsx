@@ -28,7 +28,7 @@ import {
   type WidgetDefinition,
   type WidgetHealthStatus,
 } from "@homeslate/widgets";
-import classes from "./WidgetWrapper.module.css";
+import * as classes from "./WidgetWrapper.styles";
 
 export type WidgetRegistryApi = {
   getWidgetByType: (type: string) => import("@homeslate/widgets").WidgetRegistryEntry | undefined;

@@ -6,6 +6,7 @@
     "dev": "node --import tsx src/server/dev.ts",
     "dev:api": "node --import tsx src/server/listen.ts",
     "dev:web": "vp dev",
+    "build:web": "vp build",
     "start": "node --import tsx src/server/listen.ts"
   },
   "dependencies": {
@@ -27,8 +28,10 @@
     "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
+    "@typestyles/vite": "^0.4.4",
     "@vitejs/plugin-react": "^5.1.1",
     "tsx": "4.23.13",
+    "typestyles": "^0.23.0",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   }

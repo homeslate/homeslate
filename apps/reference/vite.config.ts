@@ -1,12 +1,29 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
+import typestyles from "@typestyles/vite";
 
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
-  plugins: lazyPlugins(() => [react()]),
+  plugins: lazyPlugins(() => [
+    react(),
+    typestyles({
+      extract: {
+        modules: ["typestyles-entry.ts"],
+      },
+    }),
+  ]),
   resolve: {
     alias: {
+      "@homeslate/widgets/styles": fileURLToPath(
+        new URL("../../packages/widgets/src/styles.ts", import.meta.url),
+      ),
+      "@homeslate/display/styles": fileURLToPath(
+        new URL("../../packages/display/src/styles.ts", import.meta.url),
+      ),
+      "@homeslate/editor/styles": fileURLToPath(
+        new URL("../../packages/editor/src/styles.ts", import.meta.url),
+      ),
       "@homeslate/schema": fileURLToPath(
         new URL("../../packages/schema/src/index.ts", import.meta.url),
       ),

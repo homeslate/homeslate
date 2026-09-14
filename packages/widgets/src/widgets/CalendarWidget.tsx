@@ -24,7 +24,7 @@ import type { WidgetProps, WidgetConfig } from "../types";
 import { useCalendar } from "../hooks/useCalendar";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import type { CalendarEvent } from "../services/calendar";
-import classes from "./CalendarWidget.module.css";
+import * as classes from "./CalendarWidget.styles";
 import dayjs from "dayjs";
 
 export interface CalendarConfig extends WidgetConfig {

@@ -35,7 +35,7 @@ import { useGoogleRuntime } from "../googleRuntime";
 import { loadStoredImage } from "../services/googlePhotos";
 import type { StoredImage } from "../services/googlePhotos";
 import type { Photo, StoredPhoto } from "./PhotoWidget";
-import classes from "./GooglePhotoCollageWidget.module.css";
+import * as classes from "./GooglePhotoCollageWidget.styles";
 
 export interface GooglePhotoCollageConfig extends WidgetConfig {
   rotationInterval: number; // seconds between individual photo changes

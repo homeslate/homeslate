@@ -45,7 +45,7 @@ import {
   findAvailablePosition,
   type WidgetRegistryApi,
 } from "@homeslate/display/canvas";
-import classes from "./WidgetPanel.module.css";
+import * as classes from "./WidgetPanel.styles";
 
 type UploadBackgroundPhoto = (payload: {
   dataUrl?: string;

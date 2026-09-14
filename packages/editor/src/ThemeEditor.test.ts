@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vite-plus/test";
 import { readFileSync } from "node:fs";
+import { getRegisteredCss } from "typestyles";
+import {
+  colorSourceActions,
+  colorValueRow,
+  editorTabsList,
+  paletteBrowserGrid,
+  paletteShadeButton,
+} from "./ThemeEditor.styles";
 
 const source = readFileSync(new URL("./ThemeEditor.tsx", import.meta.url), "utf8");
-const styles = readFileSync(new URL("./ThemeEditor.module.css", import.meta.url), "utf8");
 
 describe("ThemeEditor markup", () => {
   it("does not render the dirty badge inside a paragraph", () => {
@@ -32,9 +39,11 @@ describe("ThemeEditor markup", () => {
 
   it("keeps editor tabs sticky while token lists scroll", () => {
     expect(source).toContain("className={classes.editorTabsList}");
-    expect(styles).toMatch(/\.editorTabsList\s*\{[\s\S]*?position:\s*sticky;/);
-    expect(styles).toMatch(/\.editorTabsList\s*\{[\s\S]*?top:\s*0;/);
-    expect(styles).toMatch(/\.editorTabsList\s*\{[\s\S]*?z-index:\s*1;/);
+    void editorTabsList;
+    const css = getRegisteredCss();
+    expect(css).toMatch(/position:\s*sticky/);
+    expect(css).toMatch(/top:\s*0/);
+    expect(css).toMatch(/z-index:\s*1/);
   });
 
   it("shows generated CSS variable names for token controls", () => {
@@ -49,17 +58,18 @@ describe("ThemeEditor markup", () => {
     expect(source).toContain("Browse palettes");
     expect(source).toContain("Search palettes, shades, paths, or OKLCH");
     expect(source).toContain("foundation.color.${name}.${step}");
-    expect(styles).toContain(".paletteBrowserGrid");
-    expect(styles).toContain(".paletteShadeButton");
+    expect(paletteBrowserGrid).toEqual(expect.any(String));
+    expect(paletteShadeButton).toEqual(expect.any(String));
   });
 
   it("presents color picking as one value field with inline source actions", () => {
     expect(source).toContain("className={classes.colorValueRow}");
+    expect(colorValueRow).toEqual(expect.any(String));
+    expect(colorSourceActions).toEqual(expect.any(String));
     expect(source).toContain('aria-label="Browse palettes"');
     expect(source).toContain('aria-label="Reference another token"');
     expect(source).toContain('aria-label="Pick custom color"');
     expect(source).toContain("Search token references");
-    expect(styles).toContain(".colorSourceActions");
   });
 
   it("uses the real dashboard surface for draft theme preview", () => {

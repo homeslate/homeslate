@@ -25,7 +25,7 @@ import {
   WEATHER_ALERTS_NEED_LOCATION_COPY,
   type WeatherAlertSeverity,
 } from "./weatherAlerts";
-import classes from "./WeatherAlertsWidget.module.css";
+import * as classes from "./WeatherAlertsWidget.styles";
 
 export interface WeatherAlertsConfig extends WidgetConfig {
   location: string;

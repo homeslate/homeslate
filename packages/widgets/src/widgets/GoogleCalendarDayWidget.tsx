@@ -45,7 +45,7 @@ import {
   displayCalendarEmptyDetail,
   shouldShowGoogleCalendarErrorAlert,
 } from "./googleCalendarError";
-import classes from "./GoogleCalendarDayWidget.module.css";
+import * as classes from "./GoogleCalendarDayWidget.styles";
 import dayjs from "dayjs";
 
 export interface GoogleCalendarDayConfig extends WidgetConfig {

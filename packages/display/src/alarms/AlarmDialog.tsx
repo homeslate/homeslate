@@ -2,7 +2,7 @@ import { Button, ActionIcon, Text } from "@mantine/core";
 import { IconVolume, IconVolumeOff } from "@tabler/icons-react";
 import { SNOOZE_MINUTES, type SnoozeMinutes } from "./types";
 import type { VoiceStatusReason } from "../voice/useAlarmVoiceCommands";
-import classes from "./AlarmDialog.module.css";
+import * as classes from "./AlarmDialog.styles";
 
 interface Props {
   label: string;

@@ -31,7 +31,7 @@ import type { ComponentType } from "react";
 import type { WidgetConfig, WidgetProps } from "../types";
 import { HoldToConfirm } from "../household/HoldToConfirm";
 import { effectiveCompletedStepIds, routineDayKey, toggleRoutineStep } from "./dailyRoutine";
-import classes from "./listWidget.module.css";
+import * as classes from "./listWidget.styles";
 
 export const ROUTINE_ICON_IDS = [
   "sun",

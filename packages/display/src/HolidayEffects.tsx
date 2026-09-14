@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { getActiveHoliday, getHolidayById } from "./holidays";
 import type { HolidayId } from "./holidays";
-import classes from "./HolidayEffects.module.css";
+import * as classes from "./HolidayEffects.styles";
 
 interface HolidayEffectsProps {
   previewHolidayId?: HolidayId;

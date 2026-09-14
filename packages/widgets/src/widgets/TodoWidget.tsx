@@ -3,7 +3,7 @@ import { Box, Text, Stack, TextInput, Switch, Group, ActionIcon } from "@mantine
 import { IconCheck, IconPlus, IconX } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { WidgetProps, WidgetConfig } from "../types";
-import classes from "./TodoWidget.module.css";
+import * as classes from "./TodoWidget.styles";
 
 export interface TodoItem {
   id: string;
