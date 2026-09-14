@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 
 /** tsconfig files are JSONC, so drop comments before parsing. */
@@ -65,4 +67,62 @@ describe("reference app build boundary", () => {
     expect(entry).toContain("@homeslate/display/styles");
     expect(entry).toContain("@homeslate/editor/styles");
   });
+
+  it("does not depend on the dropped Mantine packages", () => {
+    const droppedPrefix = `@${"mantine"}/`;
+    const manifests = [
+      "../../../packages/widgets/package.json",
+      "../../../packages/display/package.json",
+      "../../../packages/editor/package.json",
+      "../package.json",
+    ];
+    for (const relative of manifests) {
+      const manifest = readJson<{
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      }>(relative);
+      const names = [
+        ...Object.keys(manifest.dependencies ?? {}),
+        ...Object.keys(manifest.devDependencies ?? {}),
+      ];
+      for (const name of names) {
+        expect(name.startsWith(droppedPrefix), `${relative} ${name}`).toBe(false);
+      }
+    }
+  });
+
+  it("does not keep Mantine CSS variables in package or reference styles", () => {
+    const roots = [
+      join(fileURLToPath(new URL("../../../packages", import.meta.url))),
+      join(fileURLToPath(new URL(".", import.meta.url)), ".."),
+    ];
+    const leftover = "--" + "mantine-";
+    const files: string[] = [];
+    for (const root of roots) {
+      files.push(...walkStyleFiles(root));
+    }
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      expect(source.includes(leftover), file).toBe(false);
+    }
+  });
 });
+
+function walkStyleFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === "dist" || entry.name === "data") {
+      continue;
+    }
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walkStyleFiles(full));
+      continue;
+    }
+    if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+    if (/\.test\.(ts|tsx)$/.test(entry.name)) continue;
+    out.push(full);
+  }
+  return out;
+}

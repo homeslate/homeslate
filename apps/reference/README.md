@@ -31,7 +31,7 @@ Copy this when wrapping `@homeslate/editor` and `@homeslate/display` in another 
 3. Wrap the root tree in `DesignSystemProvider` with `applyToDocument` on full-page host routes, plus `IconProvider` (`defaultIcons` from `@var-ui/icons`) and `LayerProvider` as in the VarUI Vite example. Install VarUI peer dependencies npm warns about (`react-aria-components` and `@internationalized/date`) so the host does not rely on accidental hoisting.
 4. `Editor` and `Display` nest their own `DesignSystemProvider` with the compiled theme and controlled `colorMode`. They do not set `document.documentElement` (no `applyToDocument`).
 5. Themed-subtree overlays pass `portalContainer` so portaled UI stays on the nested theme.
-6. Do not mount `MantineProvider` or import `@mantine/*/styles.css`. Do not also import `@var-ui/core/styles` from a JS entry if the extract entry already registered it.
+6. Do not also import `@var-ui/core/styles` from a JS entry if the extract entry already registered it.
 7. Keep `@typestyles/vite`. Skipping the plugin still styles the UI via TypeStyles runtime injection.
 
 ## Typecheck

@@ -6,7 +6,7 @@ export const root = styles.class("editor-root", {
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
-  background: "var(--var-ui-color-background-app, var(--mantine-color-body))",
+  background: "var(--var-ui-color-background-app)",
 });
 
 export const pageActions = styles.class("editor-pageActions", {
@@ -14,8 +14,8 @@ export const pageActions = styles.class("editor-pageActions", {
   display: "flex",
   justifyContent: "flex-end",
   padding: "0.75rem 1.5rem",
-  borderBottom: "1px solid var(--var-ui-color-border-default, var(--mantine-color-default-border))",
-  background: "var(--var-ui-color-background-surface, var(--mantine-color-default))",
+  borderBottom: "1px solid var(--var-ui-color-border-default)",
+  background: "var(--var-ui-color-background-surface)",
 });
 
 export const body = styles.class("editor-body", {

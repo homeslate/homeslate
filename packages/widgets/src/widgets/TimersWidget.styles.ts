@@ -38,7 +38,7 @@ export const runtimeDetails = styles.class("timerswidget-runtimeDetails", {
 });
 
 export const countdown = styles.class("timerswidget-countdown", {
-  fontSize: "var(--mantine-font-size-xl)",
+  fontSize: "var(--var-ui-fontSize-xl)",
   fontVariantNumeric: "tabular-nums",
   fontWeight: "700",
   lineHeight: "1.1",

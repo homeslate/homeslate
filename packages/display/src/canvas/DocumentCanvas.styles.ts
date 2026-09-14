@@ -73,7 +73,7 @@ export const empty = styles.class("documentcanvas-empty", {
   justifyContent: "center",
   height: "100%",
   minHeight: "400px",
-  color: "var(--mantine-color-dimmed)",
+  color: "var(--var-ui-color-text-secondary)",
   textAlign: "center",
   "& h2": {
     fontSize: "1.5rem",
@@ -102,7 +102,7 @@ global.style(".react-grid-item.react-grid-placeholder", {
     "color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 20%, transparent) !important",
   border:
     "2px dashed color-mix(in srgb, var(--var-ui-color-tone-accent-foreground) 50%, transparent) !important",
-  borderRadius: "var(--mantine-radius-md)",
+  borderRadius: "var(--var-ui-radius-md)",
 });
 global.style(".react-grid-item.resizing", {
   zIndex: 100,

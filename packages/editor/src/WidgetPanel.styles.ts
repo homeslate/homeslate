@@ -3,8 +3,8 @@ import { styles } from "./typeStyles";
 export const panel = styles.class("widgetpanel-panel", {
   width: "240px",
   minWidth: "240px",
-  background: "var(--var-ui-color-background-surface, var(--mantine-color-default))",
-  borderRight: "1px solid var(--var-ui-color-border-default, var(--mantine-color-default-border))",
+  background: "var(--var-ui-color-background-surface)",
+  borderRight: "1px solid var(--var-ui-color-border-default)",
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
@@ -16,11 +16,11 @@ export const toggleBar = styles.class("widgetpanel-toggleBar", {
   display: "flex",
   justifyContent: "flex-end",
   padding: "8px 6px 4px",
-  borderBottom: "1px solid var(--var-ui-color-border-default, var(--mantine-color-default-border))",
+  borderBottom: "1px solid var(--var-ui-color-border-default)",
 });
 
 export const toggleBtn = styles.class("widgetpanel-toggleBtn", {
-  color: "var(--var-ui-color-text-secondary, var(--mantine-color-dimmed))",
+  color: "var(--var-ui-color-text-secondary)",
 });
 
 export const content = styles.class("widgetpanel-content", {
@@ -33,7 +33,7 @@ export const panelTitle = styles.class("widgetpanel-panelTitle", {
   letterSpacing: "0.06em",
   marginBottom: "8px",
   padding: "0 4px",
-  color: "var(--var-ui-color-text-primary, var(--mantine-color-text))",
+  color: "var(--var-ui-color-text-primary)",
 });
 
 export const widgetRow = styles.class("widgetpanel-widgetRow", {
@@ -44,9 +44,9 @@ export const widgetRow = styles.class("widgetpanel-widgetRow", {
   borderRadius: "6px",
   width: "100%",
   transition: "background 0.1s ease",
-  color: "var(--var-ui-color-text-primary, var(--mantine-color-text))",
+  color: "var(--var-ui-color-text-primary)",
   "&:hover": {
-    background: "var(--mantine-color-default-hover)",
+    background: "var(--var-ui-color-overlay-hover)",
   },
 });
 
@@ -54,11 +54,11 @@ export const widgetIcon = styles.class("widgetpanel-widgetIcon", {
   width: "32px",
   height: "32px",
   borderRadius: "6px",
-  background: "var(--mantine-color-default-hover)",
+  background: "var(--var-ui-color-overlay-hover)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "var(--var-ui-color-tone-accent-foreground, var(--mantine-color-indigo-4))",
+  color: "var(--var-ui-color-tone-accent-foreground)",
   flexShrink: "0",
 });
 
@@ -69,11 +69,11 @@ export const iconOnly = styles.class("widgetpanel-iconOnly", {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "var(--var-ui-color-text-secondary, var(--mantine-color-dimmed))",
+  color: "var(--var-ui-color-text-secondary)",
   transition: "background 0.1s ease,\n    color 0.1s ease",
   "&:hover": {
-    background: "var(--mantine-color-default-hover)",
-    color: "var(--var-ui-color-tone-accent-foreground, var(--mantine-color-indigo-4))",
+    background: "var(--var-ui-color-overlay-hover)",
+    color: "var(--var-ui-color-tone-accent-foreground)",
   },
 });
 

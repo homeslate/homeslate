@@ -14,8 +14,8 @@ export const overlay = styles.class("alarmdialog-overlay", {
 export const card = styles.class("alarmdialog-card", {
   width: "min(560px, 100%)",
   borderRadius: "1rem",
-  background: "var(--mantine-color-body, #1a1b1e)",
-  color: "var(--mantine-color-text, #fff)",
+  background: "var(--var-ui-color-background-surface)",
+  color: "var(--var-ui-color-text-primary)",
   padding: "2rem",
   textAlign: "center",
   boxShadow: "0 24px 80px rgba(0, 0, 0, 0.45)",
@@ -38,7 +38,7 @@ export const voiceStatus = styles.class("alarmdialog-voiceStatus", {
   margin: "-1rem 0 1.25rem",
   letterSpacing: "0.01em",
   '&[data-listening="true"]': {
-    color: "var(--mantine-color-teal-4, #20c997)",
+    color: "var(--var-ui-color-tone-success-foreground)",
     opacity: "1",
   },
 });
@@ -48,7 +48,7 @@ export const pulse = styles.class("alarmdialog-pulse", {
   height: "64px",
   margin: "0 auto 1.25rem",
   borderRadius: "50%",
-  background: "var(--mantine-color-red-6, #fa5252)",
+  background: "var(--var-ui-color-danger)",
   animation: "pulse 1.2s ease-in-out infinite",
 });
 
