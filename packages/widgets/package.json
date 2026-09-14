@@ -41,6 +41,8 @@
     "@mantine/dates": "^8.3.10",
     "@mantine/hooks": "^8.3.10",
     "@tabler/icons-react": "^3.35.0",
+    "@var-ui/core": "^2.0.0",
+    "@var-ui/react": "^2.0.0",
     "dayjs": "^1.11.19",
     "typestyles": "^0.23.0",
     "uuid": "^13.0.0",

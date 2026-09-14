@@ -60,6 +60,7 @@ describe("reference app build boundary", () => {
     expect(viteConfig).toContain("@typestyles/vite");
 
     const entry = readFileSync(new URL("../typestyles-entry.ts", import.meta.url), "utf8");
+    expect(entry).toContain("@var-ui/core/styles");
     expect(entry).toContain("@homeslate/widgets/styles");
     expect(entry).toContain("@homeslate/display/styles");
     expect(entry).toContain("@homeslate/editor/styles");
