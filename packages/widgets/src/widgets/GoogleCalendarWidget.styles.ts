@@ -32,35 +32,17 @@ export const calendarSection = styles.class("googlecalendarwidget-calendarSectio
   },
 });
 
-export const calendarHeader = styles.class("googlecalendarwidget-calendarHeader", {
+export const calendar = styles.class("googlecalendarwidget-calendar", {
   color: "var(--var-ui-color-tone-accent-foreground)",
-  fontSize: "0.82rem",
-});
-
-export const dayCell = styles.class("googlecalendarwidget-dayCell", {
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "column",
-  width: "100%",
-  height: "100%",
-  gap: "1px",
-});
-
-export const eventDots = styles.class("googlecalendarwidget-eventDots", {
-  display: "flex",
-  gap: "2px",
-  position: "absolute",
-  bottom: "1px",
-  left: "50%",
-  transform: "translateX(-50%)",
-});
-
-export const eventDotColored = styles.class("googlecalendarwidget-eventDotColored", {
-  width: "4px",
-  height: "4px",
-  borderRadius: "50%",
+  "& header": {
+    color: "var(--var-ui-color-tone-accent-foreground)",
+    fontSize: "0.82rem",
+  },
+  "& [data-selected] > *": {
+    background:
+      "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-accent-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
+    color: "var(--var-ui-color-background-app)",
+  },
 });
 
 export const eventsSection = styles.class("googlecalendarwidget-eventsSection", {
@@ -349,12 +331,6 @@ export const modalDetailIcon = styles.class("googlecalendarwidget-modalDetailIco
   color: "var(--var-ui-color-text-secondary)",
   flexShrink: "0",
   marginTop: "2px",
-});
-
-export const calendarHint = styles.class("googlecalendarwidget-calendarHint", {
-  fontSize: "0.6rem",
-  opacity: "0.4",
-  userSelect: "none",
 });
 
 export const deleteConfirmRow = styles.class("googlecalendarwidget-deleteConfirmRow", {

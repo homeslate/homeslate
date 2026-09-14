@@ -62,35 +62,17 @@ export const calendarWrap = styles.class("googlecalendarmonthwidget-calendarWrap
   justifyContent: "center",
 });
 
-export const calendarHeader = styles.class("googlecalendarmonthwidget-calendarHeader", {
+export const calendar = styles.class("googlecalendarmonthwidget-calendar", {
   color: "var(--var-ui-color-tone-accent-foreground)",
-  fontSize: "0.82rem",
-});
-
-export const dayCell = styles.class("googlecalendarmonthwidget-dayCell", {
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "column",
-  width: "100%",
-  height: "100%",
-  gap: "1px",
-});
-
-export const eventDots = styles.class("googlecalendarmonthwidget-eventDots", {
-  display: "flex",
-  gap: "2px",
-  position: "absolute",
-  bottom: "1px",
-  left: "50%",
-  transform: "translateX(-50%)",
-});
-
-export const eventDot = styles.class("googlecalendarmonthwidget-eventDot", {
-  width: "4px",
-  height: "4px",
-  borderRadius: "50%",
+  "& header": {
+    color: "var(--var-ui-color-tone-accent-foreground)",
+    fontSize: "0.82rem",
+  },
+  "& [data-selected] > *": {
+    background:
+      "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-accent-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
+    color: "var(--var-ui-color-background-app)",
+  },
 });
 
 export const dayPanel = styles.class("googlecalendarmonthwidget-dayPanel", {

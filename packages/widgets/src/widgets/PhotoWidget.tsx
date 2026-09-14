@@ -234,6 +234,7 @@ interface PhotoThumbGridProps {
 }
 
 function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
+  const portalContainer = useOverlayPortalContainer();
   const [thumbUrls, setThumbUrls] = useState<Map<string, string>>(new Map());
   const blobUrlsRef = useRef<Map<string, string>>(new Map());
 
@@ -295,7 +296,7 @@ function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
                 <Spinner size="sm" />
               </div>
             )}
-            <SimpleTooltip content="Remove photo" placement="top">
+            <SimpleTooltip content="Remove photo" placement="top" portalContainer={portalContainer}>
               <IconButton
                 name="close"
                 icon={<IconX size={10} />}

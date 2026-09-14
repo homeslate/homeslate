@@ -109,8 +109,8 @@ export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
     <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       <div className={classes.content}>
         {showCalendar && (
-          <div className={`${classes.calendarSection} ${classes.calendarHeader} ${classes.day}`}>
-            <Calendar aria-label="Month calendar" />
+          <div className={classes.calendarSection}>
+            <Calendar aria-label="Month calendar" className={classes.calendar} />
           </div>
         )}
         <div className={classes.eventsSection}>
@@ -181,7 +181,7 @@ export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
 }
 
 export function CalendarWidgetSettings({ widget, onConfigChange }: WidgetProps<CalendarConfig>) {
-  const { icalUrl, showWeekNumbers, maxEvents, daysAhead, showCalendar } = widget.config;
+  const { icalUrl, maxEvents, daysAhead, showCalendar } = widget.config;
   const [showHelp, setShowHelp] = useState(false);
 
   return (
@@ -246,15 +246,6 @@ export function CalendarWidgetSettings({ widget, onConfigChange }: WidgetProps<C
           aria-label="Show Calendar"
           isSelected={showCalendar}
           onChange={(value) => onConfigChange({ showCalendar: value })}
-        />
-      </HStack>
-
-      <HStack justify="between">
-        <Text size="sm">Show Week Numbers</Text>
-        <Switch
-          aria-label="Show Week Numbers"
-          isSelected={showWeekNumbers}
-          onChange={(value) => onConfigChange({ showWeekNumbers: value })}
         />
       </HStack>
 

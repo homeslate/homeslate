@@ -4,6 +4,7 @@ import {
   Time,
   parseDate,
   parseDateTime,
+  type DateValue,
 } from "@internationalized/date";
 
 function pad(value: number): string {
@@ -19,9 +20,9 @@ export function calendarDateFromIso(value: string): CalendarDate | null {
   }
 }
 
-export function isoFromCalendarDate(value: CalendarDate | null): string {
+export function isoFromCalendarDate(value: DateValue | null): string {
   if (!value) return "";
-  return value.toString();
+  return `${value.year}-${pad(value.month)}-${pad(value.day)}`;
 }
 
 export function dateTimeFromLocalInput(value: string): CalendarDateTime | null {

@@ -541,6 +541,7 @@ export function WidgetPanel(props: {
   widgetRegistry?: WidgetRegistryApi;
 }): JSX.Element {
   const { document, viewId, onChange, widgetRegistry } = props;
+  const portalContainer = useOverlayPortalContainer();
   const [collapsed, setCollapsed] = useState(false);
   const documentRef = useRef(document);
   // eslint-disable-next-line react-hooks/refs -- keeps the ref current for edits that land in the same tick
@@ -596,7 +597,12 @@ export function WidgetPanel(props: {
           {widgetTypes.map((widget) => {
             const Icon = widget.icon;
             return (
-              <SimpleTooltip key={widget.type} content={widget.name} placement="right">
+              <SimpleTooltip
+                key={widget.type}
+                content={widget.name}
+                placement="right"
+                portalContainer={portalContainer}
+              >
                 <button
                   type="button"
                   className={classes.iconOnly}

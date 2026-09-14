@@ -32,6 +32,18 @@ export const calendarSection = styles.class("calendarwidget-calendarSection", {
   },
 });
 
+export const calendar = styles.class("calendarwidget-calendar", {
+  color: "var(--var-ui-color-tone-accent-foreground)",
+  "& header": {
+    color: "var(--var-ui-color-tone-accent-foreground)",
+  },
+  "& [data-selected] > *": {
+    background:
+      "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-accent-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
+    color: "var(--var-ui-color-background-app)",
+  },
+});
+
 export const eventsSection = styles.class("calendarwidget-eventsSection", {
   flex: "1",
   minWidth: "0",
@@ -61,37 +73,6 @@ export const eventsList = styles.class("calendarwidget-eventsList", {
   flex: "1",
   overflowY: "auto",
   minHeight: "0",
-});
-
-export const calendarHeader = styles.class("calendarwidget-calendarHeader", {
-  color: "var(--var-ui-color-tone-accent-foreground)",
-});
-
-export const day = styles.class("calendarwidget-day", {
-  "&[data-selected]": {
-    background:
-      "linear-gradient(\n    135deg,\n    var(--var-ui-color-tone-accent-foreground) 0%,\n    var(--var-ui-color-tone-accent-foreground) 100%\n  )",
-  },
-});
-
-export const dayCell = styles.class("calendarwidget-dayCell", {
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  height: "100%",
-});
-
-export const eventDot = styles.class("calendarwidget-eventDot", {
-  position: "absolute",
-  bottom: "2px",
-  left: "50%",
-  transform: "translateX(-50%)",
-  width: "4px",
-  height: "4px",
-  borderRadius: "50%",
-  background: "var(--var-ui-color-tone-accent-foreground)",
 });
 
 export const eventCard = styles.class("calendarwidget-eventCard", {

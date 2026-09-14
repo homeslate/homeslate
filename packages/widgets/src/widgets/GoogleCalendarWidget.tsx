@@ -351,15 +351,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
       <div className={classes.content}>
         {showCalendar && (
           <div className={classes.calendarSection}>
-            <Calendar aria-label="Month calendar" />
-            <Text
-              size="sm"
-              tone="secondary"
-              style={{ textAlign: "center" }}
-              className={classes.calendarHint}
-            >
-              Hold a day to add event
-            </Text>
+            <Calendar aria-label="Month calendar" className={classes.calendar} />
           </div>
         )}
 
@@ -613,17 +605,59 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
                 autoFocus={formMode === "create"}
               />
 
-              <Select
-                label="Calendar"
-                placeholder="Select a calendar"
-                isRequired
-                options={calendarOptions}
-                selectedKey={formData.calendarId}
+              <Select.Root
+                selectedKey={formData.calendarId || null}
                 onSelectionChange={(v) =>
                   setFormData((d) => ({ ...d, calendarId: v == null ? "" : String(v) }))
                 }
-                portalContainer={portalContainer}
-              />
+                isRequired
+              >
+                <Select.Label>Calendar</Select.Label>
+                <Select.Trigger placeholder="Select a calendar">
+                  <Select.Value>
+                    {({ defaultChildren, isPlaceholder }) => {
+                      if (isPlaceholder) return "Select a calendar";
+                      const selected = calendarOptions.find((c) => c.id === formData.calendarId);
+                      return (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                          <span
+                            aria-hidden
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 999,
+                              background: selected?.color ?? "#4285f4",
+                              flexShrink: 0,
+                            }}
+                          />
+                          {selected?.label ?? defaultChildren}
+                        </span>
+                      );
+                    }}
+                  </Select.Value>
+                </Select.Trigger>
+                <Select.Popover portalContainer={portalContainer}>
+                  <Select.ListBox items={calendarOptions}>
+                    {(cal) => (
+                      <Select.Item id={cal.id} textValue={cal.label}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                          <span
+                            aria-hidden
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 999,
+                              background: cal.color,
+                              flexShrink: 0,
+                            }}
+                          />
+                          {cal.label}
+                        </span>
+                      </Select.Item>
+                    )}
+                  </Select.ListBox>
+                </Select.Popover>
+              </Select.Root>
 
               <TextField
                 label="Date"

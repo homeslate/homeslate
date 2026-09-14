@@ -21,6 +21,7 @@ import { useGooglePhotoCollage } from "../hooks/useGooglePhotoCollage";
 import { useGooglePhotos } from "../hooks/useGooglePhotos";
 import { useGoogleRuntime } from "../googleRuntime";
 import { loadStoredImage } from "../services/googlePhotos";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import type { StoredImage } from "../services/googlePhotos";
 import type { Photo, StoredPhoto } from "./PhotoWidget";
 import * as classes from "./GooglePhotoCollageWidget.styles";
@@ -315,6 +316,7 @@ interface PhotoThumbGridProps {
 }
 
 function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
+  const portalContainer = useOverlayPortalContainer();
   const [thumbUrls, setThumbUrls] = useState<Map<string, string>>(new Map());
   const blobUrlsRef = useRef<Map<string, string>>(new Map());
 
@@ -376,7 +378,7 @@ function PhotoThumbGrid({ photos, onRemove }: PhotoThumbGridProps) {
                 <Spinner size="sm" />
               </div>
             )}
-            <SimpleTooltip content="Remove photo" placement="top">
+            <SimpleTooltip content="Remove photo" placement="top" portalContainer={portalContainer}>
               <IconButton
                 name="close"
                 icon={<IconX size={10} />}
