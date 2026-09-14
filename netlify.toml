@@ -1,0 +1,8 @@
+[build]
+command = "pnpm --filter docs build"
+publish = "docs/dist"
+
+[build.environment]
+NODE_VERSION = "22"
+PNPM_VERSION = "10.11.1"
+ASTRO_TELEMETRY_DISABLED = "1"

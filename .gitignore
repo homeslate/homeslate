@@ -34,3 +34,6 @@ dist-ssr
 
 # Reference app local sqlite and tokens
 apps/reference/data
+
+# Astro
+docs/.astro

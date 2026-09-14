@@ -1,0 +1,34 @@
+---
+import DocsPage from '@var-ui/docs/DocsPage';
+import { defaultThemeClassName } from '@var-ui/core';
+import { docsSearchItems, docsSidebarSections } from '../data/navigation';
+
+const {
+  title = 'Homeslate',
+  contentWidth = 'default',
+  showToc: showTocProp,
+} = Astro.props as {
+  title?: string;
+  contentWidth?: 'default' | 'full';
+  showToc?: boolean;
+};
+---
+
+<DocsPage
+  title={title}
+  contentWidth={contentWidth}
+  showToc={showTocProp}
+  themeClassName={defaultThemeClassName}
+  topNav={[{ text: 'Docs', link: '/docs', match: '/docs' }]}
+  sidebarSections={docsSidebarSections}
+  searchItems={docsSearchItems}
+  brand={{ heading: 'Homeslate', href: '/' }}
+>
+  <slot name="head" slot="head" />
+  <slot name="toc" slot="toc" />
+  <slot />
+</DocsPage>
+
+<script>
+  import '../../typestyles-entry.ts';
+</script>
