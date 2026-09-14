@@ -27,11 +27,11 @@ This is a development setup: the Hono server serves `/api` only, and Vite serves
 Copy this when wrapping `@homeslate/editor` and `@homeslate/display` in another app (including hosted). One extract, one provider tree, one copy of VarUI CSS.
 
 1. Depend on `@homeslate/editor`, `@homeslate/display`, and `@homeslate/widgets` (they pull `@var-ui/react` and `@var-ui/core`).
-2. In the TypeStyles extract entry, import `@var-ui/core/styles` **before** `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`.
+2. In the TypeStyles extract entry, register VarUI CSS **before** `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`. Prefer `@var-ui/core/styles` once that export is non-empty; on `@var-ui/core@0.1.0` import `@var-ui/core/register-default-theme`, `@var-ui/core/base-styles`, and the other core style subpaths instead (the published `styles` file is an empty module).
 3. Wrap the root tree in `DesignSystemProvider` with `applyToDocument` on full-page host routes, plus `IconProvider` (`defaultIcons` from `@var-ui/icons`) and `LayerProvider` as in the VarUI Vite example. Install VarUI peer dependencies npm warns about (`react-aria-components` and `@internationalized/date`) so the host does not rely on accidental hoisting.
 4. `Editor` and `Display` nest their own `DesignSystemProvider` with the compiled theme and controlled `colorMode`. They do not set `document.documentElement` (no `applyToDocument`).
 5. Themed-subtree overlays pass `portalContainer` so portaled UI stays on the nested theme.
-6. Do not also import `@var-ui/core/styles` from a JS entry if the extract entry already registered it.
+6. The host JS entry should import `@var-ui/core/register-default-theme` (and `base-styles`) so Vite dev injects theme tokens even when extract and the client are separate TypeStyles runs. Skip a second `@var-ui/core/styles` import only after that published file actually registers CSS.
 7. Keep `@typestyles/vite`. Skipping the plugin still styles the UI via TypeStyles runtime injection.
 
 ## Typecheck

@@ -11,4 +11,9 @@ describe("reference Vite entry", () => {
     const source = readFileSync(new URL("./main.tsx", import.meta.url), "utf8");
     expect(source).toMatch(/DesignSystemProvider/);
   });
+
+  it("registers the default VarUI theme in the client bundle", () => {
+    const source = readFileSync(new URL("./main.tsx", import.meta.url), "utf8");
+    expect(source).toContain("@var-ui/core/register-default-theme");
+  });
 });

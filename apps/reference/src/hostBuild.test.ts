@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vite-plus/test";
+import { getRegisteredCss, reset } from "typestyles";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 
 /** tsconfig files are JSONC, so drop comments before parsing. */
 function readJson<T>(relativePath: string): T {
@@ -10,6 +11,10 @@ function readJson<T>(relativePath: string): T {
     .replace(/^\s*\/\/.*$/gm, "");
   return JSON.parse(source) as T;
 }
+
+afterEach(() => {
+  reset();
+});
 
 describe("reference app build boundary", () => {
   it("uses package-only root tsconfig.app.json (reference has its own solution)", () => {
@@ -62,10 +67,18 @@ describe("reference app build boundary", () => {
     expect(viteConfig).toContain("@typestyles/vite");
 
     const entry = readFileSync(new URL("../typestyles-entry.ts", import.meta.url), "utf8");
-    expect(entry).toContain("@var-ui/core/styles");
+    expect(entry).toContain("@var-ui/core/register-default-theme");
     expect(entry).toContain("@homeslate/widgets/styles");
     expect(entry).toContain("@homeslate/display/styles");
     expect(entry).toContain("@homeslate/editor/styles");
+  });
+
+  it("registers the default VarUI theme surface from the extract entry", async () => {
+    reset();
+    await import("../typestyles-entry");
+    const css = getRegisteredCss();
+    expect(css).toContain(".theme-var-ui-default");
+    expect(css).toMatch(/--var-ui-color-background-app:\s*light-dark\(/);
   });
 
   it("pins TypeStyles ^0.23.1 on widgets, display, editor, and the reference app", () => {
