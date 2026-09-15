@@ -608,6 +608,7 @@ export function WidgetPanel(props: {
                   size="sm"
                   aria-label={widget.name}
                   className={classes.iconOnly}
+                  style={{ height: 36, minHeight: 36, width: 36, padding: 0 }}
                   onPress={() => handleAddWidget(widget.type)}
                 >
                   <Icon size={20} />
@@ -630,17 +631,23 @@ export function WidgetPanel(props: {
                   size="sm"
                   key={widget.type}
                   className={classes.widgetRow}
-                  style={{ height: "auto", minHeight: 0, justifyContent: "flex-start" }}
+                  style={{
+                    height: "auto",
+                    minHeight: 0,
+                    justifyContent: "flex-start",
+                    padding: "8px 6px",
+                    gap: 12,
+                  }}
                   onPress={() => handleAddWidget(widget.type)}
                 >
                   <div className={classes.widgetIcon}>
                     <Icon size={20} />
                   </div>
                   <div className={classes.widgetCopy}>
-                    <Text size="md" weight="medium">
+                    <Text as="span" size="md" weight="medium">
                       {widget.name}
                     </Text>
-                    <Text size="sm" tone="secondary" lineClamp={1}>
+                    <Text as="span" size="sm" tone="secondary" lineClamp={1}>
                       {widget.description}
                     </Text>
                   </div>

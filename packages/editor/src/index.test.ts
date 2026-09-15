@@ -48,6 +48,8 @@ describe("@homeslate/editor", () => {
     expect(list).toMatch(/<Button[\s\S]{0,200}className=\{classes\.widgetRow\}/);
     expect(list).toMatch(/<Button[\s\S]{0,200}className=\{classes\.iconOnly\}/);
     expect(list).toMatch(/height:\s*["']auto["']/);
+    expect(list).toMatch(/className=\{classes\.iconOnly\}[\s\S]{0,180}height:\s*36/);
+    expect(list).toMatch(/as="span"/);
     expect(list).not.toMatch(/<button\b/);
   });
 
