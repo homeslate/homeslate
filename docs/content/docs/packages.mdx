@@ -1,15 +1,49 @@
 ---
 title: Packages
-description: Published @homeslate/* packages.
+description: Published @homeslate/* packages, usage guides, and the host contract.
 ---
 
 # Packages
 
-Published on npm as `@homeslate/*`:
+Published on npm as `@homeslate/*`. Each package has a usage guide and a generated API page.
 
-- `@homeslate/schema`
-- `@homeslate/google`
-- `@homeslate/widgets`
-- `@homeslate/editor`
-- `@homeslate/display`
-- `@homeslate/adapters`
+- [`@homeslate/schema`](/docs/packages/schema) — Zod types and validation for display documents. [API](/docs/api/schema)
+- [`@homeslate/google`](/docs/packages/google) — OAuth token exchange plus Calendar and Photos helpers. [API](/docs/api/google)
+- [`@homeslate/widgets`](/docs/packages/widgets) — Built-in glanceable widgets and host-facing providers. [API](/docs/api/widgets), [`/schemas`](/docs/api/widgets/schemas), [`/server`](/docs/api/widgets/server)
+- [`@homeslate/editor`](/docs/packages/editor) — Canvas editor for a display document. [API](/docs/api/editor)
+- [`@homeslate/display`](/docs/packages/display) — Kiosk surface: rotation, alarms, holidays, canvas. [API](/docs/api/display), [`/canvas`](/docs/api/display/canvas)
+- [`@homeslate/adapters`](/docs/packages/adapters) — Node sqlite and file stores. [API](/docs/api/adapters)
+
+## Host contract
+
+Copy this when wrapping `@homeslate/editor` and `@homeslate/display` in another app. One extract, one provider tree, one copy of VarUI CSS.
+
+Wrap the page in providers:
+
+```tsx
+import { DesignSystemProvider, IconProvider, LayerProvider } from "@var-ui/react";
+import { defaultIcons } from "@var-ui/icons";
+
+<DesignSystemProvider applyToDocument>
+  <IconProvider icons={defaultIcons}>
+    <LayerProvider>
+      <App />
+    </LayerProvider>
+  </IconProvider>
+</DesignSystemProvider>
+```
+
+Install VarUI peers `react-aria-components` and `@internationalized/date`. In the TypeStyles extract entry, import VarUI CSS **before** `@homeslate/widgets/styles`, `@homeslate/display/styles`, and `@homeslate/editor/styles`:
+
+```ts
+import "@var-ui/core/styles";
+import "@homeslate/widgets/styles";
+import "@homeslate/display/styles";
+import "@homeslate/editor/styles";
+```
+
+`Editor` and `Display` nest their own `DesignSystemProvider` with the compiled display theme. Do not call `applyToDocument` there.
+
+On `@var-ui/core@0.1.0` the published `styles` file is empty. Import `@var-ui/core/register-default-theme`, `@var-ui/core/base-styles`, and the other core style subpaths instead — see the [reference extract entry](https://github.com/homeslate/homeslate/blob/main/apps/reference/typestyles-entry.ts).
+
+The full eight-step list is in the [reference README](https://github.com/homeslate/homeslate/blob/main/apps/reference/README.md).

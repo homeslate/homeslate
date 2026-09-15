@@ -1,0 +1,43 @@
+---
+title: "@homeslate/display"
+description: Kiosk surface for a DisplayDocument — view rotation, alarms, holidays, and the widget canvas.
+---
+
+# @homeslate/display
+
+Kiosk surface for a `DisplayDocument`: view rotation, alarms, holidays, and the widget canvas.
+
+## Install
+
+```bash
+pnpm add @homeslate/display
+```
+
+Peers: `react` and `react-dom` ^19. Install VarUI peers `react-aria-components` and `@internationalized/date`. The host still imports `./styles` from `@homeslate/widgets` and this package.
+
+## Usage
+
+```tsx
+import { Display } from "@homeslate/display";
+import type { DisplayDocument } from "@homeslate/schema";
+
+function Kiosk({
+  document,
+  setDocument,
+}: {
+  document: DisplayDocument;
+  setDocument: (next: DisplayDocument) => void;
+}) {
+  return <Display document={document} onChange={setDocument} />;
+}
+```
+
+`onChange` is optional; pass it when the kiosk should persist widget or sticky-note edits. `Display` nests its own `DesignSystemProvider` with the compiled display theme. Do not call `applyToDocument` there. See the [host contract](/docs/packages) for the provider tree and CSS extract order.
+
+`@homeslate/display/canvas` exports `DocumentCanvas`, theme helpers, and document patch functions (the editor uses this subpath).
+
+## See also
+
+- [API](/docs/api/display) · [`/canvas`](/docs/api/display/canvas)
+- [`@homeslate/editor`](/docs/packages/editor) — layout editor
+- [`@homeslate/widgets`](/docs/packages/widgets) — `GoogleRuntimeProvider`
