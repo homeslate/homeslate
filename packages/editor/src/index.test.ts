@@ -74,6 +74,14 @@ describe("@homeslate/editor", () => {
     expect(source).not.toMatch(/x:\s*0,\s*\n\s*y:\s*0,/);
   });
 
+  it("opens ThemeEditor from editor chrome and writes themes onto the document", () => {
+    const source = readFileSync(new URL("./Editor.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/ThemeEditor/);
+    expect(source).toMatch(/>\s*Themes\s*</);
+    expect(source).toMatch(/activeThemeId/);
+    expect(source).toMatch(/setThemesOpen/);
+  });
+
   it("exports ThemeEditor", async () => {
     const { ThemeEditor } = await import("@homeslate/editor");
     expect(typeof ThemeEditor).toBe("function");
