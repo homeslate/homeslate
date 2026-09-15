@@ -33,6 +33,7 @@ Copy this when wrapping `@homeslate/editor` and `@homeslate/display` in another 
 5. Themed-subtree overlays pass `portalContainer` so portaled UI stays on the nested theme.
 6. The host JS entry should import `@var-ui/core/register-default-theme` (and `base-styles`) so Vite dev injects theme tokens even when extract and the client are separate TypeStyles runs. Skip a second `@var-ui/core/styles` import only after that published file actually registers CSS.
 7. Keep `@typestyles/vite`. Skipping the plugin still styles the UI via TypeStyles runtime injection.
+8. Load the webfonts named in display theme documents (reference uses Google Fonts for the preset families). Token stacks like `'Outfit', 'Inter', sans-serif` only render those faces if the host provides the files.
 
 ## Typecheck
 

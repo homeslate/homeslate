@@ -44,6 +44,14 @@ describe("reference web host", () => {
     expect(source).toMatch(/if \(!response\.ok\)/);
   });
 
+  it("keeps editor host chrome as links, not TopNav tab items", () => {
+    const source = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/<Link href="\/">Displays<\/Link>/);
+    expect(source).toMatch(/<Heading level=\{4\}>\{record\.document\.name\}<\/Heading>/);
+    expect(source).toMatch(/<Link href=\{`\/d\/\$\{record\.publicId\}`\}>Open kiosk<\/Link>/);
+    expect(source).not.toMatch(/TopNav\.Item/);
+  });
+
   it("surfaces editor and kiosk save failures instead of swallowing them", () => {
     const source = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
     expect(source.match(/setSaveError\(errorMessage\(cause\)\)/g)).toHaveLength(2);

@@ -35,6 +35,24 @@ describe("@homeslate/editor", () => {
     expect(source).toMatch(/getCanvasBackgroundStyle/);
   });
 
+  it("keeps editor chrome actions as small subtle buttons", () => {
+    const source = readFileSync(new URL("./Editor.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/appearance="subtle"/);
+    expect(source).toMatch(/size="sm"/);
+    expect(source).toMatch(/Background Settings/);
+  });
+
+  it("adds widgets with VarUI ghost buttons instead of raw button elements", () => {
+    const source = readFileSync(new URL("./WidgetPanel.tsx", import.meta.url), "utf8");
+    const list = source.slice(source.indexOf("export function WidgetPanel"));
+    expect(list).toMatch(/<Button[\s\S]{0,200}className=\{classes\.widgetRow\}/);
+    expect(list).toMatch(/<Button[\s\S]{0,200}className=\{classes\.iconOnly\}/);
+    expect(list).toMatch(/height:\s*["']auto["']/);
+    expect(list).toMatch(/className=\{classes\.iconOnly\}[\s\S]{0,180}height:\s*36/);
+    expect(list).toMatch(/as="span"/);
+    expect(list).not.toMatch(/<button\b/);
+  });
+
   it("WidgetPanel source does not import hosted auth, api, or store", () => {
     const source = readFileSync(new URL("./WidgetPanel.tsx", import.meta.url), "utf8");
     expect(source).not.toMatch(/AuthContext/);
