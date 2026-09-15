@@ -62,6 +62,13 @@ describe("reference app build boundary", () => {
     expect(orchestrator).toMatch(/dev:web/);
   });
 
+  it("loads the theme preset webfonts the compiled display theme names", () => {
+    const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+    expect(html).toContain("fonts.googleapis.com");
+    expect(html).toContain("Outfit");
+    expect(html).toContain("Space+Grotesk");
+  });
+
   it("extracts TypeStyles from the published package style entries", () => {
     const viteConfig = readFileSync(new URL("../vite.config.ts", import.meta.url), "utf8");
     expect(viteConfig).toContain("@typestyles/vite");

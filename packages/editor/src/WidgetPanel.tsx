@@ -603,44 +603,48 @@ export function WidgetPanel(props: {
                 placement="right"
                 portalContainer={portalContainer}
               >
-                <button
-                  type="button"
+                <Button
+                  appearance="ghost"
+                  size="sm"
+                  aria-label={widget.name}
                   className={classes.iconOnly}
-                  onClick={() => handleAddWidget(widget.type)}
+                  onPress={() => handleAddWidget(widget.type)}
                 >
                   <Icon size={20} />
-                </button>
+                </Button>
               </SimpleTooltip>
             );
           })}
         </Stack>
       ) : (
         <div className={classes.content}>
-          <Text size="xs" weight="semibold" tone="secondary" className={classes.panelTitle}>
+          <Text size="sm" weight="semibold" tone="secondary" className={classes.panelTitle}>
             ADD WIDGETS
           </Text>
-          <Stack gap="xs">
+          <Stack gap="md">
             {widgetTypes.map((widget) => {
               const Icon = widget.icon;
               return (
-                <button
-                  type="button"
+                <Button
+                  appearance="ghost"
+                  size="sm"
                   key={widget.type}
                   className={classes.widgetRow}
-                  onClick={() => handleAddWidget(widget.type)}
+                  style={{ height: "auto", minHeight: 0, justifyContent: "flex-start" }}
+                  onPress={() => handleAddWidget(widget.type)}
                 >
                   <div className={classes.widgetIcon}>
-                    <Icon size={18} />
+                    <Icon size={20} />
                   </div>
-                  <div>
-                    <Text size="sm" weight="medium">
+                  <div className={classes.widgetCopy}>
+                    <Text size="md" weight="medium">
                       {widget.name}
                     </Text>
-                    <Text size="xs" tone="secondary" lineClamp={1}>
+                    <Text size="sm" tone="secondary" lineClamp={1}>
                       {widget.description}
                     </Text>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </Stack>

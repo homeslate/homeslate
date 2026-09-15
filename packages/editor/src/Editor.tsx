@@ -160,11 +160,11 @@ export function Editor(props: EditorProps): JSX.Element {
         <div ref={rootRef} className={classes.root}>
           <div className={classes.pageActions}>
             <HStack gap="sm">
-              <Button appearance="outline" onPress={() => setBgSettingsOpen(true)}>
+              <Button appearance="subtle" size="sm" onPress={() => setBgSettingsOpen(true)}>
                 <IconSettings size={16} />
                 Background Settings
               </Button>
-              <Button appearance="outline" onPress={() => setHouseholdOpen(true)}>
+              <Button appearance="subtle" size="sm" onPress={() => setHouseholdOpen(true)}>
                 <IconUsers size={16} />
                 Household
               </Button>
