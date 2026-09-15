@@ -1,0 +1,44 @@
+---
+title: "@homeslate/editor"
+description: Canvas editor for a DisplayDocument — layout, widget settings, household, and theme.
+---
+
+# @homeslate/editor
+
+Canvas editor for a `DisplayDocument`: layout, widget settings, household, and theme.
+
+## Install
+
+```bash
+pnpm add @homeslate/editor
+```
+
+Peers: `react` and `react-dom` ^19. Install VarUI peers `react-aria-components` and `@internationalized/date`. The host still imports `./styles` from `@homeslate/widgets`, `@homeslate/display`, and this package.
+
+## Usage
+
+```tsx
+import { Editor } from "@homeslate/editor";
+import type { DisplayDocument } from "@homeslate/schema";
+
+function EditView({
+  document,
+  setDocument,
+}: {
+  document: DisplayDocument;
+  setDocument: (next: DisplayDocument) => void;
+}) {
+  const viewId = document.activeViewId ?? document.views[0].id;
+  return <Editor document={document} viewId={viewId} onChange={setDocument} />;
+}
+```
+
+`Editor` nests its own `DesignSystemProvider` with the compiled display theme. Do not call `applyToDocument` there. See the [host contract](/docs/packages) for the provider tree and CSS extract order.
+
+Also exported: `WidgetPanel`, `BgSettings`, `ThemeEditor`.
+
+## See also
+
+- [API](/docs/api/editor)
+- [`@homeslate/display`](/docs/packages/display) — kiosk surface
+- [`@homeslate/widgets`](/docs/packages/widgets) — `GoogleRuntimeProvider`

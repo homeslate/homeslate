@@ -1,0 +1,69 @@
+# @homeslate/widgets
+
+Built-in glanceable widgets, the widget registry, and host-facing providers (Google, household, alarms, timers).
+
+Importing `@homeslate/widgets` registers the built-ins as a side effect.
+
+## Install
+
+```bash
+pnpm add @homeslate/widgets
+```
+
+Peers: `react` and `react-dom` ^19.
+
+## Usage
+
+Wrap editor/kiosk trees with a `GoogleRuntime` so calendar and photos widgets can sign in:
+
+```tsx
+import { GoogleRuntimeProvider, type GoogleRuntime } from "@homeslate/widgets";
+import type { ReactNode } from "react";
+
+function HostGoogleRuntime({
+  accessToken,
+  displayId,
+  refreshAccessToken,
+  children,
+}: {
+  accessToken: string | null;
+  displayId: string | null;
+  refreshAccessToken: () => Promise<string | null>;
+  children: ReactNode;
+}) {
+  const value: GoogleRuntime = {
+    accessToken,
+    isAuthenticated: Boolean(accessToken),
+    isLoading: false,
+    signIn: () => {
+      window.location.href = "/api/google/connect";
+    },
+    refreshAccessToken,
+    displayId,
+    isPreview: false,
+    kioskFetchBaseUrl: "/api",
+  };
+  return <GoogleRuntimeProvider value={value}>{children}</GoogleRuntimeProvider>;
+}
+```
+
+Custom widgets: `registerWidget({ type, name, description, icon, component, defaultConfig, defaultLayout, configSchema })`.
+
+## Subpaths
+
+| Export                       | Role                                                        |
+| ---------------------------- | ----------------------------------------------------------- |
+| `@homeslate/widgets`         | React registry + providers (registers built-ins)            |
+| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                 |
+| `@homeslate/widgets/server`  | Commute query parsing, NWS alert mapping, Google error copy |
+| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS           |
+
+## Host styles
+
+Import `@homeslate/widgets/styles` from the TypeStyles extract entry, after VarUI, before `@homeslate/display/styles` and `@homeslate/editor/styles`. The editor and display READMEs have the provider tree; the [reference host contract](https://github.com/homeslate/homeslate/blob/main/apps/reference/README.md) has the full list.
+
+## See also
+
+- [`@homeslate/editor`](https://www.npmjs.com/package/@homeslate/editor)
+- [`@homeslate/display`](https://www.npmjs.com/package/@homeslate/display)
+- [`@homeslate/schema`](https://www.npmjs.com/package/@homeslate/schema)
