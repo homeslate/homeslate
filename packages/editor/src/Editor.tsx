@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX, type ReactNode } from "react";
 import { Button, DesignSystemProvider, Dialog, HStack, Stack } from "@var-ui/react";
-import { IconSettings, IconUsers } from "@tabler/icons-react";
+import { IconPalette, IconSettings, IconUsers } from "@tabler/icons-react";
 import type { DisplayDocument, StickyNote, ThemeDocument, ViewBackground } from "@homeslate/schema";
 import {
   AlarmsProvider,
@@ -25,6 +25,7 @@ import {
   type WidgetRegistryApi,
 } from "@homeslate/display/canvas";
 import { BgSettings, WidgetPanel } from "./WidgetPanel";
+import { ThemeEditor } from "./ThemeEditor";
 import * as classes from "./Editor.styles";
 
 const DEFAULT_WIDGET_REGISTRY: WidgetRegistryApi = { getWidgetByType, getWidgetTypes };
@@ -53,6 +54,7 @@ export function Editor(props: EditorProps): JSX.Element {
   } = props;
   const [bgSettingsOpen, setBgSettingsOpen] = useState(false);
   const [householdOpen, setHouseholdOpen] = useState(false);
+  const [themesOpen, setThemesOpen] = useState(false);
   const documentRef = useRef(document);
   // eslint-disable-next-line react-hooks/refs -- keeps the ref current for edits that land in the same tick
   documentRef.current = document;
@@ -160,58 +162,84 @@ export function Editor(props: EditorProps): JSX.Element {
         <div ref={rootRef} className={classes.root}>
           <div className={classes.pageActions}>
             <HStack gap="sm">
-              <Button appearance="subtle" size="sm" onPress={() => setBgSettingsOpen(true)}>
-                <IconSettings size={16} />
-                Background Settings
-              </Button>
-              <Button appearance="subtle" size="sm" onPress={() => setHouseholdOpen(true)}>
-                <IconUsers size={16} />
-                Household
-              </Button>
-              {actions}
+              {themesOpen ? (
+                <Button appearance="subtle" size="sm" onPress={() => setThemesOpen(false)}>
+                  Done
+                </Button>
+              ) : (
+                <>
+                  <Button appearance="subtle" size="sm" onPress={() => setBgSettingsOpen(true)}>
+                    <IconSettings size={16} />
+                    Background Settings
+                  </Button>
+                  <Button appearance="subtle" size="sm" onPress={() => setHouseholdOpen(true)}>
+                    <IconUsers size={16} />
+                    Household
+                  </Button>
+                  <Button appearance="subtle" size="sm" onPress={() => setThemesOpen(true)}>
+                    <IconPalette size={16} />
+                    Themes
+                  </Button>
+                  {actions}
+                </>
+              )}
             </HStack>
           </div>
 
-          <div className={classes.body}>
-            <WidgetPanel
-              document={document}
-              viewId={viewId}
-              onChange={emit}
-              widgetRegistry={widgetRegistry}
-            />
-            <main className={classes.main} style={canvasBackground}>
-              {view && <BackgroundSlideshow view={view} />}
-              <TimersProvider>
-                <HouseholdProvider
-                  members={document.household?.members ?? []}
-                  onMembersChange={(members) =>
-                    emit({ ...documentRef.current, household: { members } })
-                  }
-                >
-                  <AlarmsProvider
-                    alarms={document.alarms ?? []}
-                    onAlarmsChange={(next) => emit({ ...documentRef.current, alarms: next })}
+          {themesOpen ? (
+            <div className={classes.body}>
+              <ThemeEditor
+                documents={document.themes as ThemeDocument[]}
+                activeThemeDocumentId={document.activeThemeId}
+                previewViews={document.views}
+                initialPreviewViewId={viewId}
+                onChange={(themes, activeThemeId) =>
+                  emit({ ...documentRef.current, themes, activeThemeId })
+                }
+              />
+            </div>
+          ) : (
+            <div className={classes.body}>
+              <WidgetPanel
+                document={document}
+                viewId={viewId}
+                onChange={emit}
+                widgetRegistry={widgetRegistry}
+              />
+              <main className={classes.main} style={canvasBackground}>
+                {view && <BackgroundSlideshow view={view} />}
+                <TimersProvider>
+                  <HouseholdProvider
+                    members={document.household?.members ?? []}
+                    onMembersChange={(members) =>
+                      emit({ ...documentRef.current, household: { members } })
+                    }
                   >
-                    {view && (
-                      <DocumentCanvas
-                        view={view}
-                        isEditing
-                        stickyNotesEnabled={document.settings.stickyNotesEnabled ?? false}
-                        widgetRegistry={widgetRegistry}
-                        portalContainer={portalContainer}
-                        onLayoutChange={handleLayoutChange}
-                        onWidgetConfigChange={handleWidgetConfigChange}
-                        onRemoveWidget={handleRemoveWidget}
-                        onAddNote={handleAddNote}
-                        onRemoveNote={handleRemoveNote}
-                        onUpdateNote={handleUpdateNote}
-                      />
-                    )}
-                  </AlarmsProvider>
-                </HouseholdProvider>
-              </TimersProvider>
-            </main>
-          </div>
+                    <AlarmsProvider
+                      alarms={document.alarms ?? []}
+                      onAlarmsChange={(next) => emit({ ...documentRef.current, alarms: next })}
+                    >
+                      {view && (
+                        <DocumentCanvas
+                          view={view}
+                          isEditing
+                          stickyNotesEnabled={document.settings.stickyNotesEnabled ?? false}
+                          widgetRegistry={widgetRegistry}
+                          portalContainer={portalContainer}
+                          onLayoutChange={handleLayoutChange}
+                          onWidgetConfigChange={handleWidgetConfigChange}
+                          onRemoveWidget={handleRemoveWidget}
+                          onAddNote={handleAddNote}
+                          onRemoveNote={handleRemoveNote}
+                          onUpdateNote={handleUpdateNote}
+                        />
+                      )}
+                    </AlarmsProvider>
+                  </HouseholdProvider>
+                </TimersProvider>
+              </main>
+            </div>
+          )}
           <Dialog.Root
             isOpen={householdOpen}
             onOpenChange={(isOpen) => {
