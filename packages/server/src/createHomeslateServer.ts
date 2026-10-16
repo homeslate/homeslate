@@ -28,35 +28,38 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { estimateCommute } from "./commute";
 import { fetchWeatherAlerts, parseWeatherAlertPoint } from "./weatherAlerts";
 import {
-  DEFAULT_REFERENCE_PUBLIC_BASE_URL,
+  DEFAULT_PUBLIC_BASE_URL,
   GOOGLE_OAUTH_STATE_COOKIE,
   GOOGLE_OAUTH_STATE_MAX_AGE_S,
   createOAuthState,
   googleAuthorizationUrl,
   googleRedirectUri,
   isMatchingOAuthState,
-} from "./google";
-import { referenceDatabasePath, referenceTokensPath } from "./paths";
+} from "./oauth";
+import { homeslateDatabasePath, homeslateTokensPath } from "./paths";
 import { createTtlCache } from "./ttlCache";
+import type { HomeslateServerOptions } from "./types";
 
-export const REFERENCE_LOCAL_ACCOUNT_ID = "local";
+/** Single-tenant account id. One display owner per host. */
+export const LOCAL_ACCOUNT_ID = "local";
 
-export type ReferenceAppOptions = {
-  dataDir: string;
-  googleClientId?: string;
-  googleClientSecret?: string;
-  publicBaseUrl?: string;
-  openRouteServiceApiKey?: string;
-};
-
-export function createReferenceApp(opts: ReferenceAppOptions): Hono {
-  const database = openSqlite(referenceDatabasePath(opts.dataDir));
-  const displays = new SqliteDisplayStore({ database });
+/**
+ * Build the homeslate Hono API: display CRUD, the public kiosk route, the
+ * Google OAuth routes, and the calendar / commute / weather-alerts proxies.
+ *
+ * Pair it with your own runtime, or use `startHomeslateServer` for the
+ * batteries-included Node server.
+ */
+export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
+  const database = openSqlite(homeslateDatabasePath(opts.dataDir));
+  const displays = opts.displayStore ?? new SqliteDisplayStore({ database });
   const bindings = new SqliteGoogleBindingStore({ database });
-  const tokenStore = new FileTokenStore({ dir: referenceTokensPath(opts.dataDir) });
-  const googleClientId = opts.googleClientId?.trim() ?? "";
-  const googleClientSecret = opts.googleClientSecret?.trim() ?? "";
-  const publicBaseUrl = opts.publicBaseUrl ?? DEFAULT_REFERENCE_PUBLIC_BASE_URL;
+  const tokenStore =
+    opts.tokenStore ?? new FileTokenStore({ dir: homeslateTokensPath(opts.dataDir) });
+  const accountId = opts.accountId?.trim() || LOCAL_ACCOUNT_ID;
+  const googleClientId = opts.google?.clientId?.trim() ?? "";
+  const googleClientSecret = opts.google?.clientSecret?.trim() ?? "";
+  const publicBaseUrl = opts.publicBaseUrl ?? DEFAULT_PUBLIC_BASE_URL;
   const redirectUri = googleRedirectUri(publicBaseUrl);
   const google: GoogleClient | null =
     googleClientId && googleClientSecret
@@ -121,7 +124,7 @@ export function createReferenceApp(opts: ReferenceAppOptions): Hono {
       const rawBody = await optionalJsonBody(c.req.raw);
       const document = assertValidDisplayDocument(rawBody.document ?? createEmptyDisplayDocument());
       const record = await displays.create(document);
-      await bindings.setAccountIdForDisplay(record.id, REFERENCE_LOCAL_ACCOUNT_ID);
+      await bindings.setAccountIdForDisplay(record.id, accountId);
       return c.json(record, 201);
     } catch (error) {
       return documentWriteError(c, error);
@@ -198,13 +201,13 @@ export function createReferenceApp(opts: ReferenceAppOptions): Hono {
       .filter(Boolean);
     if (calendarIds.length === 0) return c.json({ events: [], calendars: [] });
 
-    const accountId = await bindings.getAccountIdForDisplay(record.id);
-    if (!google || !accountId) return c.json(emptyCalendarPayload());
+    const ownerAccountId = await bindings.getAccountIdForDisplay(record.id);
+    if (!google || !ownerAccountId) return c.json(emptyCalendarPayload());
 
     try {
       const { timeMin, timeMax } = displayCalendarWindow(daysAhead, daysBack);
-      const calendars = await google.listCalendars(accountId);
-      const events = await google.listEvents(accountId, {
+      const calendars = await google.listCalendars(ownerAccountId);
+      const events = await google.listEvents(ownerAccountId, {
         calendarIds,
         timeMin: timeMin.toISOString(),
         timeMax: timeMax.toISOString(),
@@ -259,14 +262,14 @@ export function createReferenceApp(opts: ReferenceAppOptions): Hono {
     }
     const code = c.req.query("code");
     if (!code) return c.json({ error: "Missing code", reason: "missing_code" }, 400);
-    await google.exchangeAuthCode(REFERENCE_LOCAL_ACCOUNT_ID, code, redirectUri);
+    await google.exchangeAuthCode(accountId, code, redirectUri);
     return c.redirect("/");
   });
 
   app.get("/api/google/session", async (c) => {
     if (!google) return c.json({ accessToken: null });
     try {
-      const accessToken = await google.getAccessToken(REFERENCE_LOCAL_ACCOUNT_ID);
+      const accessToken = await google.getAccessToken(accountId);
       return c.json({ accessToken });
     } catch {
       return c.json({ accessToken: null });

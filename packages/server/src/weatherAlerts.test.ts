@@ -2,8 +2,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
-import fixture from "../../../../packages/widgets/src/widgets/weatherAlerts.fixture.json" with { type: "json" };
-import { createReferenceApp } from "./app";
+import fixture from "../../widgets/src/widgets/weatherAlerts.fixture.json" with { type: "json" };
+import { createHomeslateServer } from "./createHomeslateServer";
 
 const originalFetch = globalThis.fetch;
 
@@ -23,7 +23,7 @@ describe("GET /api/weather/alerts", () => {
 
   async function app() {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
-    return createReferenceApp({ dataDir });
+    return createHomeslateServer({ dataDir });
   }
 
   it("returns 400 when lat or lon is missing or out of range", async () => {

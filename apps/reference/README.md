@@ -4,6 +4,12 @@ Clone-and-run editor + kiosk for a single local machine. Requires **Node 22.13+*
 
 There are no accounts, Stripe, or quotas. Persistence is a sqlite file under `apps/reference/data`.
 
+The reference app is a thin consumer of the published packages:
+`@homeslate/server` runs the API (`src/server/listen.ts`) and
+`@homeslate/host-react` mounts the routed web shell (`src/web/main.tsx`). To
+depend on the packages from your own app instead of cloning this repo, see the
+[self-hosting guide](../docs/content/docs/self-hosting.mdx).
+
 ## Run
 
 From the repository root:

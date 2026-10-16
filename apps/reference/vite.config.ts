@@ -51,6 +51,9 @@ export default defineConfig({
       "@homeslate/adapters": fileURLToPath(
         new URL("../../packages/adapters/src/index.ts", import.meta.url),
       ),
+      "@homeslate/host-react": fileURLToPath(
+        new URL("../../packages/host-react/src/index.ts", import.meta.url),
+      ),
     },
   },
   server: {

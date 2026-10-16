@@ -13,10 +13,14 @@ Published on npm as `@homeslate/*`. Each package has a usage guide and a generat
 - [`@homeslate/editor`](/docs/packages/editor) — Canvas editor for a display document. [API](/docs/api/editor)
 - [`@homeslate/display`](/docs/packages/display) — Kiosk surface: rotation, alarms, holidays, canvas. [API](/docs/api/display), [`/canvas`](/docs/api/display/canvas)
 - [`@homeslate/adapters`](/docs/packages/adapters) — Node sqlite and file stores. [API](/docs/api/adapters)
+- [`@homeslate/server`](/docs/packages/server) — the Hono API: displays, Google OAuth, data proxies. [API](/docs/api/server)
+- [`@homeslate/host-react`](/docs/packages/host-react) — the routed web shell over the editor and kiosk. [API](/docs/api/host-react)
 
 ## Host contract
 
 Copy this when wrapping `@homeslate/editor` and `@homeslate/display` in another app. One extract, one provider tree, one copy of VarUI CSS.
+
+You can skip the hand-wiring: [`@homeslate/host-react`](/docs/packages/host-react) implements this tree and mounts the routed app, and [`@homeslate/server`](/docs/packages/server) implements the API. See [Self-hosting](/docs/self-hosting).
 
 Wrap the page in providers:
 

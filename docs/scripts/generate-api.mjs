@@ -75,6 +75,20 @@ const ENTRIES = [
     title: "@homeslate/adapters",
     description: "Public API for @homeslate/adapters",
   },
+  {
+    id: "server",
+    entry: "packages/server/src/index.ts",
+    dest: "api/server.md",
+    title: "@homeslate/server",
+    description: "Public API for @homeslate/server",
+  },
+  {
+    id: "host-react",
+    entry: "packages/host-react/src/index.ts",
+    dest: "api/host-react.md",
+    title: "@homeslate/host-react",
+    description: "Public API for @homeslate/host-react",
+  },
 ];
 
 function listMarkdownFiles(dir) {

@@ -1,0 +1,316 @@
+---
+title: Self-hosting
+description: Run homeslate in your own VM by depending on the published @homeslate/* packages.
+---
+
+# Self-hosting
+
+There are two supported ways to run homeslate on your own machine:
+
+- **Depend on the packages** (this guide). You write a small host app, install
+  the published `@homeslate/*` packages, and upgrade with `pnpm up`. Nothing to
+  clone, and your customizations live in your repo.
+- **Run the reference container.** Clone the repo and run the
+  [reference app](/docs/reference) in Docker. That path is fully walked through
+  in [`CONTAINER.md`](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
+
+Pick the packages path when you want to customize widgets, theme, routes, or
+storage and still receive upstream fixes by bumping versions.
+
+## What you get
+
+Two packages own the parts that used to live only in the repo:
+
+- **`@homeslate/server`** — the Hono API. `createHomeslateServer(options)` wires
+  display CRUD, the public kiosk route, the Google OAuth routes, and the
+  calendar / commute / weather proxies. `startHomeslateServer(options)` also
+  listens.
+- **`@homeslate/host-react`** — the web shell. `HomeslateApp` is the routed app
+  (display list, editor, kiosk); `HomeslateGoogleRuntime` wires the widgets to
+  the API's Google routes; `createDebouncedPersist` is the editor's save helper.
+
+The editor and kiosk themselves are `@homeslate/editor` and `@homeslate/display`,
+which you can use directly if you want different chrome.
+
+## Prerequisites
+
+- **Node 22.13+** and **pnpm 10+**.
+- A reverse proxy (this guide uses [Caddy](https://caddyserver.com/)) and, for a
+  LAN hostname, a DNS record pointing at your VM.
+- Optional: a Google Cloud OAuth client for calendar widgets. See
+  [CONTAINER.md step 1](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
+
+## 1. Create the app
+
+```sh
+mkdir my-homeslate && cd my-homeslate
+pnpm init
+```
+
+```sh
+pnpm add @homeslate/server @homeslate/host-react @homeslate/widgets @homeslate/display @homeslate/editor
+pnpm add react react-dom @var-ui/react @var-ui/core @var-ui/icons react-aria-components @internationalized/date
+pnpm add -D vite @vitejs/plugin-react @typestyles/vite typestyles typescript tsx @types/react @types/react-dom
+```
+
+The shape:
+
+```
+my-homeslate/
+├─ index.html
+├─ typestyles-entry.ts
+├─ vite.config.ts
+├─ tsconfig.json
+└─ src/
+   ├─ server.ts        # the API
+   └─ main.tsx         # the web entry
+```
+
+## 2. The API
+
+```ts
+// src/server.ts
+import process from "node:process";
+import { startHomeslateServer } from "@homeslate/server";
+
+await startHomeslateServer({
+  dataDir: process.env.HOMESLATE_DATA_DIR ?? "./data",
+  publicBaseUrl: process.env.HOMESLATE_PUBLIC_BASE_URL ?? "http://127.0.0.1:8787",
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  },
+  openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  seedEmptyDisplay: true,
+  onListen: ({ port }) => console.log(`homeslate API on http://127.0.0.1:${port}`),
+});
+```
+
+`publicBaseUrl` must match your LAN origin (`http://homeslate.lan`), because it
+builds the Google OAuth redirect URI. Omit `google` to run everything except the
+calendar widgets; omit `openRouteServiceApiKey` to disable the commute route.
+
+Prefer to mount the app yourself? `createHomeslateServer(options)` returns the
+Hono app, so you can add routes or run it on another runtime:
+
+```ts
+import { Hono } from "hono";
+import { createHomeslateServer } from "@homeslate/server";
+
+const app = new Hono();
+app.route("/", createHomeslateServer({ dataDir: "./data" }));
+app.get("/api/solar", (c) => c.json({ watts: 4200 }));
+```
+
+## 3. The web entry
+
+```tsx
+// src/main.tsx
+import "@var-ui/core/base-styles";
+import "@var-ui/core/register-default-theme";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { DesignSystemProvider, IconProvider, LayerProvider } from "@var-ui/react";
+import { defaultIcons } from "@var-ui/icons";
+import { HomeslateApp } from "@homeslate/host-react";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <DesignSystemProvider applyToDocument defaultColorMode="dark">
+      <IconProvider icons={defaultIcons}>
+        <LayerProvider>
+          <HomeslateApp productName="Homeslate" />
+        </LayerProvider>
+      </IconProvider>
+    </DesignSystemProvider>
+  </StrictMode>,
+);
+```
+
+`HomeslateApp` takes three optional props: `productName`, `apiBaseUrl` (when the
+API is on another origin), and `widgetRegistry` (see
+[Customize](#customize)). To use your own chrome or routing, compose the
+exported `DisplayListPage`, `EditorPage`, and `KioskPage` yourself and read
+`useHomeslateHost()` for the config.
+
+## 4. Styles and HTML
+
+TypeStyles extracts one CSS file from a single entry. Import VarUI core styles
+**before** the homeslate styles:
+
+```ts
+// typestyles-entry.ts
+import "@var-ui/core";
+import "@var-ui/core/base-styles";
+import "@var-ui/core/components/styles";
+import "@var-ui/core/hidden";
+import "@var-ui/core/register-default-theme";
+import "@homeslate/widgets/styles";
+import "@homeslate/display/styles";
+import "@homeslate/editor/styles";
+```
+
+```html
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Homeslate</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import typestyles from "@typestyles/vite";
+
+export default defineConfig({
+  plugins: [react(), typestyles({ extract: { modules: ["typestyles-entry.ts"] } })],
+  server: {
+    proxy: { "/api": "http://127.0.0.1:8787" },
+  },
+});
+```
+
+## 5. Run it
+
+```sh
+# terminal 1 — the API (proxied by Vite in dev)
+pnpm exec tsx watch src/server.ts
+
+# terminal 2 — the UI on http://127.0.0.1:5173
+pnpm exec vite
+```
+
+For production, build the static bundle and serve it from your proxy:
+
+```sh
+pnpm exec vite build   # emits dist/
+```
+
+## 6. Deploy behind Caddy
+
+```caddyfile
+homeslate.lan {
+    root * /srv/my-homeslate/dist
+    file_server
+    encode zstd gzip
+
+    reverse_proxy /api/* http://127.0.0.1:8787
+}
+```
+
+Keep the API on loopback and let Caddy front it:
+
+```
+HOMESLATE_PUBLIC_BASE_URL=http://homeslate.lan
+HOMESLATE_DATA_DIR=/var/lib/homeslate
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+```
+
+A minimal systemd unit:
+
+```ini
+[Unit]
+Description=homeslate API
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/my-homeslate
+EnvironmentFile=/srv/my-homeslate/.env
+ExecStart=/usr/bin/node --import tsx src/server.ts
+Restart=always
+User=homeslate
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## Customize
+
+**A custom widget.** Register it before you render the app, or build your own
+registry and pass it as `widgetRegistry`:
+
+```tsx
+import { registerWidget } from "@homeslate/widgets";
+
+registerWidget({
+  type: "solar",
+  name: "Solar",
+  description: "Live inverter output",
+  icon: IconBolt,
+  component: SolarWidget,
+  settingsComponent: SolarSettings,
+  defaultConfig: { inverterId: "" },
+  defaultLayout: { w: 3, h: 2 },
+  configSchema: z.object({ inverterId: z.string() }),
+});
+```
+
+**A custom theme.** `@homeslate/display/canvas` exports `DEFAULT_THEME_DOCUMENTS`,
+`THEME_PRESET_OPTIONS`, and `createDisplayTheme`.
+
+**Custom storage.** Pass any `DisplayStore` or `TokenStore` to
+`createHomeslateServer` / `startHomeslateServer`; both interfaces come from
+`@homeslate/adapters` and `@homeslate/google`.
+
+**Extra API routes.** Mount `createHomeslateServer` under your own Hono app (see
+[step 2](#2-the-api)).
+
+## Google Calendar
+
+Create an OAuth client (Application type: **Web application**) with the exact
+redirect URI `http://homeslate.lan/api/google/callback` and the
+`calendar.readonly` scope, then add your Gmail address as a test user. The full
+walkthrough is in
+[CONTAINER.md step 1](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
+Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then click a calendar widget's
+sign-in placeholder.
+
+## Upgrading
+
+```sh
+pnpm up "@homeslate/*"
+pnpm exec vite build
+# restart the API, then reload your proxy
+```
+
+Your data lives in `HOMESLATE_DATA_DIR` (`displays.sqlite` and `tokens/`), never
+in the app directory, so upgrades never touch it.
+
+## Troubleshooting
+
+- **`redirect_uri_mismatch` from Google.** `HOMESLATE_PUBLIC_BASE_URL` plus
+  `/api/google/callback` must match the GCP redirect URI byte-for-byte. No
+  trailing slash on the base URL.
+- **Blank page, unstyled controls.** The TypeStyles extract did not pick up the
+  VarUI imports. Check the import order in `typestyles-entry.ts` and that the
+  plugin's `extract.modules` points at it.
+- **`/api/...` 502 or ECONNREFUSED.** The API isn't running or isn't on the
+  proxy's target port. The default is `127.0.0.1:8787`.
+- **`ERR_MODULE_NOT_FOUND: @homeslate/server`.** The package isn't installed in
+  your app — `pnpm add @homeslate/server`.
+- **Calendar widgets stay empty.** Either the OAuth client is unset, or the
+  refresh token was revoked. Delete `tokens/local.json` in your data dir and
+  sign in again.

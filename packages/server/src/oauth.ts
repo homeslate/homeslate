@@ -1,6 +1,8 @@
+import { Buffer } from "node:buffer";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 
-export const DEFAULT_REFERENCE_PUBLIC_BASE_URL = "http://127.0.0.1:8787";
+/** Public base URL used when a host does not pass one. */
+export const DEFAULT_PUBLIC_BASE_URL = "http://127.0.0.1:8787";
 
 export const GOOGLE_OAUTH_STATE_COOKIE = "homeslate_oauth_state";
 

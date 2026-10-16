@@ -1,0 +1,67 @@
+---
+title: "@homeslate/host-react"
+description: The React web shell for homeslate hosts — routed app, Google runtime, and debounced persist.
+---
+
+# @homeslate/host-react
+
+The homeslate web shell: a routed app over `@homeslate/editor` and
+`@homeslate/display`, a Google runtime wired to the homeslate API, and the
+editor's debounced persist helper.
+
+## Install
+
+```bash
+pnpm add @homeslate/host-react react react-dom
+```
+
+## Usage
+
+Render it inside a VarUI provider tree (`DesignSystemProvider`,
+`IconProvider`, `LayerProvider`):
+
+```tsx
+import { HomeslateApp } from "@homeslate/host-react";
+
+<HomeslateApp productName="Homeslate" />;
+```
+
+`HomeslateApp` renders three routes:
+
+| Route | Page |
+| --- | --- |
+| `/` | `DisplayListPage` |
+| `/edit/:id` | `EditorPage` |
+| `/d/:publicId` | `KioskPage` |
+
+## Props
+
+| Prop | Default | Notes |
+| --- | --- | --- |
+| `productName` | `"Homeslate"` | shown in the display-list nav |
+| `apiBaseUrl` | `""` | prefix for API calls; empty means same origin |
+| `widgetRegistry` | global registry | passed to `Editor` and `Display` |
+
+## Composing your own shell
+
+The pages are exported, so you can use your own router, nav, and chrome. Read
+the host config with `useHomeslateHost()`:
+
+```tsx
+import { EditorPage, HomeslateHostProvider } from "@homeslate/host-react";
+
+<HomeslateHostProvider value={{ apiBaseUrl: "", productName: "Kitchen" }}>
+  <EditorPage />
+</HomeslateHostProvider>;
+```
+
+`HomeslateGoogleRuntime` wires `@homeslate/widgets`' `GoogleRuntime` to the
+API's `/api/google/*` routes; `createDebouncedPersist` is the debounced PUT used
+by the editor.
+
+## See also
+
+- [API](/docs/api/host-react)
+- [Self-hosting](/docs/self-hosting)
+- [`@homeslate/editor`](/docs/packages/editor) — the canvas editor
+- [`@homeslate/display`](/docs/packages/display) — the kiosk surface

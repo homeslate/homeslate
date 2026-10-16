@@ -35,7 +35,9 @@
       "@homeslate/display/styles": ["./packages/display/src/styles.ts"],
       "@homeslate/editor": ["./packages/editor/src/index.ts"],
       "@homeslate/editor/styles": ["./packages/editor/src/styles.ts"],
-      "@homeslate/adapters": ["./packages/adapters/src/index.ts"]
+      "@homeslate/adapters": ["./packages/adapters/src/index.ts"],
+      "@homeslate/server": ["./packages/server/src/index.ts"],
+      "@homeslate/host-react": ["./packages/host-react/src/index.ts"]
     }
   },
   "include": [
@@ -44,6 +46,8 @@
     "packages/widgets/src",
     "packages/display/src",
     "packages/editor/src",
-    "packages/adapters/src"
+    "packages/adapters/src",
+    "packages/server/src",
+    "packages/host-react/src"
   ]
 }

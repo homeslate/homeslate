@@ -7,11 +7,11 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createEmptyDisplayDocument } from "@homeslate/adapters";
 import { DISPLAY_OWNER_SIGN_IN_MESSAGE } from "@homeslate/widgets/server";
-import { createReferenceApp } from "./app";
+import { createHomeslateServer } from "./createHomeslateServer";
 
 const execFileAsync = promisify(execFile);
 
-describe("createReferenceApp", () => {
+describe("createHomeslateServer", () => {
   let dataDir = "";
   afterEach(async () => {
     if (dataDir) await rm(dataDir, { recursive: true, force: true });
@@ -19,21 +19,20 @@ describe("createReferenceApp", () => {
 
   async function app() {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
-    return createReferenceApp({ dataDir });
+    return createHomeslateServer({ dataDir });
   }
 
   async function googleApp() {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
-    return createReferenceApp({
+    return createHomeslateServer({
       dataDir,
-      googleClientId: "client-id",
-      googleClientSecret: "client-secret",
+      google: { clientId: "client-id", clientSecret: "client-secret" },
     });
   }
 
   it("redirects GET / to the Vite UI origin so the API port is not a blank 404", async () => {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
-    const hono = createReferenceApp({
+    const hono = createHomeslateServer({
       dataDir,
       publicBaseUrl: "http://127.0.0.1:5174",
     });
@@ -239,7 +238,7 @@ describe("createReferenceApp", () => {
           createRequire(import.meta.url).resolve("tsx"),
           "--input-type=module",
           "--eval",
-          "await import('./apps/reference/src/server/app.ts')",
+          "await import('./packages/server/src/createHomeslateServer.ts')",
         ],
         { cwd: process.cwd() },
       ),

@@ -1,21 +1,31 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { GoogleRuntimeProvider, type GoogleRuntime } from "@homeslate/widgets";
+import { joinUrl } from "./api";
 
-export function ReferenceGoogleRuntime({
-  displayId,
-  isPreview = false,
-  children,
-}: {
+export type HomeslateGoogleRuntimeProps = {
   displayId: string | null;
   isPreview?: boolean;
+  /** Prefix for API calls. Defaults to `""` (same origin). */
+  apiBaseUrl?: string;
   children: ReactNode;
-}) {
+};
+
+/**
+ * Wires the `@homeslate/widgets` Google runtime to the homeslate API's
+ * `/api/google/*` routes.
+ */
+export function HomeslateGoogleRuntime({
+  displayId,
+  isPreview = false,
+  apiBaseUrl = "",
+  children,
+}: HomeslateGoogleRuntimeProps) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshAccessToken = useCallback(async () => {
     try {
-      const response = await fetch("/api/google/session");
+      const response = await fetch(joinUrl(apiBaseUrl, "/api/google/session"));
       const body = (await response.json()) as { accessToken?: string | null };
       const next = body.accessToken ?? null;
       setAccessToken(next);
@@ -26,7 +36,7 @@ export function ReferenceGoogleRuntime({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     void refreshAccessToken();
@@ -38,14 +48,14 @@ export function ReferenceGoogleRuntime({
       isAuthenticated: Boolean(accessToken),
       isLoading,
       signIn: () => {
-        window.location.href = "/api/google/connect";
+        window.location.href = joinUrl(apiBaseUrl, "/api/google/connect");
       },
       refreshAccessToken,
       displayId,
       isPreview,
-      kioskFetchBaseUrl: "/api",
+      kioskFetchBaseUrl: joinUrl(apiBaseUrl, "/api"),
     }),
-    [accessToken, displayId, isLoading, isPreview, refreshAccessToken],
+    [accessToken, apiBaseUrl, displayId, isLoading, isPreview, refreshAccessToken],
   );
 
   return <GoogleRuntimeProvider value={value}>{children}</GoogleRuntimeProvider>;
