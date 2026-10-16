@@ -1,0 +1,37 @@
+{
+  "name": "@homeslate/server",
+  "version": "0.0.0",
+  "description": "Hono API for homeslate: displays, Google OAuth, and the calendar, commute, and weather proxies.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/homeslate/homeslate.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@homeslate/adapters": "workspace:*",
+    "@homeslate/google": "workspace:*",
+    "@homeslate/widgets": "workspace:*",
+    "@hono/node-server": "^1.19.17",
+    "hono": "^4.13.5"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

@@ -9,6 +9,12 @@ Clone-and-run editor + kiosk for a single local machine. Requires **Node 22.13+*
 
 There are no accounts, Stripe, or quotas. Persistence is a sqlite file under `apps/reference/data`.
 
+The reference app is a thin consumer of the published packages:
+[`@homeslate/server`](/docs/packages/server) runs the API and
+[`@homeslate/host-react`](/docs/packages/host-react) mounts the routed web shell.
+If you would rather depend on the packages from your own app instead of cloning
+this repo, see [Self-hosting](/docs/self-hosting).
+
 ## Run
 
 From the repository root:
@@ -20,7 +26,9 @@ vp run dev:reference
 
 Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the Hono server on port 8787. Opening the API port redirects there.
 
-This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. There is no production `vite build` + static-serving mode yet.
+In dev the Hono server serves `/api` only, and Vite serves the UI. For a
+production static-serving setup, run it as a container — see
+[`CONTAINER.md`](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
 
 ## Typecheck
 

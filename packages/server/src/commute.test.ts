@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
-import { createReferenceApp } from "./app";
+import { createHomeslateServer } from "./createHomeslateServer";
 
 const originalFetch = globalThis.fetch;
 
@@ -22,12 +22,12 @@ describe("GET /api/commute", () => {
 
   async function app() {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
-    return createReferenceApp({ dataDir });
+    return createHomeslateServer({ dataDir });
   }
 
   async function appWithOrs() {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
-    return createReferenceApp({ dataDir, openRouteServiceApiKey: "test-key" });
+    return createHomeslateServer({ dataDir, openRouteServiceApiKey: "test-key" });
   }
 
   it("returns 501 when OPENROUTESERVICE_API_KEY is unset", async () => {

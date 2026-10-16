@@ -7,6 +7,7 @@ export const docsSidebarSections: SidebarSection[] = [
       { text: 'Overview', link: '/docs' },
       { text: 'Getting started', link: '/docs/getting-started' },
       { text: 'Reference app', link: '/docs/reference' },
+      { text: 'Self-hosting', link: '/docs/self-hosting' },
       { text: 'Releasing', link: '/docs/releasing' },
     ],
   },
@@ -20,6 +21,8 @@ export const docsSidebarSections: SidebarSection[] = [
       { text: '@homeslate/editor', link: '/docs/packages/editor' },
       { text: '@homeslate/display', link: '/docs/packages/display' },
       { text: '@homeslate/adapters', link: '/docs/packages/adapters' },
+      { text: '@homeslate/server', link: '/docs/packages/server' },
+      { text: '@homeslate/host-react', link: '/docs/packages/host-react' },
     ],
   },
   {
@@ -35,6 +38,8 @@ export const docsSidebarSections: SidebarSection[] = [
       { text: '@homeslate/display/canvas', link: '/docs/api/display/canvas' },
       { text: '@homeslate/editor', link: '/docs/api/editor' },
       { text: '@homeslate/adapters', link: '/docs/api/adapters' },
+      { text: '@homeslate/server', link: '/docs/api/server' },
+      { text: '@homeslate/host-react', link: '/docs/api/host-react' },
     ],
   },
 ];
@@ -59,6 +64,13 @@ export const docsSearchItems: DocsSearchItem[] = [
     title: 'Reference app',
     meta: 'Guides',
     keywords: ['self-host', 'kiosk', 'sqlite', 'google'],
+    group: 'Guides',
+  },
+  {
+    id: 'self-hosting',
+    title: 'Self-hosting',
+    meta: 'Guides',
+    keywords: ['self-host', 'packages', 'server', 'caddy', 'homelab'],
     group: 'Guides',
   },
   {
@@ -115,6 +127,20 @@ export const docsSearchItems: DocsSearchItem[] = [
     title: '@homeslate/adapters',
     meta: 'Packages',
     keywords: ['@homeslate/adapters', 'sqlite', 'store'],
+    group: 'Packages',
+  },
+  {
+    id: 'packages/server',
+    title: '@homeslate/server',
+    meta: 'Packages',
+    keywords: ['@homeslate/server', 'hono', 'api', 'oauth'],
+    group: 'Packages',
+  },
+  {
+    id: 'packages/host-react',
+    title: '@homeslate/host-react',
+    meta: 'Packages',
+    keywords: ['@homeslate/host-react', 'react', 'routes', 'google runtime'],
     group: 'Packages',
   },
   {
@@ -185,6 +211,20 @@ export const docsSearchItems: DocsSearchItem[] = [
     title: '@homeslate/adapters',
     meta: 'API',
     keywords: ['@homeslate/adapters'],
+    group: 'API',
+  },
+  {
+    id: 'api/server',
+    title: '@homeslate/server',
+    meta: 'API',
+    keywords: ['@homeslate/server'],
+    group: 'API',
+  },
+  {
+    id: 'api/host-react',
+    title: '@homeslate/host-react',
+    meta: 'API',
+    keywords: ['@homeslate/host-react'],
     group: 'API',
   },
 ];

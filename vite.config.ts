@@ -23,6 +23,8 @@ export default defineConfig({
       "@homeslate/display": workspaceSrc("./packages/display/src/index.ts"),
       "@homeslate/editor": workspaceSrc("./packages/editor/src/index.ts"),
       "@homeslate/adapters": workspaceSrc("./packages/adapters/src/index.ts"),
+      "@homeslate/server": workspaceSrc("./packages/server/src/index.ts"),
+      "@homeslate/host-react": workspaceSrc("./packages/host-react/src/index.ts"),
     },
   },
   test: {
@@ -34,6 +36,8 @@ export default defineConfig({
       "packages/display/src/**/*.test.ts",
       "packages/editor/src/**/*.test.ts",
       "packages/adapters/src/**/*.test.ts",
+      "packages/server/src/**/*.test.ts",
+      "packages/host-react/src/**/*.test.ts",
       "apps/reference/src/**/*.test.ts",
     ],
     globals: false,

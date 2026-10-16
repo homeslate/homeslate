@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { createDebouncedPersist } from "./editorPersist";
+import { createDebouncedPersist } from "./createDebouncedPersist";
 
 afterEach(() => {
   vi.useRealTimers();

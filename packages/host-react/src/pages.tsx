@@ -1,14 +1,4 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { RouterProvider } from "react-aria-components";
-import {
-  Navigate,
-  Route,
-  BrowserRouter,
-  Routes,
-  useHref,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
 import {
   AppShell,
   Button,
@@ -20,14 +10,22 @@ import {
   Text,
   TopNav,
 } from "@var-ui/react";
+import { useNavigate, useParams } from "react-router-dom";
 import type { DisplayDocument } from "@homeslate/schema";
 import { Editor } from "@homeslate/editor";
 import { Display } from "@homeslate/display";
-import { createDebouncedPersist } from "./editorPersist";
-import { ReferenceGoogleRuntime } from "./ReferenceGoogleRuntime";
-
-type DisplaySummary = { id: string; name: string };
-type DisplayRecord = { id: string; publicId: string; document: DisplayDocument };
+import {
+  errorMessage,
+  getJson,
+  joinUrl,
+  postJson,
+  putJson,
+  type DisplayRecord,
+  type DisplaySummary,
+} from "./api";
+import { createDebouncedPersist } from "./createDebouncedPersist";
+import { HomeslateGoogleRuntime } from "./HomeslateGoogleRuntime";
+import { useHomeslateHost } from "./hostContext";
 
 const EDITOR_PUT_DEBOUNCE_MS = 400;
 const KIOSK_POLL_MS = 10_000;
@@ -41,30 +39,10 @@ const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
   background: "rgba(0, 0, 0, 0.75)",
 };
 
-export function App() {
-  return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
-  );
-}
-
-function AppRoutes() {
+/** Lists displays and offers a "New display" button. */
+export function DisplayListPage() {
   const navigate = useNavigate();
-  return (
-    <RouterProvider navigate={navigate} useHref={useHref}>
-      <Routes>
-        <Route path="/" element={<DisplayListPage />} />
-        <Route path="/edit/:id" element={<EditorPage />} />
-        <Route path="/d/:publicId" element={<KioskPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </RouterProvider>
-  );
-}
-
-function DisplayListPage() {
-  const navigate = useNavigate();
+  const { apiBaseUrl, productName } = useHomeslateHost();
   const [displays, setDisplays] = useState<Array<DisplaySummary & { publicId?: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -74,10 +52,12 @@ function DisplayListPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const list = await getJson<DisplaySummary[]>("/api/displays");
+        const list = await getJson<DisplaySummary[]>(joinUrl(apiBaseUrl, "/api/displays"));
         const withPublicIds = await Promise.all(
           list.map(async (item) => {
-            const record = await getJson<DisplayRecord>(`/api/displays/${item.id}`);
+            const record = await getJson<DisplayRecord>(
+              joinUrl(apiBaseUrl, `/api/displays/${item.id}`),
+            );
             return { ...item, publicId: record.publicId };
           }),
         );
@@ -91,13 +71,13 @@ function DisplayListPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [apiBaseUrl]);
 
   const createDisplay = async () => {
     setCreating(true);
     setError(null);
     try {
-      const record = await postJson<DisplayRecord>("/api/displays");
+      const record = await postJson<DisplayRecord>(joinUrl(apiBaseUrl, "/api/displays"));
       navigate(`/edit/${record.id}`);
     } catch (cause) {
       setError(errorMessage(cause));
@@ -110,7 +90,7 @@ function DisplayListPage() {
       contentPadding={4}
       topNav={
         <TopNav
-          heading={<TopNav.Heading heading="Homeslate" />}
+          heading={<TopNav.Heading heading={productName} />}
           endContent={
             <Button intent="primary" onPress={() => void createDisplay()} isPending={creating}>
               New display
@@ -139,8 +119,10 @@ function DisplayListPage() {
   );
 }
 
-function EditorPage() {
+/** Editor route. Loads the display by id and persists edits with a debounce. */
+export function EditorPage() {
   const { id } = useParams<{ id: string }>();
+  const { apiBaseUrl, widgetRegistry } = useHomeslateHost();
   const [record, setRecord] = useState<DisplayRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -149,12 +131,12 @@ function EditorPage() {
     () =>
       createDebouncedPersist((next: DisplayDocument, { keepalive }) => {
         if (!id) return;
-        void putJson(`/api/displays/${id}`, next, { keepalive }).then(
+        void putJson(joinUrl(apiBaseUrl, `/api/displays/${id}`), next, { keepalive }).then(
           () => setSaveError(null),
           (cause: unknown) => setSaveError(errorMessage(cause)),
         );
       }, EDITOR_PUT_DEBOUNCE_MS),
-    [id],
+    [apiBaseUrl, id],
   );
 
   useEffect(() => {
@@ -162,7 +144,7 @@ function EditorPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const next = await getJson<DisplayRecord>(`/api/displays/${id}`);
+        const next = await getJson<DisplayRecord>(joinUrl(apiBaseUrl, `/api/displays/${id}`));
         if (!cancelled) setRecord(next);
       } catch (cause) {
         if (!cancelled) setError(errorMessage(cause));
@@ -171,7 +153,7 @@ function EditorPage() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [apiBaseUrl, id]);
 
   useEffect(() => {
     const detach = persist.attach();
@@ -200,7 +182,7 @@ function EditorPage() {
   const viewId = record.document.activeViewId ?? record.document.views[0].id;
 
   return (
-    <ReferenceGoogleRuntime displayId={record.publicId}>
+    <HomeslateGoogleRuntime displayId={record.publicId} apiBaseUrl={apiBaseUrl}>
       <AppShell
         contentPadding={0}
         topNav={
@@ -225,15 +207,22 @@ function EditorPage() {
         }
       >
         <div style={{ height: "100%", display: "flex" }}>
-          <Editor document={record.document} viewId={viewId} onChange={onChange} />
+          <Editor
+            document={record.document}
+            viewId={viewId}
+            widgetRegistry={widgetRegistry}
+            onChange={onChange}
+          />
         </div>
       </AppShell>
-    </ReferenceGoogleRuntime>
+    </HomeslateGoogleRuntime>
   );
 }
 
-function KioskPage() {
+/** Kiosk route. Polls the public document and renders it full-bleed. */
+export function KioskPage() {
   const { publicId } = useParams<{ publicId: string }>();
+  const { apiBaseUrl, widgetRegistry } = useHomeslateHost();
   const [document, setDocument] = useState<DisplayDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -244,7 +233,9 @@ function KioskPage() {
 
     const load = async () => {
       try {
-        const body = await getJson<{ document: DisplayDocument }>(`/api/public/${publicId}`);
+        const body = await getJson<{ document: DisplayDocument }>(
+          joinUrl(apiBaseUrl, `/api/public/${publicId}`),
+        );
         if (!cancelled) {
           setDocument(body.document);
           setError(null);
@@ -260,18 +251,18 @@ function KioskPage() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [publicId]);
+  }, [apiBaseUrl, publicId]);
 
   const onChange = useCallback(
     (next: DisplayDocument) => {
       setDocument(next);
       if (!publicId) return;
-      void putJson(`/api/public/${publicId}`, next).then(
+      void putJson(joinUrl(apiBaseUrl, `/api/public/${publicId}`), next).then(
         () => setSaveError(null),
         (cause: unknown) => setSaveError(errorMessage(cause)),
       );
     },
-    [publicId],
+    [apiBaseUrl, publicId],
   );
 
   if (error && !document)
@@ -283,67 +274,13 @@ function KioskPage() {
   if (!document || !publicId) return <Spinner />;
 
   return (
-    <ReferenceGoogleRuntime displayId={publicId}>
+    <HomeslateGoogleRuntime displayId={publicId} apiBaseUrl={apiBaseUrl}>
       {saveError && (
         <Text as="span" size="sm" role="alert" style={KIOSK_SAVE_ERROR_STYLE}>
           Not saved: {saveError}
         </Text>
       )}
-      <Display document={document} onChange={onChange} />
-    </ReferenceGoogleRuntime>
+      <Display document={document} widgetRegistry={widgetRegistry} onChange={onChange} />
+    </HomeslateGoogleRuntime>
   );
-}
-
-async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(await readError(response));
-  }
-  return response.json() as Promise<T>;
-}
-
-async function postJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { method: "POST" });
-  if (!response.ok) {
-    throw new Error(await readError(response));
-  }
-  return response.json() as Promise<T>;
-}
-
-async function putJson(
-  url: string,
-  body: DisplayDocument,
-  options?: { keepalive?: boolean },
-): Promise<void> {
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    keepalive: options?.keepalive,
-  });
-  if (!response.ok) {
-    throw new Error(await readError(response));
-  }
-}
-
-async function readError(response: Response): Promise<string> {
-  try {
-    const body = (await response.json()) as {
-      error?: string;
-      errors?: Array<{ path?: string; message?: string }>;
-    };
-    if (body.error) return body.error;
-    if (body.errors?.length) {
-      return body.errors
-        .map((issue) => [issue.path, issue.message].filter(Boolean).join(": "))
-        .join("; ");
-    }
-  } catch {
-    // Body was not JSON; fall back to the status line below.
-  }
-  return `${response.status} ${response.statusText}`;
-}
-
-function errorMessage(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause);
 }

@@ -37,7 +37,7 @@ apps/reference/data
 
 # Container artifacts
 .env
-web/
+/web/
 
 # Astro
 docs/.astro

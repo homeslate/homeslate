@@ -1,0 +1,76 @@
+---
+title: "@homeslate/server"
+description: The Hono API for homeslate — displays, Google OAuth, and data proxies.
+---
+
+# @homeslate/server
+
+The homeslate Hono API: display CRUD, the public kiosk route, the Google OAuth
+routes, and the calendar, commute, and weather-alerts proxies. Requires
+**Node 22.13+** (`node:sqlite` through `@homeslate/adapters`).
+
+## Install
+
+```bash
+pnpm add @homeslate/server
+```
+
+## Usage
+
+```ts
+import { startHomeslateServer } from "@homeslate/server";
+
+await startHomeslateServer({
+  dataDir: "./data",
+  publicBaseUrl: "http://homeslate.lan",
+  google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET },
+  openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  seedEmptyDisplay: true,
+  onListen: ({ port }) => console.log(`homeslate API on http://127.0.0.1:${port}`),
+});
+```
+
+`startHomeslateServer` binds `127.0.0.1:8787` by default. Resolves once the
+server is listening.
+
+## Mounting it yourself
+
+`createHomeslateServer(options)` returns the Hono app, so you can add routes,
+test it, or run it on another runtime:
+
+```ts
+import { Hono } from "hono";
+import { createHomeslateServer } from "@homeslate/server";
+
+const app = new Hono();
+app.route("/", createHomeslateServer({ dataDir: "./data" }));
+app.get("/api/solar", (c) => c.json({ watts: 4200 }));
+```
+
+## Options
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `dataDir` | — | sqlite database + Google token files |
+| `publicBaseUrl` | `http://127.0.0.1:8787` | builds the OAuth redirect URI |
+| `google` | unset | `{ clientId, clientSecret }`; empty disables calendar |
+| `openRouteServiceApiKey` | unset | enables `/api/commute` |
+| `accountId` | `"local"` | single-tenant display owner |
+| `displayStore` | sqlite in `dataDir` | any `DisplayStore` |
+| `tokenStore` | file store in `dataDir` | any `TokenStore` |
+| `port` / `hostname` | `8787` / `127.0.0.1` | `startHomeslateServer` only |
+| `seedEmptyDisplay` | `false` | `startHomeslateServer` only |
+
+## Routes
+
+`/api/displays` (GET/POST) and `/api/displays/:id` (GET/PUT/DELETE);
+`/api/public/:publicId` (GET/PUT); `/api/display-calendar` (GET);
+`/api/google/connect|callback|session` (GET); `/api/commute` (GET);
+`/api/weather/alerts` (GET); `/` redirects to `publicBaseUrl`.
+
+## See also
+
+- [API](/docs/api/server)
+- [Self-hosting](/docs/self-hosting)
+- [`@homeslate/adapters`](/docs/packages/adapters) — `DisplayStore`, sqlite
+- [`@homeslate/google`](/docs/packages/google) — `TokenStore`, OAuth helpers

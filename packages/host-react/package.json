@@ -1,0 +1,40 @@
+{
+  "name": "@homeslate/host-react",
+  "version": "0.0.0",
+  "description": "React web shell for homeslate hosts: routed app, Google runtime, and debounced persist.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/homeslate/homeslate.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@homeslate/display": "workspace:*",
+    "@homeslate/editor": "workspace:*",
+    "@homeslate/schema": "workspace:*",
+    "@homeslate/widgets": "workspace:*",
+    "@var-ui/react": "^0.1.0",
+    "react-aria-components": "^1.19.0",
+    "react-router-dom": "^7.13.1"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

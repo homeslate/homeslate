@@ -2,6 +2,12 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vite-plus/test";
 
 describe("reference Vite entry", () => {
+  it("renders the published host app shell", () => {
+    const source = readFileSync(new URL("./main.tsx", import.meta.url), "utf8");
+    expect(source).toMatch(/from ['"]@homeslate\/host-react['"]/);
+    expect(source).toMatch(/<HomeslateApp\s*\/>/);
+  });
+
   it("does not load Mantine CSS", () => {
     const source = readFileSync(new URL("./main.tsx", import.meta.url), "utf8");
     expect(source).not.toContain(`@${"mantine"}/`);
