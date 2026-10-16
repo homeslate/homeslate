@@ -93,8 +93,9 @@ homeslate.lan {
     file_server
     encode zstd gzip
 
-    # The Hono API runs on 127.0.0.1:8787 inside the container. The
-    # compose file publishes it on the host's loopback only.
+    # The API listens on all interfaces inside the container; the compose
+    # file publishes it on the host's loopback only, so Caddy is the only
+    # thing that can reach it.
     reverse_proxy /api/* http://127.0.0.1:8787
 }
 ```
@@ -208,10 +209,9 @@ docker compose down -v
   devices. Google's OAuth accepts `http://` for loopback and `.lan`
   hosts are typically fine without, so this is optional.
 - **Multiple users / devices.** The reference app is single-tenant by
-  design (see `REFERENCE_LOCAL_ACCOUNT_ID` in
-  `apps/reference/src/server/app.ts`). For a household, one Google
-  account on a shared display is usually enough; for separate accounts
-  per device, you'd want the hosted product.
+  design (see `LOCAL_ACCOUNT_ID` in `@homeslate/server`). For a
+  household, one Google account on a shared display is usually enough;
+  for separate accounts per device, you'd want the hosted product.
 - **Removing Google entirely.** Leave `GOOGLE_CLIENT_ID` and
   `GOOGLE_CLIENT_SECRET` empty. Everything except the calendar widget
   works.
