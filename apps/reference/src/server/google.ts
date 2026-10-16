@@ -8,7 +8,7 @@ export const GOOGLE_OAUTH_STATE_COOKIE = "homeslate_oauth_state";
 export const GOOGLE_OAUTH_STATE_MAX_AGE_S = 600;
 
 const GOOGLE_AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/v2/auth";
-const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
+const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 
 export function googleRedirectUri(publicBaseUrl: string): string {
   return `${publicBaseUrl.replace(/\/+$/, "")}/api/google/callback`;

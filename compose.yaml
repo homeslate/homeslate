@@ -1,0 +1,61 @@
+# Compose file for self-hosting the homeslate reference app.
+#
+# Usage:
+#   1. Create a .env next to this file with HOMESLATE_PUBLIC_BASE_URL and
+#      your Google OAuth credentials (see CONTAINER.md).
+#   2. From the repo root:  docker compose up -d --build
+#   3. On first start, the entrypoint populates ./web from the image.
+#      After image upgrades, run:  bin/homeslate-update-web
+#   4. Configure your host Caddy to serve ./web and proxy /api to
+#      127.0.0.1:8787 (a Caddyfile snippet is in CONTAINER.md).
+#
+# Data persists in the named volume `homeslate-data` (sqlite + Google
+# refresh tokens). The built web UI is bind-mounted at ./web on the host
+# so your existing Caddy can serve it as static files.
+
+name: homeslate
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: homeslate-reference:local
+    container_name: homeslate
+    restart: unless-stopped
+    # The Hono server binds to 127.0.0.1:8787 inside the container. We
+    # publish to the host so the host's Caddy can reach it. If you also
+    # want direct access from the LAN, change to "8787:8787".
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      # Externally reachable origin. Must match the Authorized redirect
+      # URI registered in Google Cloud Console exactly, including the
+      # scheme. No trailing slash.
+      HOMESLATE_PUBLIC_BASE_URL: ${HOMESLATE_PUBLIC_BASE_URL:?HOMESLATE_PUBLIC_BASE_URL is required}
+      # Optional: Google OAuth credentials (see CONTAINER.md).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Optional: enables the commute widget.
+      OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
+      NODE_ENV: production
+    volumes:
+      # Persistent state: sqlite database + Google refresh tokens.
+      - homeslate-data:/data
+      # The entrypoint populates ./web on the host from the image on
+      # first start. After image rebuilds, re-run bin/homeslate-update-web.
+      - ./web:/opt/homeslate/web
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:8787/api/displays').then(r => process.exit(r.ok || r.status === 307 ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  homeslate-data:
+    name: homeslate-data
