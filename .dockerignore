@@ -1,0 +1,41 @@
+# Keep the build context small. node_modules is re-installed inside
+# Docker to pick up the right platform-specific native modules
+# (e.g. esbuild for linux/arm64). The host's node_modules is darwin
+# and would break the runtime.
+node_modules
+**/node_modules
+
+# dist/ IS shipped to the build context because the host runs
+# `pnpm -r build` before `docker build` and the resulting dists are
+# what the container needs to serve the API and the web UI.
+# **/dist
+
+# Astro / Netlify
+**/.astro
+**/.netlify
+
+# Local runtime data (sqlite + Google tokens). These live on a Docker
+# volume in the runtime stage, not in the image.
+apps/reference/data
+
+# Local secrets and the bind-mounted web dir
+.env
+web/
+
+# VCS, worktrees, agent artifacts, editor / OS junk.
+.git
+.gitignore
+.worktrees
+.superpowers
+.vscode
+.idea
+.DS_Store
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Docs and tooling not needed at build or runtime.
+docs
+scripts
+**/*.test.ts
+**/*.test.tsx

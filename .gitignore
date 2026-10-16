@@ -35,6 +35,10 @@ dist-ssr
 # Reference app local sqlite and tokens
 apps/reference/data
 
+# Container artifacts
+.env
+web/
+
 # Astro
 docs/.astro
 docs/content/docs/api/

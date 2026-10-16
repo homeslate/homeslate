@@ -1,0 +1,44 @@
+#!/bin/sh
+# Refresh ./web on the host from the latest image build.
+#
+# After running `docker compose build` (with or without `up`), the web
+# bundle inside the image is fresh but the host's ./web (which your
+# Caddy serves) is stale. This script copies the new files out.
+#
+# Idempotent: only copies if the source is newer, so it's safe to run
+# after every `up --build`. Run with --force to wipe ./web first.
+
+set -eu
+
+CONTAINER="${CONTAINER:-homeslate}"
+SRC="/opt/homeslate/web-baked"
+DST="${DST:-./web}"
+FORCE=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --force) FORCE=1 ;;
+    -h|--help)
+      sed -n '2,12p' "$0"
+      exit 0
+      ;;
+  esac
+done
+
+if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER}\$"; then
+  echo "error: container '${CONTAINER}' not found. Is compose up?" >&2
+  exit 1
+fi
+
+mkdir -p "$DST"
+
+if [ "$FORCE" = "1" ]; then
+  echo "forcing full refresh: removing $DST"
+  rm -rf "$DST"
+  mkdir -p "$DST"
+fi
+
+# Use docker cp; this avoids needing the container to be running and
+# works even if the entrypoint hasn't populated ./web yet.
+docker cp "${CONTAINER}:${SRC}/." "${DST}/"
+echo "refreshed ${DST} from ${CONTAINER}:${SRC}"

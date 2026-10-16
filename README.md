@@ -43,6 +43,10 @@ vp run dev:reference
 
 Then open [http://127.0.0.1:5174](http://127.0.0.1:5174). That one command starts the Hono API and the Vite UI (Vite proxies `/api` to port 8787).
 
+## Self-host with Docker
+
+For a LAN-only install behind a reverse proxy, [`CONTAINER.md`](./CONTAINER.md) walks through building the reference app into a container, wiring it to Caddy and a local DNS record, and connecting Google Calendar. The API reads `HOMESLATE_PUBLIC_BASE_URL` (the externally reachable origin, used to build the OAuth redirect URI) and `HOMESLATE_DATA_DIR` (where the sqlite file and Google refresh tokens live).
+
 ## Hosted product
 
 The managed hosted app (Netlify + Neon) lives in the private [homeslate-hosted](https://github.com/homeslate/homeslate-hosted) repository.

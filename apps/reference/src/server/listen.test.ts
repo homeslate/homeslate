@@ -2,13 +2,31 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vite-plus/test";
 
 describe("reference listen entry", () => {
-  it("points Google OAuth publicBaseUrl at the Vite origin", () => {
+  it("defaults HOMESLATE_PUBLIC_BASE_URL to the Vite dev origin when unset", () => {
     const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
-    expect(source).toMatch(/publicBaseUrl:\s*['"]http:\/\/127\.0\.0\.1:5174['"]/);
+    expect(source).toMatch(
+      /HOMESLATE_PUBLIC_BASE_URL\?\.trim\(\)\s*\|\|\s*["']http:\/\/127\.0\.0\.1:5174["']/,
+    );
   });
 
-  it("prints the Vite UI origin so the operator does not open the API 404", () => {
+  it("honors HOMESLATE_DATA_DIR so the sqlite and token store can live on a volume", () => {
     const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
-    expect(source).toMatch(/Open the UI at http:\/\/127\.0\.0\.1:5174/);
+    expect(source).toMatch(/HOMESLATE_DATA_DIR/);
+  });
+
+  it("falls back to the in-repo data dir for `pnpm dev:reference`", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/new URL\(["']\.\.\/\.\.\/data/);
+  });
+
+  it("reads HOMESLATE_PUBLIC_BASE_URL from the environment for reverse-proxy hosts", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/HOMESLATE_PUBLIC_BASE_URL/);
+    expect(source).toMatch(/publicBaseUrl/);
+  });
+
+  it("prints the resolved public base URL so the operator opens the right origin", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/Open the UI at \$\{publicBaseUrl\}/);
   });
 });

@@ -62,7 +62,7 @@ const GOOGLE_EVENT_COLORS: Record<string, string> = {
 };
 
 const GOOGLE_API_BASE = "https://www.googleapis.com/calendar/v3";
-const SCOPES = "https://www.googleapis.com/auth/calendar";
+const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
 
 const TOKEN_KEY = "gcal_access_token";
 const TOKEN_EXPIRY_KEY = "gcal_token_expiry";

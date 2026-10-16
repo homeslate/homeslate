@@ -1,0 +1,38 @@
+#!/bin/sh
+# Build the homeslate reference image.
+#
+# The Docker build itself only packages a pre-built dist tree into a
+# runtime image, so we have to (1) install deps, (2) build all the
+# workspace libraries, and (3) build the reference web bundle, on the
+# host, before `docker build` runs. This keeps the Docker build fast
+# and avoids the 2GB V8 heap limit that `vp pack` runs into inside
+# BuildKit on some hosts.
+
+set -eu
+
+cd "$(dirname "$0")/.."
+
+log() {
+  printf '\033[1;34m[homeslate-build]\033[0m %s\n' "$*"
+}
+
+if [ ! -f .env ]; then
+  log "warning: no .env file found. Copy .env.example and fill it in:"
+  log "  cp .env.example .env"
+  log "The image will still build, but HOMESLATE_PUBLIC_BASE_URL etc."
+  log "will be empty inside the container."
+fi
+
+log "installing dependencies"
+pnpm install --frozen-lockfile
+
+log "building workspace packages"
+pnpm -r --filter './packages/*' run build
+
+log "building reference web bundle"
+pnpm --filter homeslate-reference run build:web
+
+log "building docker image"
+docker build -t homeslate-reference:local .
+
+log "done. Next: docker compose up -d"
