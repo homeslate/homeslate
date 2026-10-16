@@ -8,7 +8,13 @@ import {
   createEmptyDisplayDocument,
   openSqlite,
 } from "@homeslate/adapters";
-import { createGoogleClient, isGoogleAuthError, type GoogleClient } from "@homeslate/google";
+import {
+  DISPLAY_CALENDAR_DAYS_BACK_DEFAULT,
+  createGoogleClient,
+  displayCalendarWindow,
+  isGoogleAuthError,
+  type GoogleClient,
+} from "@homeslate/google";
 import {
   COMMUTE_MISSING_KEY_COPY,
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
@@ -170,6 +176,14 @@ export function createReferenceApp(opts: ReferenceAppOptions): Hono {
       90,
       Math.max(1, parseInt(c.req.query("daysAhead") ?? "30", 10) || 30),
     );
+    const daysBack = Math.min(
+      90,
+      Math.max(
+        0,
+        parseInt(c.req.query("daysBack") ?? String(DISPLAY_CALENDAR_DAYS_BACK_DEFAULT), 10) ||
+          DISPLAY_CALENDAR_DAYS_BACK_DEFAULT,
+      ),
+    );
 
     if (!publicId || !calendarIdsParam) {
       return c.json({ error: "Missing displayId or calendarIds", reason: "missing_params" }, 400);
@@ -188,12 +202,11 @@ export function createReferenceApp(opts: ReferenceAppOptions): Hono {
     if (!google || !accountId) return c.json(emptyCalendarPayload());
 
     try {
-      const now = new Date();
-      const timeMax = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+      const { timeMin, timeMax } = displayCalendarWindow(daysAhead, daysBack);
       const calendars = await google.listCalendars(accountId);
       const events = await google.listEvents(accountId, {
         calendarIds,
-        timeMin: now.toISOString(),
+        timeMin: timeMin.toISOString(),
         timeMax: timeMax.toISOString(),
       });
       return c.json({ events, calendars });

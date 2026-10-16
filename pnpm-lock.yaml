@@ -267,6 +267,9 @@ importers:
 
   packages/widgets:
     dependencies:
+      '@homeslate/google':
+        specifier: workspace:*
+        version: link:../google
       '@homeslate/schema':
         specifier: workspace:*
         version: link:../schema

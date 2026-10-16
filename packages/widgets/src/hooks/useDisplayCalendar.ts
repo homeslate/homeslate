@@ -1,27 +1,30 @@
 import { useState, useEffect, useCallback } from "react";
+import { DISPLAY_CALENDAR_DAYS_BACK_DEFAULT } from "@homeslate/google";
 import { useGoogleRuntime } from "../googleRuntime";
 import type {
   GoogleCalendar,
   ParsedCalendarEvent,
   CalendarEventInput,
 } from "../services/googleCalendar";
+import { fetchDisplayCalendarCached } from "../services/displayCalendarCache";
 import {
   displayCalendarUserMessage,
   isFatalGoogleAuthFailure,
 } from "../widgets/googleCalendarError";
+import { getDisplayCalendarPollDelay } from "./polling";
 
 export function displayCalendarUrl(
   kioskFetchBaseUrl: string,
-  params: { displayId: string; calendarIds: string; daysAhead: number },
+  params: { displayId: string; calendarIds: string; daysAhead: number; daysBack: number },
 ): string {
   const search = new URLSearchParams({
     displayId: params.displayId,
     calendarIds: params.calendarIds,
     daysAhead: String(params.daysAhead),
+    daysBack: String(params.daysBack),
   });
   return `${kioskFetchBaseUrl}/display-calendar?${search}`;
 }
-import { getDisplayCalendarPollDelay } from "./polling";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -29,6 +32,7 @@ interface UseDisplayCalendarOptions {
   displayId: string | null;
   selectedCalendarIds: string[];
   daysAhead?: number;
+  daysBack?: number;
 }
 
 interface UseDisplayCalendarResult {
@@ -81,6 +85,7 @@ export function useDisplayCalendar({
   displayId,
   selectedCalendarIds,
   daysAhead = 30,
+  daysBack = DISPLAY_CALENDAR_DAYS_BACK_DEFAULT,
 }: UseDisplayCalendarOptions): UseDisplayCalendarResult {
   const { kioskFetchBaseUrl } = useGoogleRuntime();
   const [isLoading, setIsLoading] = useState(true);
@@ -105,18 +110,19 @@ export function useDisplayCalendar({
     setIsLoading(true);
     setError(null);
     try {
+      const url = displayCalendarUrl(kioskFetchBaseUrl, {
+        displayId,
+        calendarIds: selectedCalendarIdsKey,
+        daysAhead,
+        daysBack,
+      });
       console.info("[display-calendar] fetching", {
         displayId,
         calendarCount: selectedCalendarIds.length,
         daysAhead,
+        daysBack,
       });
-      const res = await fetch(
-        displayCalendarUrl(kioskFetchBaseUrl, {
-          displayId,
-          calendarIds: selectedCalendarIdsKey,
-          daysAhead,
-        }),
-      );
+      const res = await fetchDisplayCalendarCached(url, undefined, fetch);
       const data = (await res.json()) as {
         error?: string;
         reason?: string;
@@ -162,7 +168,7 @@ export function useDisplayCalendar({
     } finally {
       setIsLoading(false);
     }
-  }, [displayId, selectedCalendarIdsKey, daysAhead, kioskFetchBaseUrl]);
+  }, [displayId, selectedCalendarIdsKey, daysAhead, daysBack, kioskFetchBaseUrl]);
 
   useEffect(() => {
     if (!displayId) {
