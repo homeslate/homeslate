@@ -326,10 +326,12 @@ export async function fetchAllCalendarEvents(
   token: string,
   calendarIds: string[],
   daysAhead: number = 30,
+  daysBack: number = 0,
 ): Promise<ParsedCalendarEvent[]> {
   const now = new Date();
-  const timeMin = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const timeMax = new Date(timeMin.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const timeMin = new Date(startOfToday.getTime() - daysBack * 24 * 60 * 60 * 1000);
+  const timeMax = new Date(startOfToday.getTime() + daysAhead * 24 * 60 * 60 * 1000);
 
   // Fetch calendars to get colors
   const calendars = await fetchCalendarList(token);

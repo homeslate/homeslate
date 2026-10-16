@@ -30,7 +30,11 @@ export const useCalendarCacheStore = create<CalendarCacheState>()((set, get) => 
     }),
 }));
 
-/** Stable cache key for a given set of calendar IDs + daysAhead. */
-export function calendarCacheKey(selectedCalendarIds: string[], daysAhead: number): string {
-  return [...selectedCalendarIds].sort().join(",") + "|" + daysAhead;
+/** Stable cache key for a given set of calendar IDs + fetch window. */
+export function calendarCacheKey(
+  selectedCalendarIds: string[],
+  daysAhead: number,
+  daysBack: number,
+): string {
+  return [...selectedCalendarIds].sort().join(",") + "|" + daysBack + "|" + daysAhead;
 }

@@ -36,6 +36,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
+    "@homeslate/google": "workspace:*",
     "@homeslate/schema": "workspace:*",
     "@internationalized/date": "^3.12.4",
     "@tabler/icons-react": "^3.35.0",

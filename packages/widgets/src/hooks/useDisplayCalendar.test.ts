@@ -8,7 +8,8 @@ describe("displayCalendarUrl", () => {
         displayId: "abc",
         calendarIds: "cal1",
         daysAhead: 30,
+        daysBack: 42,
       }),
-    ).toBe("/api/display-calendar?displayId=abc&calendarIds=cal1&daysAhead=30");
+    ).toBe("/api/display-calendar?displayId=abc&calendarIds=cal1&daysAhead=30&daysBack=42");
   });
 });

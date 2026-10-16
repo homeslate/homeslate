@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { DISPLAY_CALENDAR_DAYS_BACK_DEFAULT } from "@homeslate/google";
 import { useGoogleRuntime } from "../googleRuntime";
 import {
   fetchCalendarList,
@@ -19,6 +20,7 @@ interface UseGoogleCalendarOptions {
   clientId?: string;
   selectedCalendarIds: string[];
   daysAhead?: number;
+  daysBack?: number;
   refreshInterval?: number;
   enabled?: boolean;
 }
@@ -41,12 +43,13 @@ const TOKEN_EXPIRED_MSG = "Token expired. Please sign in again.";
 export function useGoogleCalendar({
   selectedCalendarIds,
   daysAhead = 30,
+  daysBack = DISPLAY_CALENDAR_DAYS_BACK_DEFAULT,
   refreshInterval = 5 * 60 * 1000,
   enabled = true,
 }: UseGoogleCalendarOptions): UseGoogleCalendarResult {
   const { accessToken, isAuthenticated, refreshAccessToken } = useGoogleRuntime();
   const { getEntry, setEntry } = useCalendarCacheStore();
-  const cacheKey = calendarCacheKey(selectedCalendarIds, daysAhead);
+  const cacheKey = calendarCacheKey(selectedCalendarIds, daysAhead, daysBack);
 
   // Seed local state from cache immediately so there's no loading flash on remount.
   const cached = getEntry(cacheKey);
@@ -111,7 +114,7 @@ export function useGoogleCalendar({
       const doFetch = async (token: string) => {
         const [calendarList, eventList] = await Promise.all([
           fetchCalendarList(token),
-          fetchAllCalendarEvents(token, selectedCalendarIds, daysAhead),
+          fetchAllCalendarEvents(token, selectedCalendarIds, daysAhead, daysBack),
         ]);
         setCalendars(calendarList);
         setEvents(eventList);
@@ -146,6 +149,7 @@ export function useGoogleCalendar({
       accessToken,
       selectedCalendarIds,
       daysAhead,
+      daysBack,
       cacheKey,
       refreshInterval,
       getEntry,
