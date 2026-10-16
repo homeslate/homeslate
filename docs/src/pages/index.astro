@@ -4,31 +4,103 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="Homeslate" showToc={false}>
   <article class="home">
-    <h1>Homeslate</h1>
-    <p>
-      Public MIT packages and a reference self-host app for a household command
-      center.
-    </p>
-    <p>
-      <a href="/docs">Open the documentation →</a>
+    <header class="intro">
+      <h1>Homeslate</h1>
+      <p class="pitch">
+        MIT packages and a clone-and-run host for a household command center.
+      </p>
+    </header>
+
+    <nav class="doors" aria-label="Start here">
+      <a class="door" href="/docs/getting-started">
+        <h2>Run it</h2>
+        <p>Clone the repo, install, and start the reference editor and kiosk.</p>
+      </a>
+      <a class="door" href="/docs/packages">
+        <h2>Embed the packages</h2>
+        <p>Host contract and usage for every published <code>@homeslate/*</code> package.</p>
+      </a>
+      <a class="door" href="/docs/api">
+        <h2>Read the API</h2>
+        <p>Generated signatures for each public entry point.</p>
+      </a>
+    </nav>
+
+    <p class="note">
+      The managed hosted product lives in the private
+      <a href="https://github.com/homeslate/homeslate-hosted">homeslate-hosted</a> repository.
     </p>
   </article>
 </BaseLayout>
 
 <style>
   .home {
-    max-width: 40rem;
-    padding: 2rem 0;
+    max-width: 36rem;
+    padding: 2.5rem 0 4rem;
   }
 
-  .home h1 {
-    margin-block: 0 0.75rem;
-    font-size: 2rem;
-    line-height: 1.2;
+  .intro h1 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
 
-  .home p {
-    margin-block: 0.75rem;
-    line-height: 1.6;
+  .pitch {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.45;
+    color: var(--var-ui-color-text-secondary, inherit);
+    max-width: 28rem;
+  }
+
+  .doors {
+    display: flex;
+    flex-direction: column;
+    margin-block: 2.5rem 2rem;
+    border-block-start: 1px solid var(--var-ui-color-border-default, currentColor);
+  }
+
+  .door {
+    display: block;
+    padding-block: 1.15rem;
+    padding-inline: 0 1rem;
+    border-block-end: 1px solid var(--var-ui-color-border-default, currentColor);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .door:hover h2,
+  .door:focus-visible h2 {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .door:focus-visible {
+    outline: 2px solid var(--var-ui-color-border-focus, currentColor);
+    outline-offset: 4px;
+  }
+
+  .door h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .door p {
+    margin: 0;
+    max-width: 32rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--var-ui-color-text-secondary, inherit);
+  }
+
+  .note {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--var-ui-color-text-secondary, inherit);
   }
 </style>
