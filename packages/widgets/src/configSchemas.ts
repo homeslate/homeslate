@@ -257,6 +257,16 @@ export const embedConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+export const thermostatConfigSchema = z.object({
+  entityId: z.string().optional(),
+  showControls: z.boolean().optional(),
+  showFanControl: z.boolean().optional(),
+  showPresetControl: z.boolean().optional(),
+  showSwingControl: z.boolean().optional(),
+  showHumidity: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   clock: clockConfigSchema,
   calendar: calendarConfigSchema,
@@ -281,6 +291,7 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   commute: commuteConfigSchema,
   "weather-alerts": weatherAlertsConfigSchema,
   embed: embedConfigSchema,
+  thermostat: thermostatConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

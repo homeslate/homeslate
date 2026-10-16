@@ -33,6 +33,10 @@ await startHomeslateServer({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   },
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  homeAssistant: {
+    baseUrl: process.env.HOMEASSISTANT_BASE_URL,
+    token: process.env.HOMEASSISTANT_TOKEN,
+  },
   seedEmptyDisplay: true,
   onListen: ({ port }) => {
     console.log(`Reference API listening on http://127.0.0.1:${port}`);

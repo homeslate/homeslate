@@ -65,3 +65,16 @@ OPENROUTESERVICE_API_KEY=...
 ```
 
 Without it, the commute route returns 501 and the widget stays designable.
+
+## Optional Home Assistant
+
+Set these on the API process to enable the thermostat widget:
+
+```bash
+HOMEASSISTANT_BASE_URL=http://homeassistant.local:8123
+HOMEASSISTANT_TOKEN=...
+```
+
+Create the token in your Home Assistant profile (Security → Long-lived access
+tokens). Without both variables, `/api/homeassistant/*` returns 501 and the
+thermostat widget stays designable but shows a "set the env vars" notice.

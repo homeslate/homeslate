@@ -7,6 +7,15 @@ export type HomeslateGoogleCredentials = {
   clientSecret?: string;
 };
 
+/**
+ * Home Assistant connection. Omit (or blank either field) to disable the
+ * `/api/homeassistant/*` routes; widgets stay designable but show config copy.
+ */
+export type HomeslateHomeAssistantCredentials = {
+  baseUrl?: string;
+  token?: string;
+};
+
 export type HomeslateServerOptions = {
   /** Directory for the sqlite database and Google refresh tokens. */
   dataDir: string;
@@ -17,6 +26,8 @@ export type HomeslateServerOptions = {
   publicBaseUrl?: string;
   /** Google OAuth client. Omit (or pass empty strings) to disable calendar. */
   google?: HomeslateGoogleCredentials;
+  /** Home Assistant connection. Omit (or pass empty strings) to disable HA widgets. */
+  homeAssistant?: HomeslateHomeAssistantCredentials;
   /** openrouteservice.org API key. Omit to disable the commute route. */
   openRouteServiceApiKey?: string;
   /** Account that owns the single-user display. Defaults to `"local"`. */

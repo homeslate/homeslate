@@ -19,6 +19,9 @@ import {
   COMMUTE_MISSING_KEY_COPY,
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
+  THERMOSTAT_MISSING_CONFIG_COPY,
+  isAllowedClimateService,
+  isValidClimateEntityId,
   parseCommuteQuery,
   type CommuteEstimate,
   type WeatherAlertsResponse,
@@ -26,6 +29,7 @@ import {
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { estimateCommute } from "./commute";
+import { HomeAssistantError, createHomeAssistantClient } from "./homeAssistant";
 import { fetchWeatherAlerts, parseWeatherAlertPoint } from "./weatherAlerts";
 import {
   DEFAULT_PUBLIC_BASE_URL,
@@ -73,6 +77,13 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   const commuteCache = createTtlCache<CommuteEstimate>();
   const weatherAlertsCache = createTtlCache<WeatherAlertsResponse>();
 
+  const homeAssistantBaseUrl = opts.homeAssistant?.baseUrl?.trim() ?? "";
+  const homeAssistantToken = opts.homeAssistant?.token?.trim() ?? "";
+  const homeAssistant =
+    homeAssistantBaseUrl && homeAssistantToken
+      ? createHomeAssistantClient({ baseUrl: homeAssistantBaseUrl, token: homeAssistantToken })
+      : null;
+
   app.get("/", (c) => c.redirect(`${publicBaseUrl.replace(/\/+$/, "")}/`));
 
   app.get("/api/displays", async (c) => c.json(await displays.list()));
@@ -116,6 +127,65 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       return c.json(payload);
     } catch {
       return c.json({ error: "Weather alerts provider failed" }, 502);
+    }
+  });
+
+  app.get("/api/homeassistant/entities", async (c) => {
+    if ((c.req.query("domain") ?? "climate") !== "climate") {
+      return c.json({ error: "Only the climate domain is supported" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+
+    try {
+      return c.json({ entities: await homeAssistant.listClimateEntities() });
+    } catch {
+      return c.json({ error: "Home Assistant request failed" }, 502);
+    }
+  });
+
+  app.get("/api/homeassistant/states/:entityId", async (c) => {
+    const entityId = c.req.param("entityId");
+    if (!isValidClimateEntityId(entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+
+    try {
+      const state = await homeAssistant.getClimateState(entityId);
+      return state ? c.json(state) : c.json({ error: "Entity not found" }, 404);
+    } catch {
+      return c.json({ error: "Home Assistant request failed" }, 502);
+    }
+  });
+
+  app.post("/api/homeassistant/services/:domain/:service", async (c) => {
+    const domain = c.req.param("domain");
+    const service = c.req.param("service");
+    if (domain !== "climate") return c.json({ error: "Only the climate domain is supported" }, 400);
+    if (!isAllowedClimateService(service)) {
+      return c.json({ error: "Unsupported service" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+
+    let body: Record<string, unknown>;
+    try {
+      body = await optionalJsonBody(c.req.raw);
+    } catch {
+      return c.json({ error: "Invalid JSON" }, 400);
+    }
+    const entityId = typeof body.entity_id === "string" ? body.entity_id : "";
+    if (!isValidClimateEntityId(entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+
+    try {
+      await homeAssistant.callClimateService(service, entityId, body);
+      return c.json({ ok: true });
+    } catch (error) {
+      if (error instanceof HomeAssistantError && error.status === 400) {
+        return c.json({ error: "Invalid service data" }, 400);
+      }
+      return c.json({ error: "Home Assistant request failed" }, 502);
     }
   });
 

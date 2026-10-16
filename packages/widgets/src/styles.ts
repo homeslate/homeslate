@@ -15,6 +15,7 @@ import "./widgets/NewsWidget.styles";
 import "./widgets/PhotoWidget.styles";
 import "./widgets/SportsWidget.styles";
 import "./widgets/StocksWidget.styles";
+import "./widgets/ThermostatWidget.styles";
 import "./widgets/TimersWidget.styles";
 import "./widgets/TodoWidget.styles";
 import "./widgets/WeatherAlertsWidget.styles";

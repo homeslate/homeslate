@@ -73,6 +73,7 @@ describe("built-in widget config schemas", () => {
         "photo",
         "sports",
         "stocks",
+        "thermostat",
         "timers",
         "todo",
         "weather",

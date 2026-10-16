@@ -81,6 +81,10 @@ await startHomeslateServer({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   },
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  homeAssistant: {
+    baseUrl: process.env.HOMEASSISTANT_BASE_URL,
+    token: process.env.HOMEASSISTANT_TOKEN,
+  },
   seedEmptyDisplay: true,
   onListen: ({ port }) => console.log(`homeslate API on http://127.0.0.1:${port}`),
 });
@@ -88,7 +92,8 @@ await startHomeslateServer({
 
 `publicBaseUrl` must match your LAN origin (`http://homeslate.lan`), because it
 builds the Google OAuth redirect URI. Omit `google` to run everything except the
-calendar widgets; omit `openRouteServiceApiKey` to disable the commute route.
+calendar widgets; omit `openRouteServiceApiKey` to disable the commute route;
+omit `homeAssistant` to disable the Home Assistant thermostat widget.
 
 Prefer to mount the app yourself? `createHomeslateServer(options)` returns the
 Hono app, so you can add routes or run it on another runtime:
@@ -227,6 +232,8 @@ HOMESLATE_PUBLIC_BASE_URL=http://homeslate.lan
 HOMESLATE_DATA_DIR=/var/lib/homeslate
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
+HOMEASSISTANT_BASE_URL=http://homeassistant.local:8123
+HOMEASSISTANT_TOKEN=...
 ```
 
 A minimal systemd unit:

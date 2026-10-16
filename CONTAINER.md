@@ -123,6 +123,8 @@ cp .env.example .env
 #   HOMESLATE_PUBLIC_BASE_URL=http://homeslate.lan
 #   GOOGLE_CLIENT_ID=<from step 1>
 #   GOOGLE_CLIENT_SECRET=<from step 1>
+#   HOMEASSISTANT_BASE_URL=<reachable from the container, e.g. http://192.168.1.20:8123>
+#   HOMEASSISTANT_TOKEN=<long-lived access token from your HA profile>
 
 bin/homeslate-build
 ```
@@ -218,6 +220,13 @@ docker compose down -v
 - **Commute widget.** Add `OPENROUTESERVICE_API_KEY` to `.env` and
   rebuild. The free tier at openrouteservice.org is enough for a
   homelab.
+- **Home Assistant thermostat.** Add `HOMEASSISTANT_BASE_URL` and
+  `HOMEASSISTANT_TOKEN` to `.env` and rebuild. The token comes from your
+  Home Assistant profile (Security → Long-lived access tokens). The URL
+  must be reachable from _inside the container_: `homeassistant.local`
+  (mDNS) usually isn't, so use the host's LAN IP and port, e.g.
+  `http://192.168.1.20:8123`. The token stays in the API process — the
+  browser only ever talks to `/api/homeassistant/*`.
 
 ## Troubleshooting
 
