@@ -61,6 +61,20 @@ app.get("/api/solar", (c) => c.json({ watts: 4200 }));
 | `port` / `hostname` | `8787` / `127.0.0.1` | `startHomeslateServer` only |
 | `seedEmptyDisplay` | `false` | `startHomeslateServer` only |
 
+### Bind address
+
+`startHomeslateServer` binds `127.0.0.1` by default, which is right when the
+API runs on the same host as your reverse proxy. **In a container it must bind
+all interfaces**, because Docker forwards a published port to the container's
+bridge address rather than its loopback:
+
+```ts
+await startHomeslateServer({ dataDir: "/data", hostname: "0.0.0.0" });
+```
+
+Keep the *host* side of the port mapping on loopback (`-p 127.0.0.1:8787:8787`)
+so binding `0.0.0.0` inside the container does not expose the API to the LAN.
+
 ## Routes
 
 `/api/displays` (GET/POST) and `/api/displays/:id` (GET/PUT/DELETE);

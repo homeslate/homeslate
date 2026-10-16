@@ -16,9 +16,18 @@ const dataDir =
 // "http://127.0.0.1:5174" so `pnpm dev:reference` keeps working unchanged.
 const publicBaseUrl = process.env.HOMESLATE_PUBLIC_BASE_URL?.trim() || "http://127.0.0.1:5174";
 
+// HOMESLATE_HOSTNAME controls the interface the API binds. The default is
+// 0.0.0.0 rather than loopback because the reference Docker image publishes
+// the port: Docker forwards to the container's bridge address, not its
+// loopback, so a 127.0.0.1 bind is unreachable from the host. The host side
+// publishes 127.0.0.1:8787, which keeps the API off the LAN except through
+// Caddy. Set HOMESLATE_HOSTNAME=127.0.0.1 to bind loopback only.
+const hostname = process.env.HOMESLATE_HOSTNAME?.trim() || "0.0.0.0";
+
 await startHomeslateServer({
   dataDir,
   publicBaseUrl,
+  hostname,
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,

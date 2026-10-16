@@ -23,4 +23,14 @@ await startHomeslateServer({
 Mount it yourself with `createHomeslateServer(options)`, which returns the Hono
 app so you can add routes, test it, or run it on another runtime.
 
+In a container, bind all interfaces so Docker's published port can reach the
+API — Docker forwards to the container's bridge address, not its loopback:
+
+```ts
+await startHomeslateServer({ dataDir: "/data", hostname: "0.0.0.0" });
+```
+
+Keep the host-side port mapping on loopback (`-p 127.0.0.1:8787:8787`) so the
+API stays off the LAN except through your proxy.
+
 See the [self-hosting guide](https://github.com/homeslate/homeslate/blob/main/docs/content/docs/self-hosting.mdx).

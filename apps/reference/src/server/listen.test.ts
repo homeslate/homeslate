@@ -29,4 +29,13 @@ describe("reference listen entry", () => {
     const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
     expect(source).toMatch(/Open the UI at \$\{publicBaseUrl\}/);
   });
+
+  it("binds all interfaces by default so the published Docker port can reach it", () => {
+    // Docker forwards a published port to the container's bridge address,
+    // not its loopback, so a 127.0.0.1 bind leaves the port unreachable
+    // even though the in-container healthcheck passes.
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/HOMESLATE_HOSTNAME\?\.trim\(\)\s*\|\|\s*["']0\.0\.0\.0["']/);
+    expect(source).toMatch(/\bhostname,/);
+  });
 });

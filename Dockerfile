@@ -95,7 +95,9 @@ USER homeslate
 
 EXPOSE 8787
 
-# The Hono server binds to 127.0.0.1:8787; the host's Caddy reaches it
-# via the published port.
+# The API binds all interfaces (HOMESLATE_HOSTNAME, default 0.0.0.0)
+# because Docker forwards a published port to the container's bridge
+# address, not its loopback. compose publishes 127.0.0.1:8787 on the
+# host, so the API is only reachable from the LAN through Caddy.
 ENTRYPOINT ["/usr/local/bin/homeslate-entrypoint.sh"]
 CMD ["node", "--import", "tsx", "src/server/listen.ts"]
