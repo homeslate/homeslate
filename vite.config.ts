@@ -45,11 +45,13 @@ export default defineConfig({
   },
   fmt: {
     semi: true,
-    ignorePatterns: ["docs/**", ".docs/**"],
+    // docs/** is curated markdown. examples/** is a standalone consumer app
+    // that is deliberately outside the workspace toolchain (plain `vite`).
+    ignorePatterns: ["docs/**", ".docs/**", "examples/**"],
   },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],
-    ignorePatterns: ["dist", ".netlify/**", ".claude/**"],
+    ignorePatterns: ["dist", ".netlify/**", ".claude/**", "examples/**"],
     jsPlugins: [
       {
         name: "vite-plus",
