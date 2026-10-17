@@ -1,5 +1,12 @@
 # @homeslate/adapters
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [d0bcb9e]
+  - @homeslate/widgets@1.1.0
+
 ## 0.1.2
 
 ### Patch Changes
