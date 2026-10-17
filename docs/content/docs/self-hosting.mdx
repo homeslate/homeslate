@@ -228,14 +228,38 @@ pnpm exec vite build   # emits dist/
 ## 6. Deploy behind Caddy
 
 ```caddyfile
-homeslate.lan {
-    root * /srv/my-homeslate/dist
-    file_server
+# `http://` is deliberate. A bare `homeslate.lan` turns on Caddy's automatic
+# HTTPS: it redirects :80 to :443 and tries to obtain a public certificate for
+# a private name, which fails — so the site never loads.
+http://homeslate.lan {
     encode zstd gzip
 
-    reverse_proxy /api/* http://127.0.0.1:8787
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    handle {
+        root * /srv/my-homeslate/dist
+        try_files {path} /index.html
+        file_server
+    }
 }
 ```
+
+The two `handle` blocks are load-bearing. Caddy runs `try_files` before
+`reverse_proxy` in its directive order, so a top-level fallback rewrites
+`/api/*` to `index.html` and the API silently serves HTML instead of JSON.
+Splitting the proxy and the static files into separate blocks avoids that.
+The fallback itself is what makes deep links work: without it, opening
+`/edit/<id>` or `/d/<publicId>` directly — exactly what a kiosk does — is a 404.
+
+The `http://` in the site address is load-bearing too. Writing the bare
+`homeslate.lan` turns on Caddy's automatic HTTPS, which redirects `:80` to
+`:443` and asks Let's Encrypt for a certificate. That fails for a private name
+— Caddy logs `Domain name does not end with a valid public suffix (TLD)` and
+retries for a month — so the site is unreachable. If you want HTTPS on the LAN,
+set `tls internal` and install Caddy's root certificate on every device that
+will display a page.
 
 Keep the API on loopback and let Caddy front it:
 

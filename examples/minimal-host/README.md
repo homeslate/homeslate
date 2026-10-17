@@ -40,14 +40,28 @@ npm run build:web   # emits dist/: index.html, assets/, typestyles.css
 The API only answers `/api/*`, so a proxy serves `dist/`:
 
 ```caddyfile
-homeslate.lan {
-    root * /path/to/examples/minimal-host/dist
-    file_server
+# `http://` is deliberate. A bare `homeslate.lan` turns on Caddy's automatic
+# HTTPS: it redirects :80 to :443 and tries to obtain a public certificate for
+# a private name, which fails — so the site never loads.
+http://homeslate.lan {
     encode zstd gzip
 
-    reverse_proxy /api/* http://127.0.0.1:8787
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    handle {
+        root * /path/to/examples/minimal-host/dist
+        try_files {path} /index.html
+        file_server
+    }
 }
 ```
+
+The two `handle` blocks matter: Caddy runs `try_files` before `reverse_proxy`,
+so a top-level fallback would rewrite `/api/*` to `index.html`. And the fallback
+itself is what makes deep links work — without it, opening `/d/<publicId>`
+directly (which is what a kiosk does) is a 404.
 
 The API binds `127.0.0.1` by default, which is right when the proxy shares the
 host. Set `HOMESLATE_HOSTNAME=0.0.0.0` when it doesn't.
