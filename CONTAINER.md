@@ -86,7 +86,11 @@ return your VM's IP within a few seconds.
 Append to your Caddyfile (or create a new one) on the VM:
 
 ```caddyfile
-homeslate.lan {
+# `http://` is deliberate. A bare `homeslate.lan` turns on Caddy's automatic
+# HTTPS: it redirects :80 to :443 and tries to obtain a public certificate for
+# a name that cannot have one, so the site never loads. Only drop the scheme if
+# you have a real certificate and your devices already trust it.
+http://homeslate.lan {
     encode zstd gzip
 
     # The API listens on all interfaces inside the container; the compose

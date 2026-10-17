@@ -40,7 +40,10 @@ npm run build:web   # emits dist/: index.html, assets/, typestyles.css
 The API only answers `/api/*`, so a proxy serves `dist/`:
 
 ```caddyfile
-homeslate.lan {
+# `http://` is deliberate. A bare `homeslate.lan` turns on Caddy's automatic
+# HTTPS: it redirects :80 to :443 and tries to obtain a public certificate for
+# a private name, which fails — so the site never loads.
+http://homeslate.lan {
     encode zstd gzip
 
     handle /api/* {
