@@ -295,6 +295,42 @@ walkthrough is in
 Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then click a calendar widget's
 sign-in placeholder.
 
+## Hosted API with a home Home Assistant
+
+If the API runs somewhere other than the home network — the managed hosted
+product, or your own box in a datacenter — it can't reach `homeassistant.local`.
+Run the [`@homeslate/agent`](/docs/packages/agent) on the home network and give
+the API a [relay](/docs/packages/relay) transport instead of `HOMEASSISTANT_BASE_URL`:
+
+```bash
+# on the LAN
+docker run --network host \
+  -e HOMEASSISTANT_BASE_URL=http://homeassistant.local:8123 \
+  -e HOMEASSISTANT_TOKEN=... \
+  -e HOMESLATE_RELAY_URL=wss://relay.example.com/agent \
+  -e HOMESLATE_ACCOUNT_ID=... \
+  -e HOMESLATE_AGENT_TOKEN=... \
+  homeslate/agent
+```
+
+```ts
+// in the API host
+createHomeslateServer({
+  dataDir,
+  homeAssistant: { transport: relay.transport(accountId) },
+});
+```
+
+The agent connects **outbound**, so nothing is exposed on the LAN, and the Home
+Assistant token never leaves the house. Self-hosted installs on the same LAN keep
+using the direct `{ baseUrl, token }` form and don't need the agent at all.
+
+The [reference app](/docs/reference) can host the relay itself: set
+`HOMESLATE_RELAY_TOKEN` (a shared secret you choose) and `HOMESLATE_ACCOUNT_ID`
+in its environment, point the agent at `wss://<your-origin>/agent` with the same
+two values, and reverse-proxy `/agent` to the API. Leave `HOMESLATE_RELAY_TOKEN`
+unset and it uses `HOMEASSISTANT_BASE_URL` directly, exactly as before.
+
 ## Upgrading
 
 ```sh

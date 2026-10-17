@@ -45,4 +45,18 @@ describe("reference listen entry", () => {
     expect(source).toMatch(/HOMEASSISTANT_TOKEN/);
     expect(source).toMatch(/homeAssistant:/);
   });
+
+  it("mounts a relay transport and the /agent upgrade only when HOMESLATE_RELAY_TOKEN is set", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/HOMESLATE_RELAY_TOKEN/);
+    expect(source).toMatch(/HOMESLATE_ACCOUNT_ID/);
+    expect(source).toMatch(/createHomeAssistantRelay/);
+    expect(source).toMatch(/relay\.transport\(relayAccountId\)/);
+    expect(source).toMatch(/attachNodeWebSocket/);
+  });
+
+  it("compares the relay token in constant time", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/timingSafeEqual/);
+  });
 });

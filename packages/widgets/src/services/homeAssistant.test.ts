@@ -56,6 +56,18 @@ describe("fetchThermostat", () => {
     globalThis.fetch = async () => jsonResponse({ error: "Entity not found" }, 404);
     await expect(fetchThermostat("climate.den")).rejects.toThrow("Entity not found");
   });
+
+  it("surfaces a 503 agent-offline error and its copy", async () => {
+    globalThis.fetch = async () =>
+      jsonResponse(
+        { error: "Your Home Assistant agent is offline. Check that it's running and connected." },
+        503,
+      );
+    await expect(fetchThermostat("climate.den")).rejects.toMatchObject({
+      status: 503,
+      message: "Your Home Assistant agent is offline. Check that it's running and connected.",
+    });
+  });
 });
 
 describe("callThermostatService", () => {

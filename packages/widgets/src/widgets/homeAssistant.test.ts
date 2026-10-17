@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
+  HA_AGENT_BUSY_COPY,
+  HA_AGENT_OFFLINE_COPY,
+  HA_AGENT_TIMEOUT_COPY,
   THERMOSTAT_EMPTY_COPY,
   THERMOSTAT_MISSING_CONFIG_COPY,
   THERMOSTAT_UNAVAILABLE_COPY,
@@ -8,6 +11,7 @@ import {
   getThermostatSizeTier,
   homeAssistantEntitiesUrl,
   homeAssistantServiceUrl,
+  homeAssistantStatusUrl,
   hvacActionLabel,
   hvacModeLabel,
   isDualSetpoint,
@@ -23,6 +27,14 @@ describe("thermostat copy", () => {
     );
     expect(THERMOSTAT_UNAVAILABLE_COPY).toBe("Unavailable");
   });
+
+  it("matches the agent copy strings", () => {
+    expect(HA_AGENT_OFFLINE_COPY).toBe(
+      "Your Home Assistant agent is offline. Check that it's running and connected.",
+    );
+    expect(HA_AGENT_BUSY_COPY).toBe("Home Assistant is busy. Try again in a moment.");
+    expect(HA_AGENT_TIMEOUT_COPY).toBe("Home Assistant did not respond in time.");
+  });
 });
 
 describe("home assistant api urls", () => {
@@ -34,6 +46,7 @@ describe("home assistant api urls", () => {
     expect(homeAssistantServiceUrl("climate", "set_temperature")).toBe(
       "/api/homeassistant/services/climate/set_temperature",
     );
+    expect(homeAssistantStatusUrl()).toBe("/api/homeassistant/status");
   });
 });
 

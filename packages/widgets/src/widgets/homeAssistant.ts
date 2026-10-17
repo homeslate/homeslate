@@ -43,6 +43,14 @@ export const THERMOSTAT_MISSING_CONFIG_COPY =
   "Set HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server.";
 export const THERMOSTAT_UNAVAILABLE_COPY = "Unavailable";
 
+/** Relay configured, but no LAN agent is connected to it. */
+export const HA_AGENT_OFFLINE_COPY =
+  "Your Home Assistant agent is offline. Check that it's running and connected.";
+/** The relay is at its per-account in-flight cap. */
+export const HA_AGENT_BUSY_COPY = "Home Assistant is busy. Try again in a moment.";
+/** The agent accepted the call but did not answer in time. */
+export const HA_AGENT_TIMEOUT_COPY = "Home Assistant did not respond in time.";
+
 export function thermostatApiUrl(entityId: string): string {
   return `/api/homeassistant/states/${encodeURIComponent(entityId)}`;
 }
@@ -53,6 +61,22 @@ export function homeAssistantEntitiesUrl(domain: string): string {
 
 export function homeAssistantServiceUrl(domain: string, service: string): string {
   return `/api/homeassistant/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`;
+}
+
+export function homeAssistantStatusUrl(): string {
+  return "/api/homeassistant/status";
+}
+
+/**
+ * Health of the host's Home Assistant transport, from
+ * `GET /api/homeassistant/status`. `transport: "relay"` with `connected: false`
+ * means a LAN agent is not connected.
+ */
+export interface HomeAssistantStatusSummary {
+  configured: boolean;
+  transport: "direct" | "relay" | null;
+  connected: boolean;
+  haReachable: boolean | null;
 }
 
 const HVAC_ACTION_LABELS: Record<string, string> = {

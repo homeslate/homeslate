@@ -42,6 +42,11 @@ services:
       # be reachable from inside the container (see CONTAINER.md).
       HOMEASSISTANT_BASE_URL: ${HOMEASSISTANT_BASE_URL:-}
       HOMEASSISTANT_TOKEN: ${HOMEASSISTANT_TOKEN:-}
+      # Optional: reach Home Assistant through a LAN agent instead of
+      # directly, for an API that isn't on the home network. Proxy /agent to
+      # this container (see CONTAINER.md).
+      HOMESLATE_RELAY_TOKEN: ${HOMESLATE_RELAY_TOKEN:-}
+      HOMESLATE_ACCOUNT_ID: ${HOMESLATE_ACCOUNT_ID:-}
       NODE_ENV: production
     volumes:
       # Persistent state: sqlite database + Google refresh tokens.

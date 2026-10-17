@@ -83,6 +83,20 @@ const ENTRIES = [
     description: "Public API for @homeslate/server",
   },
   {
+    id: "agent",
+    entry: "packages/agent/src/index.ts",
+    dest: "api/agent.md",
+    title: "@homeslate/agent",
+    description: "Public API for @homeslate/agent",
+  },
+  {
+    id: "relay",
+    entry: "packages/relay/src/index.ts",
+    dest: "api/relay.md",
+    title: "@homeslate/relay",
+    description: "Public API for @homeslate/relay",
+  },
+  {
     id: "host-react",
     entry: "packages/host-react/src/index.ts",
     dest: "api/host-react.md",

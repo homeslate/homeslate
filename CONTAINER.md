@@ -227,6 +227,14 @@ docker compose down -v
   (mDNS) usually isn't, so use the host's LAN IP and port, e.g.
   `http://192.168.1.20:8123`. The token stays in the API process — the
   browser only ever talks to `/api/homeassistant/*`.
+- **Home Assistant from a remote API.** If the API runs somewhere other
+  than the home network but Home Assistant stays home, run
+  `@homeslate/agent` on the LAN instead of using `HOMEASSISTANT_BASE_URL`.
+  Set `HOMESLATE_RELAY_TOKEN` (a shared secret you choose) and
+  `HOMESLATE_ACCOUNT_ID` in `.env`, point the agent at this API's
+  `wss://…/agent`, and add `reverse_proxy /agent http://127.0.0.1:8787`
+  to the Caddy vhost so the upgrade can reach the container. See the
+  [`@homeslate/agent`](docs/content/docs/packages/agent.mdx) guide.
 
 ## Troubleshooting
 

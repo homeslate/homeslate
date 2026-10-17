@@ -1,0 +1,88 @@
+import { describe, expect, it } from "vite-plus/test";
+import type { AgentMessage } from "@homeslate/widgets/server";
+import { createRelayCore } from "./core";
+import { createAgentRegistry, type AgentHandle } from "./registry";
+import { createRelayHomeAssistantTransport, type RelayHomeAssistantTransport } from "./transport";
+
+function setup() {
+  const registry = createAgentRegistry();
+  const sent: AgentMessage[] = [];
+  const handle: AgentHandle = {
+    accountId: "acct",
+    agentId: "a1",
+    send: (message) => sent.push(message),
+    isOpen: () => true,
+    close: () => {},
+  };
+  registry.bind(handle);
+  let seq = 0;
+  const core = createRelayCore({ registry, newRequestId: () => `req-${++seq}` });
+  const transport = createRelayHomeAssistantTransport(core, "acct");
+  const lastRequest = () => sent.at(-1) as Extract<AgentMessage, { type: "request" }>;
+  return { core, sent, transport, lastRequest };
+}
+
+describe("relay transport", () => {
+  it("lists entities through the agent", async () => {
+    const { core, transport, lastRequest } = setup();
+    const promise = transport.listClimateEntities();
+    core.handleResponse("acct", {
+      type: "response",
+      id: lastRequest().id,
+      ok: true,
+      result: [{ entityId: "climate.attic", name: "Attic", state: "off" }],
+    });
+    await expect(promise).resolves.toEqual([
+      { entityId: "climate.attic", name: "Attic", state: "off" },
+    ]);
+  });
+
+  it("returns an empty list for a non-array result", async () => {
+    const { core, transport, lastRequest } = setup();
+    const promise = transport.listClimateEntities();
+    core.handleResponse("acct", { type: "response", id: lastRequest().id, ok: true, result: null });
+    await expect(promise).resolves.toEqual([]);
+  });
+
+  it("returns null for an unknown entity", async () => {
+    const { core, transport, lastRequest } = setup();
+    const promise = transport.getClimateState("climate.attic");
+    core.handleResponse("acct", { type: "response", id: lastRequest().id, ok: true, result: null });
+    await expect(promise).resolves.toBeNull();
+  });
+
+  it("forwards a service call with entity, service, and data", async () => {
+    const { core, transport, lastRequest } = setup();
+    const promise = transport.callClimateService("set_temperature", "climate.attic", {
+      temperature: 21,
+    });
+    expect(lastRequest()).toEqual({
+      type: "request",
+      id: expect.any(String),
+      method: "climate.service.call",
+      params: {
+        entityId: "climate.attic",
+        service: "set_temperature",
+        data: { temperature: 21 },
+      },
+    });
+    core.handleResponse("acct", {
+      type: "response",
+      id: lastRequest().id,
+      ok: true,
+      result: { ok: true },
+    });
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("reports connection status", async () => {
+    const { transport } = setup();
+    await expect(transport.status()).resolves.toEqual({ connected: true });
+
+    const offline: RelayHomeAssistantTransport = createRelayHomeAssistantTransport(
+      createRelayCore({ registry: createAgentRegistry() }),
+      "acct",
+    );
+    await expect(offline.status()).resolves.toEqual({ connected: false });
+  });
+});
