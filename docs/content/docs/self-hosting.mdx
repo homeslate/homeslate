@@ -9,7 +9,9 @@ There are two supported ways to run homeslate on your own machine:
 
 - **Depend on the packages** (this guide). You write a small host app, install
   the published `@homeslate/*` packages, and upgrade with `pnpm up`. Nothing to
-  clone, and your customizations live in your repo.
+  clone, and your customizations live in your repo. The
+  [`examples/minimal-host`](https://github.com/homeslate/homeslate/tree/main/examples/minimal-host)
+  scaffold is this guide as a runnable app.
 - **Run the reference container.** Clone the repo and run the
   [reference app](/docs/reference) in Docker. That path is fully walked through
   in [`CONTAINER.md`](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
@@ -50,7 +52,7 @@ pnpm init
 ```sh
 pnpm add @homeslate/server @homeslate/host-react @homeslate/widgets @homeslate/display @homeslate/editor
 pnpm add react react-dom @var-ui/react @var-ui/core @var-ui/icons react-aria-components @internationalized/date
-pnpm add -D vite @vitejs/plugin-react @typestyles/vite typestyles typescript tsx @types/react @types/react-dom
+pnpm add -D vite @vitejs/plugin-react @typestyles/vite typestyles
 ```
 
 The shape:
@@ -60,22 +62,22 @@ my-homeslate/
 ├─ index.html
 ├─ typestyles-entry.ts
 ├─ vite.config.ts
-├─ tsconfig.json
 └─ src/
-   ├─ server.ts        # the API
-   └─ main.tsx         # the web entry
+   ├─ server.mjs       # the API — plain Node, no transpiler
+   └─ main.tsx         # the web entry — compiled by Vite
 ```
 
 ## 2. The API
 
-```ts
-// src/server.ts
+```js
+// src/server.mjs
 import process from "node:process";
 import { startHomeslateServer } from "@homeslate/server";
 
 await startHomeslateServer({
   dataDir: process.env.HOMESLATE_DATA_DIR ?? "./data",
   publicBaseUrl: process.env.HOMESLATE_PUBLIC_BASE_URL ?? "http://127.0.0.1:8787",
+  hostname: process.env.HOMESLATE_HOSTNAME ?? "127.0.0.1",
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -89,6 +91,13 @@ await startHomeslateServer({
   onListen: ({ port }) => console.log(`homeslate API on http://127.0.0.1:${port}`),
 });
 ```
+
+`hostname` defaults to `127.0.0.1`, which is what you want when your proxy runs
+on the same host. **In a container it must be `0.0.0.0`.** Docker forwards a
+published port to the container's bridge address, not its loopback, so a
+loopback bind leaves the port answering nothing while the container still looks
+healthy. Keeping the *host* side of the port mapping on loopback keeps the API
+off the LAN.
 
 `publicBaseUrl` must match your LAN origin (`http://homeslate.lan`), because it
 builds the Google OAuth redirect URI. Omit `google` to run everything except the
@@ -201,11 +210,14 @@ export default defineConfig({
 
 ```sh
 # terminal 1 — the API (proxied by Vite in dev)
-pnpm exec tsx watch src/server.ts
+node --watch src/server.mjs
 
 # terminal 2 — the UI on http://127.0.0.1:5173
 pnpm exec vite
 ```
+
+There is no build step for the API: the packages ship compiled ESM, so plain
+`node` runs your entry directly.
 
 For production, build the static bundle and serve it from your proxy:
 
@@ -216,14 +228,38 @@ pnpm exec vite build   # emits dist/
 ## 6. Deploy behind Caddy
 
 ```caddyfile
-homeslate.lan {
-    root * /srv/my-homeslate/dist
-    file_server
+# `http://` is deliberate. A bare `homeslate.lan` turns on Caddy's automatic
+# HTTPS: it redirects :80 to :443 and tries to obtain a public certificate for
+# a private name, which fails — so the site never loads.
+http://homeslate.lan {
     encode zstd gzip
 
-    reverse_proxy /api/* http://127.0.0.1:8787
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    handle {
+        root * /srv/my-homeslate/dist
+        try_files {path} /index.html
+        file_server
+    }
 }
 ```
+
+The two `handle` blocks are load-bearing. Caddy runs `try_files` before
+`reverse_proxy` in its directive order, so a top-level fallback rewrites
+`/api/*` to `index.html` and the API silently serves HTML instead of JSON.
+Splitting the proxy and the static files into separate blocks avoids that.
+The fallback itself is what makes deep links work: without it, opening
+`/edit/<id>` or `/d/<publicId>` directly — exactly what a kiosk does — is a 404.
+
+The `http://` in the site address is load-bearing too. Writing the bare
+`homeslate.lan` turns on Caddy's automatic HTTPS, which redirects `:80` to
+`:443` and asks Let's Encrypt for a certificate. That fails for a private name
+— Caddy logs `Domain name does not end with a valid public suffix (TLD)` and
+retries for a month — so the site is unreachable. If you want HTTPS on the LAN,
+set `tls internal` and install Caddy's root certificate on every device that
+will display a page.
 
 Keep the API on loopback and let Caddy front it:
 
@@ -246,7 +282,7 @@ After=network.target
 [Service]
 WorkingDirectory=/srv/my-homeslate
 EnvironmentFile=/srv/my-homeslate/.env
-ExecStart=/usr/bin/node --import tsx src/server.ts
+ExecStart=/usr/bin/node src/server.mjs
 Restart=always
 User=homeslate
 
@@ -352,6 +388,9 @@ in the app directory, so upgrades never touch it.
   plugin's `extract.modules` points at it.
 - **`/api/...` 502 or ECONNREFUSED.** The API isn't running or isn't on the
   proxy's target port. The default is `127.0.0.1:8787`.
+- **Empty reply on a published port (containers).** The API is bound to
+  `127.0.0.1` inside the container. Set `HOMESLATE_HOSTNAME=0.0.0.0`: Docker
+  forwards a published port to the bridge address, not the container's loopback.
 - **`ERR_MODULE_NOT_FOUND: @homeslate/server`.** The package isn't installed in
   your app — `pnpm add @homeslate/server`.
 - **Calendar widgets stay empty.** Either the OAuth client is unset, or the

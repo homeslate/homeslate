@@ -1,0 +1,29 @@
+# Runs the minimal host API. Your reverse proxy serves ./dist and proxies
+# /api to this container. See README.md for the Caddy side and the
+# shared-network alternative to publishing the port.
+name: homeslate-minimal-host
+
+services:
+  api:
+    build: .
+    image: homeslate-minimal-host:local
+    container_name: homeslate
+    restart: unless-stopped
+    environment:
+      HOMESLATE_PUBLIC_BASE_URL: ${HOMESLATE_PUBLIC_BASE_URL:?set this to your public origin}
+      HOMESLATE_HOSTNAME: 0.0.0.0
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
+      HOMEASSISTANT_BASE_URL: ${HOMEASSISTANT_BASE_URL:-}
+      HOMEASSISTANT_TOKEN: ${HOMEASSISTANT_TOKEN:-}
+    volumes:
+      - homeslate-data:/data
+    # Host loopback only, so the API is reachable by a proxy on the host and
+    # nowhere else. On a shared Docker network you can drop this entirely and
+    # let the proxy reach the container by name instead.
+    ports:
+      - "127.0.0.1:8787:8787"
+
+volumes:
+  homeslate-data:

@@ -86,17 +86,28 @@ return your VM's IP within a few seconds.
 Append to your Caddyfile (or create a new one) on the VM:
 
 ```caddyfile
-homeslate.lan {
-    # Serve the built SPA. The container populates this directory on
-    # first start; see step 5.
-    root * /home/<your-user>/homeslate-oss/web
-    file_server
+# `http://` is deliberate. A bare `homeslate.lan` turns on Caddy's automatic
+# HTTPS: it redirects :80 to :443 and tries to obtain a public certificate for
+# a name that cannot have one, so the site never loads. Only drop the scheme if
+# you have a real certificate and your devices already trust it.
+http://homeslate.lan {
     encode zstd gzip
 
     # The API listens on all interfaces inside the container; the compose
     # file publishes it on the host's loopback only, so Caddy is the only
     # thing that can reach it.
-    reverse_proxy /api/* http://127.0.0.1:8787
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    # Serve the built SPA. The container populates this directory on first
+    # start; see step 5. `try_files` is what makes deep links work — without
+    # it, a hard refresh on /edit/<id> or /d/<publicId> is a 404.
+    handle {
+        root * /home/<your-user>/homeslate-oss/web
+        try_files {path} /index.html
+        file_server
+    }
 }
 ```
 
