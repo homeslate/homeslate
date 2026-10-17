@@ -87,16 +87,23 @@ Append to your Caddyfile (or create a new one) on the VM:
 
 ```caddyfile
 homeslate.lan {
-    # Serve the built SPA. The container populates this directory on
-    # first start; see step 5.
-    root * /home/<your-user>/homeslate-oss/web
-    file_server
     encode zstd gzip
 
     # The API listens on all interfaces inside the container; the compose
     # file publishes it on the host's loopback only, so Caddy is the only
     # thing that can reach it.
-    reverse_proxy /api/* http://127.0.0.1:8787
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    # Serve the built SPA. The container populates this directory on first
+    # start; see step 5. `try_files` is what makes deep links work — without
+    # it, a hard refresh on /edit/<id> or /d/<publicId> is a 404.
+    handle {
+        root * /home/<your-user>/homeslate-oss/web
+        try_files {path} /index.html
+        file_server
+    }
 }
 ```
 

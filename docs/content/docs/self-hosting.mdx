@@ -229,13 +229,26 @@ pnpm exec vite build   # emits dist/
 
 ```caddyfile
 homeslate.lan {
-    root * /srv/my-homeslate/dist
-    file_server
     encode zstd gzip
 
-    reverse_proxy /api/* http://127.0.0.1:8787
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    handle {
+        root * /srv/my-homeslate/dist
+        try_files {path} /index.html
+        file_server
+    }
 }
 ```
+
+The two `handle` blocks are load-bearing. Caddy runs `try_files` before
+`reverse_proxy` in its directive order, so a top-level fallback rewrites
+`/api/*` to `index.html` and the API silently serves HTML instead of JSON.
+Splitting the proxy and the static files into separate blocks avoids that.
+The fallback itself is what makes deep links work: without it, opening
+`/edit/<id>` or `/d/<publicId>` directly — exactly what a kiosk does — is a 404.
 
 Keep the API on loopback and let Caddy front it:
 
