@@ -1,8 +1,8 @@
 # @homeslate/server
 
 The homeslate Hono API: display CRUD, the public kiosk route, the Google OAuth
-routes, and the calendar, commute, and weather-alerts proxies. Node 22.13+
-(uses `node:sqlite` through `@homeslate/adapters`).
+routes, and the calendar, commute, weather-alerts, and Home Assistant device
+proxies. Node 22.13+ (uses `node:sqlite` through `@homeslate/adapters`).
 
 ```ts
 import { startHomeslateServer } from "@homeslate/server";

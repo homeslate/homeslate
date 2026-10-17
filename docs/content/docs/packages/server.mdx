@@ -6,8 +6,8 @@ description: The Hono API for homeslate — displays, Google OAuth, and data pro
 # @homeslate/server
 
 The homeslate Hono API: display CRUD, the public kiosk route, the Google OAuth
-routes, and the calendar, commute, and weather-alerts proxies. Requires
-**Node 22.13+** (`node:sqlite` through `@homeslate/adapters`).
+routes, and the calendar, commute, weather-alerts, and Home Assistant proxies.
+Requires **Node 22.13+** (`node:sqlite` through `@homeslate/adapters`).
 
 ## Install
 
@@ -25,6 +25,10 @@ await startHomeslateServer({
   publicBaseUrl: "http://homeslate.lan",
   google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET },
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  homeAssistant: {
+    baseUrl: process.env.HOMEASSISTANT_BASE_URL,
+    token: process.env.HOMEASSISTANT_TOKEN,
+  },
   seedEmptyDisplay: true,
   onListen: ({ port }) => console.log(`homeslate API on http://127.0.0.1:${port}`),
 });
@@ -54,6 +58,7 @@ app.get("/api/solar", (c) => c.json({ watts: 4200 }));
 | `dataDir` | — | sqlite database + Google token files |
 | `publicBaseUrl` | `http://127.0.0.1:8787` | builds the OAuth redirect URI |
 | `google` | unset | `{ clientId, clientSecret }`; empty disables calendar |
+| `homeAssistant` | unset | `{ baseUrl, token }`; empty disables HA widgets |
 | `openRouteServiceApiKey` | unset | enables `/api/commute` |
 | `accountId` | `"local"` | single-tenant display owner |
 | `displayStore` | sqlite in `dataDir` | any `DisplayStore` |
@@ -80,7 +85,9 @@ so binding `0.0.0.0` inside the container does not expose the API to the LAN.
 `/api/displays` (GET/POST) and `/api/displays/:id` (GET/PUT/DELETE);
 `/api/public/:publicId` (GET/PUT); `/api/display-calendar` (GET);
 `/api/google/connect|callback|session` (GET); `/api/commute` (GET);
-`/api/weather/alerts` (GET); `/` redirects to `publicBaseUrl`.
+`/api/weather/alerts` (GET);
+`/api/homeassistant/entities|states/:entityId|services/:domain/:service`
+(GET/GET/POST); `/` redirects to `publicBaseUrl`.
 
 ## See also
 

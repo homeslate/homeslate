@@ -51,12 +51,12 @@ Custom widgets: `registerWidget({ type, name, description, icon, component, defa
 
 ## Subpaths
 
-| Export                       | Role                                                        |
-| ---------------------------- | ----------------------------------------------------------- |
-| `@homeslate/widgets`         | React registry + providers (registers built-ins)            |
-| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                 |
-| `@homeslate/widgets/server`  | Commute query parsing, NWS alert mapping, Google error copy |
-| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS           |
+| Export                       | Role                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `@homeslate/widgets`         | React registry + providers (registers built-ins)                                            |
+| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                                                 |
+| `@homeslate/widgets/server`  | Commute query parsing, NWS alert mapping, Home Assistant climate mapping, Google error copy |
+| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS                                           |
 
 ## Host styles
 

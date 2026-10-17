@@ -24,6 +24,7 @@ import type { AnnouncementConfig } from "./widgets/AnnouncementWidget";
 import type { CommuteConfig } from "./widgets/CommuteWidget";
 import type { WeatherAlertsConfig } from "./widgets/WeatherAlertsWidget";
 import type { EmbedConfig } from "./widgets/EmbedWidget";
+import type { ThermostatConfig } from "./widgets/ThermostatWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -34,6 +35,7 @@ import {
   commuteConfigSchema,
   countdownConfigSchema,
   embedConfigSchema,
+  thermostatConfigSchema,
   weatherAlertsConfigSchema,
   dailyRoutineConfigSchema,
   groceryConfigSchema,
@@ -74,6 +76,7 @@ import {
   IconCar,
   IconAlertTriangle,
   IconAppWindow,
+  IconTemperature,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -251,6 +254,13 @@ const EmbedWidget = lazy(() =>
 );
 const EmbedWidgetSettings = lazy(() =>
   import("./widgets/EmbedWidget").then((m) => ({ default: m.EmbedWidgetSettings })),
+);
+
+const ThermostatWidget = lazy(() =>
+  import("./widgets/ThermostatWidget").then((m) => ({ default: m.ThermostatWidget })),
+);
+const ThermostatWidgetSettings = lazy(() =>
+  import("./widgets/ThermostatWidget").then((m) => ({ default: m.ThermostatWidgetSettings })),
 );
 
 // Clock Widget
@@ -771,3 +781,24 @@ const embedEntry: WidgetRegistryEntry<EmbedConfig> = {
   defaultLayout: { w: 4, h: 4, minW: 2, minH: 2 },
 };
 registerWidget(embedEntry);
+
+const thermostatEntry: WidgetRegistryEntry<ThermostatConfig> = {
+  type: "thermostat",
+  name: "Thermostat",
+  description: "View and control a Home Assistant thermostat",
+  configSchema: thermostatConfigSchema,
+  icon: IconTemperature,
+  component: ThermostatWidget,
+  settingsComponent: ThermostatWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    showControls: true,
+    showFanControl: true,
+    showPresetControl: true,
+    showSwingControl: false,
+    showHumidity: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(thermostatEntry);

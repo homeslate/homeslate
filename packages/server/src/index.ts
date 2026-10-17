@@ -5,9 +5,16 @@ export { startHomeslateServer } from "./node";
 export type { StartHomeslateServerOptions } from "./node";
 export type {
   HomeslateGoogleCredentials,
+  HomeslateHomeAssistantCredentials,
   HomeslateListenInfo,
   HomeslateServerOptions,
 } from "./types";
+export {
+  HomeAssistantError,
+  createHomeAssistantClient,
+  type HomeAssistantClient,
+  type HomeAssistantClientOptions,
+} from "./homeAssistant";
 export {
   DEFAULT_PUBLIC_BASE_URL,
   GOOGLE_OAUTH_STATE_COOKIE,

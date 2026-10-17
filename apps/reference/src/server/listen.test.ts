@@ -38,4 +38,11 @@ describe("reference listen entry", () => {
     expect(source).toMatch(/HOMESLATE_HOSTNAME\?\.trim\(\)\s*\|\|\s*["']0\.0\.0\.0["']/);
     expect(source).toMatch(/\bhostname,/);
   });
+
+  it("passes the Home Assistant credentials from the environment", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/HOMEASSISTANT_BASE_URL/);
+    expect(source).toMatch(/HOMEASSISTANT_TOKEN/);
+    expect(source).toMatch(/homeAssistant:/);
+  });
 });

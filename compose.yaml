@@ -38,6 +38,10 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       # Optional: enables the commute widget.
       OPENROUTESERVICE_API_KEY: ${OPENROUTESERVICE_API_KEY:-}
+      # Optional: enables the Home Assistant thermostat widget. The URL must
+      # be reachable from inside the container (see CONTAINER.md).
+      HOMEASSISTANT_BASE_URL: ${HOMEASSISTANT_BASE_URL:-}
+      HOMEASSISTANT_TOKEN: ${HOMEASSISTANT_TOKEN:-}
       NODE_ENV: production
     volumes:
       # Persistent state: sqlite database + Google refresh tokens.
