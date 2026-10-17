@@ -1,5 +1,13 @@
 # @homeslate/editor
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [d0bcb9e]
+  - @homeslate/widgets@1.1.0
+  - @homeslate/display@1.0.1
+
 ## 1.0.0
 
 ### Major Changes
