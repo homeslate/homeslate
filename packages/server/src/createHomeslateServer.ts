@@ -31,7 +31,14 @@ import {
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { estimateCommute } from "./commute";
-import { HomeAssistantError, createHomeAssistantClient } from "./homeAssistant";
+import {
+  HomeAssistantError,
+  HomeAssistantTransportError,
+  createHomeAssistantClient,
+  hasStatus,
+  type HomeAssistantStatus,
+  type HomeAssistantTransport,
+} from "./homeAssistant";
 import { fetchWeatherAlerts, parseWeatherAlertPoint } from "./weatherAlerts";
 import {
   DEFAULT_PUBLIC_BASE_URL,
@@ -82,9 +89,15 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
 
   const homeAssistantBaseUrl = opts.homeAssistant?.baseUrl?.trim() ?? "";
   const homeAssistantToken = opts.homeAssistant?.token?.trim() ?? "";
-  const homeAssistant =
-    homeAssistantBaseUrl && homeAssistantToken
+  const homeAssistant: HomeAssistantTransport | null =
+    opts.homeAssistant?.transport ??
+    (homeAssistantBaseUrl && homeAssistantToken
       ? createHomeAssistantClient({ baseUrl: homeAssistantBaseUrl, token: homeAssistantToken })
+      : null);
+  const homeAssistantTransportKind: HomeAssistantStatus["transport"] = opts.homeAssistant?.transport
+    ? "relay"
+    : homeAssistantBaseUrl && homeAssistantToken
+      ? "direct"
       : null;
 
   app.get("/", (c) => c.redirect(`${publicBaseUrl.replace(/\/+$/, "")}/`));
@@ -133,6 +146,24 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
     }
   });
 
+  app.get("/api/homeassistant/status", async (c) => {
+    const configured = homeAssistant !== null;
+    const base: HomeAssistantStatus = {
+      configured,
+      transport: homeAssistantTransportKind,
+      connected: configured,
+      haReachable: configured ? true : null,
+    };
+    if (homeAssistant && hasStatus(homeAssistant)) {
+      try {
+        return c.json({ ...base, ...(await homeAssistant.status()) });
+      } catch {
+        return c.json({ ...base, connected: false });
+      }
+    }
+    return c.json(base);
+  });
+
   app.get("/api/homeassistant/entities", async (c) => {
     if ((c.req.query("domain") ?? "climate") !== "climate") {
       return c.json({ error: "Only the climate domain is supported" }, 400);
@@ -141,8 +172,9 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
 
     try {
       return c.json({ entities: await homeAssistant.listClimateEntities() });
-    } catch {
-      return c.json({ error: "Home Assistant request failed" }, 502);
+    } catch (error) {
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
     }
   });
 
@@ -156,8 +188,9 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
     try {
       const state = await homeAssistant.getClimateState(entityId);
       return state ? c.json(state) : c.json({ error: "Entity not found" }, 404);
-    } catch {
-      return c.json({ error: "Home Assistant request failed" }, 502);
+    } catch (error) {
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
     }
   });
 
@@ -185,10 +218,8 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       await homeAssistant.callClimateService(service, entityId, body);
       return c.json({ ok: true });
     } catch (error) {
-      if (error instanceof HomeAssistantError && error.status === 400) {
-        return c.json({ error: "Invalid service data" }, 400);
-      }
-      return c.json({ error: "Home Assistant request failed" }, 502);
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
     }
   });
 
@@ -392,6 +423,21 @@ async function optionalJsonBody(request: Request): Promise<Record<string, unknow
   if (!body) return {};
   const value: unknown = JSON.parse(body);
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+/**
+ * Map a Home Assistant transport failure onto an HTTP status. Transport errors
+ * carry their own status (relay `503` offline / `504` timeout); anything else
+ * is the generic upstream failure.
+ */
+function homeAssistantRouteError(error: unknown): { status: number; error: string } {
+  if (error instanceof HomeAssistantTransportError) {
+    return { status: error.status, error: error.userMessage };
+  }
+  if (error instanceof HomeAssistantError && error.status === 400) {
+    return { status: 400, error: "Invalid service data" };
+  }
+  return { status: 502, error: "Home Assistant request failed" };
 }
 
 /** Owner-facing display shape: exposes whether a passcode is set, never the hash. */

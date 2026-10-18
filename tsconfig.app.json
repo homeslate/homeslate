@@ -37,6 +37,9 @@
       "@homeslate/editor/styles": ["./packages/editor/src/styles.ts"],
       "@homeslate/adapters": ["./packages/adapters/src/index.ts"],
       "@homeslate/server": ["./packages/server/src/index.ts"],
+      "@homeslate/agent": ["./packages/agent/src/index.ts"],
+      "@homeslate/relay": ["./packages/relay/src/index.ts"],
+      "@homeslate/relay/node": ["./packages/relay/src/node.ts"],
       "@homeslate/host-react": ["./packages/host-react/src/index.ts"]
     }
   },
@@ -48,6 +51,8 @@
     "packages/editor/src",
     "packages/adapters/src",
     "packages/server/src",
+    "packages/agent/src",
+    "packages/relay/src",
     "packages/host-react/src"
   ]
 }

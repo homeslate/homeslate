@@ -28,7 +28,27 @@ export class HomeAssistantError extends Error {
   }
 }
 
-export type HomeAssistantClient = {
+/**
+ * A transport failure that already knows its own HTTP status and a safe,
+ * user-facing message. A relay transport throws this to report `503` (agent
+ * offline) and `504` (timeout) without the routes knowing what a relay is.
+ */
+export class HomeAssistantTransportError extends Error {
+  constructor(
+    readonly status: number,
+    readonly userMessage: string,
+  ) {
+    super(userMessage);
+    this.name = "HomeAssistantTransportError";
+  }
+}
+
+/**
+ * Everything the `/api/homeassistant/*` routes need from Home Assistant. The
+ * direct LAN client and the hosted relay transport both implement this, so the
+ * routes never care which one is wired up.
+ */
+export type HomeAssistantTransport = {
   /** Sorted climate entities for the widget settings picker. */
   listClimateEntities(): Promise<HomeAssistantEntitySummary[]>;
   /** `null` when Home Assistant has no such entity. */
@@ -41,9 +61,31 @@ export type HomeAssistantClient = {
   ): Promise<void>;
 };
 
+/** @deprecated Use {@link HomeAssistantTransport}. */
+export type HomeAssistantClient = HomeAssistantTransport;
+
+/** Health of the configured transport, surfaced by `GET /api/homeassistant/status`. */
+export type HomeAssistantStatus = {
+  configured: boolean;
+  transport: "direct" | "relay" | null;
+  connected: boolean;
+  haReachable: boolean | null;
+};
+
+/** A transport that can report its own liveness (the relay transport does). */
+export type HomeAssistantStatusProvider = {
+  status(): Promise<Partial<HomeAssistantStatus>> | Partial<HomeAssistantStatus>;
+};
+
+export function hasStatus(
+  transport: HomeAssistantTransport,
+): transport is HomeAssistantTransport & HomeAssistantStatusProvider {
+  return typeof (transport as { status?: unknown }).status === "function";
+}
+
 export function createHomeAssistantClient(
   options: HomeAssistantClientOptions,
-): HomeAssistantClient {
+): HomeAssistantTransport {
   const baseUrl = options.baseUrl.trim().replace(/\/+$/, "");
   const token = options.token.trim();
   const fetchImpl = options.fetchImpl ?? fetch;

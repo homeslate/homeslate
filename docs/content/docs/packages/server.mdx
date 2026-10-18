@@ -58,7 +58,7 @@ app.get("/api/solar", (c) => c.json({ watts: 4200 }));
 | `dataDir` | — | sqlite database + Google token files |
 | `publicBaseUrl` | `http://127.0.0.1:8787` | builds the OAuth redirect URI |
 | `google` | unset | `{ clientId, clientSecret }`; empty disables calendar |
-| `homeAssistant` | unset | `{ baseUrl, token }`; empty disables HA widgets |
+| `homeAssistant` | unset | `{ baseUrl, token }` for a LAN Home Assistant, or `{ transport }` for a [relay](/docs/packages/relay); empty disables HA widgets |
 | `openRouteServiceApiKey` | unset | enables `/api/commute` |
 | `accountId` | `"local"` | single-tenant display owner |
 | `displayStore` | sqlite in `dataDir` | any `DisplayStore` |
@@ -86,8 +86,28 @@ so binding `0.0.0.0` inside the container does not expose the API to the LAN.
 `/api/public/:publicId` (GET/PUT); `/api/display-calendar` (GET);
 `/api/google/connect|callback|session` (GET); `/api/commute` (GET);
 `/api/weather/alerts` (GET);
-`/api/homeassistant/entities|states/:entityId|services/:domain/:service`
-(GET/GET/POST); `/` redirects to `publicBaseUrl`.
+`/api/homeassistant/entities|states/:entityId|services/:domain/:service|status`
+(GET/GET/POST/GET); `/` redirects to `publicBaseUrl`.
+
+## Home Assistant transport
+
+`/api/homeassistant/*` depends on a `HomeAssistantTransport`, not on `fetch`
+directly. Two implementations ship:
+
+- the built-in **direct** client, configured with `homeAssistant: { baseUrl, token }`;
+- the **relay** transport from [`@homeslate/relay`](/docs/packages/relay),
+  injected as `homeAssistant: { transport }` — for a hosted API that reaches a
+  home Home Assistant through a [LAN agent](/docs/packages/agent).
+
+`GET /api/homeassistant/status` reports `{ configured, transport, connected,
+haReachable }`, so a client can tell "not set up" from "agent disconnected":
+
+| Situation | Status |
+| --- | --- |
+| No transport and no credentials | `501` |
+| Relay configured, no agent connected | `503` |
+| Relay configured, agent up, Home Assistant down | `502` |
+| Relay request timed out | `504` |
 
 ## See also
 
