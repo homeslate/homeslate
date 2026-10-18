@@ -10,6 +10,10 @@ The reference app is a thin consumer of the published packages:
 depend on the packages from your own app instead of cloning this repo, see the
 [self-hosting guide](../docs/content/docs/self-hosting.mdx).
 
+Open `/edit/<id>` to manage a display: add and reorder **views**, configure
+auto-rotate and alarms under **Settings**, and optionally set a 4-digit **viewer
+passcode** that the kiosk (`/d/<publicId>`) requires before it renders.
+
 ## Run
 
 From the repository root:

@@ -23,6 +23,23 @@ await startHomeslateServer({
 Mount it yourself with `createHomeslateServer(options)`, which returns the Hono
 app so you can add routes, test it, or run it on another runtime.
 
+## Displays and viewer passcodes
+
+- `GET /api/displays` lists `{ id, name }` summaries.
+- `POST /api/displays`, `GET /api/displays/:id`, and `PUT /api/displays/:id`
+  return the document plus a `passcodeEnabled` flag. The passcode hash is never
+  included in a response.
+- `PATCH /api/displays/:id` accepts `{ passcode: string | null }` to set a
+  4-digit viewer PIN or clear it with `null` (`isValidPin` validates the shape;
+  `hashPasscode` stores a scrypt hash on the display record).
+- `DELETE /api/displays/:id` removes the display.
+- `GET` / `PUT /api/public/:publicId` serve the kiosk. When the display has a
+  passcode they answer `401 { passcodeRequired: true }` unless the request
+  carries `?passcode=<pin>` (`verifyPasscode`).
+
+`hashPasscode`, `verifyPasscode`, and `isValidPin` are exported for hosts that
+manage passcodes themselves.
+
 In a container, bind all interfaces so Docker's published port can reach the
 API — Docker forwards to the container's bridge address, not its loopback:
 

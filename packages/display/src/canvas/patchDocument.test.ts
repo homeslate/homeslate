@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vite-plus/test";
 import type { DisplayDocument, WidgetInstance } from "@homeslate/schema";
 import {
+  addView,
   addWidget,
   applyWidgetLayouts,
   findAvailablePosition,
+  moveView,
   patchView,
   patchViewNotes,
   patchWidgetConfig,
+  removeView,
   removeWidget,
   replaceViewWidgets,
+  setActiveView,
 } from "./patchDocument";
 
 const widget = (id: string, extra?: Partial<WidgetInstance>): WidgetInstance => ({
@@ -108,5 +112,52 @@ describe("patchDocument", () => {
   it("replaceViewWidgets swaps the widget list", () => {
     const next = replaceViewWidgets(doc(), "morning", [widget("w9")]);
     expect(next.views[0].widgets.map((w) => w.id)).toEqual(["w9"]);
+  });
+
+  it("addView appends the view and keeps the existing active view", () => {
+    const evening = { id: "evening", name: "Evening", columns: 12, rowHeight: 80, widgets: [] };
+    const next = addView(doc(), evening);
+    expect(next.views.map((v) => v.id)).toEqual(["morning", "evening"]);
+    expect(next.activeViewId).toBe("morning");
+  });
+
+  it("addView adopts the new view when nothing was active", () => {
+    const base = { ...doc(), activeViewId: null };
+    const evening = { id: "evening", name: "Evening", columns: 12, rowHeight: 80, widgets: [] };
+    const next = addView(base, evening);
+    expect(next.activeViewId).toBe("evening");
+  });
+
+  it("removeView drops the view and repoints the active view", () => {
+    const evening = { id: "evening", name: "Evening", columns: 12, rowHeight: 80, widgets: [] };
+    const next = removeView(addView(doc(), evening), "morning");
+    expect(next.views.map((v) => v.id)).toEqual(["evening"]);
+    expect(next.activeViewId).toBe("evening");
+  });
+
+  it("removeView of the last view clears activeViewId", () => {
+    const next = removeView(doc(), "morning");
+    expect(next.views).toEqual([]);
+    expect(next.activeViewId).toBeNull();
+  });
+
+  it("removeView with an unknown id returns the same document", () => {
+    const start = doc();
+    expect(removeView(start, "missing")).toBe(start);
+  });
+
+  it("moveView reorders and clamps the target index", () => {
+    const evening = { id: "evening", name: "Evening", columns: 12, rowHeight: 80, widgets: [] };
+    const base = addView(doc(), evening);
+    expect(moveView(base, "morning", 99).views.map((v) => v.id)).toEqual(["evening", "morning"]);
+    expect(moveView(base, "evening", -5).views.map((v) => v.id)).toEqual(["evening", "morning"]);
+    expect(moveView(base, "morning", 0)).toBe(base);
+  });
+
+  it("setActiveView updates activeViewId and no-ops when unchanged", () => {
+    const evening = { id: "evening", name: "Evening", columns: 12, rowHeight: 80, widgets: [] };
+    const base = addView(doc(), evening);
+    expect(setActiveView(base, "evening").activeViewId).toBe("evening");
+    expect(setActiveView(base, "morning")).toBe(base);
   });
 });

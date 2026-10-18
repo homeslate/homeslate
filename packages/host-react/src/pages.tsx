@@ -1,33 +1,41 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import {
   AppShell,
+  Badge,
   Button,
   Heading,
   HStack,
   Link,
+  PinInput,
   Spinner,
   Stack,
+  Surface,
+  Tabs,
   Text,
   TopNav,
 } from "@var-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { DisplayDocument } from "@homeslate/schema";
-import { Editor } from "@homeslate/editor";
+import type { DisplayDocument, ThemeDocument } from "@homeslate/schema";
+import { Editor, ThemeEditor } from "@homeslate/editor";
 import { Display } from "@homeslate/display";
 import {
   errorMessage,
   getJson,
+  getPublicDocument,
   joinUrl,
   postJson,
+  publicDocumentUrl,
   putJson,
+  setDisplayPasscode,
   type DisplayRecord,
   type DisplaySummary,
 } from "./api";
-import { createDebouncedPersist } from "./createDebouncedPersist";
+import { DisplaySettingsPanel } from "./DisplaySettingsPanel";
 import { HomeslateGoogleRuntime } from "./HomeslateGoogleRuntime";
+import { useDisplayDocument } from "./useDisplayDocument";
+import { ViewsPanel } from "./ViewsPanel";
 import { useHomeslateHost } from "./hostContext";
 
-const EDITOR_PUT_DEBOUNCE_MS = 400;
 const KIOSK_POLL_MS = 10_000;
 
 const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
@@ -43,7 +51,9 @@ const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
 export function DisplayListPage() {
   const navigate = useNavigate();
   const { apiBaseUrl, productName } = useHomeslateHost();
-  const [displays, setDisplays] = useState<Array<DisplaySummary & { publicId?: string }>>([]);
+  const [displays, setDisplays] = useState<
+    Array<DisplaySummary & { publicId?: string; passcodeEnabled?: boolean }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,15 +63,19 @@ export function DisplayListPage() {
     void (async () => {
       try {
         const list = await getJson<DisplaySummary[]>(joinUrl(apiBaseUrl, "/api/displays"));
-        const withPublicIds = await Promise.all(
+        const withRecords = await Promise.all(
           list.map(async (item) => {
             const record = await getJson<DisplayRecord>(
               joinUrl(apiBaseUrl, `/api/displays/${item.id}`),
             );
-            return { ...item, publicId: record.publicId };
+            return {
+              ...item,
+              publicId: record.publicId,
+              passcodeEnabled: record.passcodeEnabled ?? false,
+            };
           }),
         );
-        if (!cancelled) setDisplays(withPublicIds);
+        if (!cancelled) setDisplays(withRecords);
       } catch (cause) {
         if (!cancelled) setError(errorMessage(cause));
       } finally {
@@ -109,7 +123,8 @@ export function DisplayListPage() {
           <HStack key={display.id} justify="between">
             <Text>{display.name}</Text>
             <HStack gap="md">
-              <Link href={`/edit/${display.id}`}>Editor</Link>
+              {display.passcodeEnabled && <Badge tone="neutral">PIN</Badge>}
+              <Link href={`/edit/${display.id}`}>Manage</Link>
               {display.publicId && <Link href={`/d/${display.publicId}`}>Kiosk</Link>}
             </HStack>
           </HStack>
@@ -119,56 +134,24 @@ export function DisplayListPage() {
   );
 }
 
-/** Editor route. Loads the display by id and persists edits with a debounce. */
+type ManagementTab = "views" | "settings" | "theme";
+
+/** Display management: manage views, display settings, and themes. */
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
-  const { apiBaseUrl, widgetRegistry } = useHomeslateHost();
-  const [record, setRecord] = useState<DisplayRecord | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { apiBaseUrl } = useHomeslateHost();
+  const { record, document, passcodeEnabled, error, saveError, setDocument, setPasscodeEnabled } =
+    useDisplayDocument(apiBaseUrl, id);
+  const [tab, setTab] = useState<ManagementTab>("views");
 
-  const persist = useMemo(
-    () =>
-      createDebouncedPersist((next: DisplayDocument, { keepalive }) => {
-        if (!id) return;
-        void putJson(joinUrl(apiBaseUrl, `/api/displays/${id}`), next, { keepalive }).then(
-          () => setSaveError(null),
-          (cause: unknown) => setSaveError(errorMessage(cause)),
-        );
-      }, EDITOR_PUT_DEBOUNCE_MS),
-    [apiBaseUrl, id],
-  );
-
-  useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const next = await getJson<DisplayRecord>(joinUrl(apiBaseUrl, `/api/displays/${id}`));
-        if (!cancelled) setRecord(next);
-      } catch (cause) {
-        if (!cancelled) setError(errorMessage(cause));
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [apiBaseUrl, id]);
-
-  useEffect(() => {
-    const detach = persist.attach();
-    return () => {
-      detach();
-      persist.flush();
-    };
-  }, [persist]);
-
-  const onChange = useCallback(
-    (next: DisplayDocument) => {
-      setRecord((current) => (current ? { ...current, document: next } : current));
-      persist.schedule(next);
+  const setPasscode = useCallback(
+    async (passcode: string | null) => {
+      if (!id) return;
+      await setDisplayPasscode(apiBaseUrl, id, passcode);
+      setPasscodeEnabled(passcode !== null);
     },
-    [persist],
+    [apiBaseUrl, id, setPasscodeEnabled],
   );
 
   if (error)
@@ -177,9 +160,104 @@ export function EditorPage() {
         {error}
       </Text>
     );
-  if (!record) return <Spinner />;
+  if (!record || !document) return <Spinner />;
 
-  const viewId = record.document.activeViewId ?? record.document.views[0].id;
+  const tabs = [
+    {
+      id: "views",
+      label: "Views",
+      content: (
+        <ViewsPanel
+          document={document}
+          onChange={setDocument}
+          onOpenView={(viewId) => navigate(`/edit/${record.id}/views/${viewId}`)}
+        />
+      ),
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      content: (
+        <DisplaySettingsPanel
+          document={document}
+          onChange={setDocument}
+          passcodeEnabled={passcodeEnabled}
+          onSetPasscode={setPasscode}
+        />
+      ),
+    },
+    {
+      id: "theme",
+      label: "Theme",
+      content: (
+        <ThemeEditor
+          documents={document.themes as ThemeDocument[]}
+          activeThemeDocumentId={document.activeThemeId}
+          previewViews={document.views}
+          initialPreviewViewId={document.activeViewId}
+          onChange={(themes, activeThemeId) => setDocument({ ...document, themes, activeThemeId })}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <HomeslateGoogleRuntime displayId={record.publicId} apiBaseUrl={apiBaseUrl}>
+      <AppShell
+        contentPadding={4}
+        topNav={
+          <TopNav
+            heading={
+              <HStack gap="md">
+                <Link href="/">Displays</Link>
+                <Heading level={4}>{document.name}</Heading>
+              </HStack>
+            }
+            endContent={
+              <HStack gap="md">
+                {saveError && (
+                  <Text as="span" size="sm" role="alert">
+                    Not saved: {saveError}
+                  </Text>
+                )}
+                <Link href={`/d/${record.publicId}`}>Open kiosk</Link>
+              </HStack>
+            }
+          />
+        }
+      >
+        <Tabs
+          tabs={tabs}
+          selectedKey={tab}
+          onSelectionChange={(key) => setTab(String(key) as ManagementTab)}
+        />
+      </AppShell>
+    </HomeslateGoogleRuntime>
+  );
+}
+
+/** Per-view canvas editor. Renders `@homeslate/editor` for one view. */
+export function ViewEditorPage() {
+  const { id, viewId } = useParams<{ id: string; viewId: string }>();
+  const { apiBaseUrl, widgetRegistry } = useHomeslateHost();
+  const { record, document, error, saveError, setDocument } = useDisplayDocument(apiBaseUrl, id);
+
+  if (error)
+    return (
+      <Text role="alert" style={{ padding: "1rem" }}>
+        {error}
+      </Text>
+    );
+  if (!record || !document) return <Spinner />;
+
+  const view = document.views.find((candidate) => candidate.id === viewId) ?? document.views[0];
+  if (!view) {
+    return (
+      <AppShell contentPadding={4}>
+        <Text role="alert">This display has no views yet.</Text>
+      </AppShell>
+    );
+  }
 
   return (
     <HomeslateGoogleRuntime displayId={record.publicId} apiBaseUrl={apiBaseUrl}>
@@ -189,8 +267,8 @@ export function EditorPage() {
           <TopNav
             heading={
               <HStack gap="md">
-                <Link href="/">Displays</Link>
-                <Heading level={4}>{record.document.name}</Heading>
+                <Link href={`/edit/${record.id}`}>Views</Link>
+                <Heading level={4}>{view.name}</Heading>
               </HStack>
             }
             endContent={
@@ -208,10 +286,10 @@ export function EditorPage() {
       >
         <div style={{ height: "100%", display: "flex" }}>
           <Editor
-            document={record.document}
-            viewId={viewId}
+            document={document}
+            viewId={view.id}
             widgetRegistry={widgetRegistry}
-            onChange={onChange}
+            onChange={setDocument}
           />
         </div>
       </AppShell>
@@ -219,51 +297,95 @@ export function EditorPage() {
   );
 }
 
-/** Kiosk route. Polls the public document and renders it full-bleed. */
+/** Kiosk route. Polls the public document, gated by the viewer passcode. */
 export function KioskPage() {
   const { publicId } = useParams<{ publicId: string }>();
   const { apiBaseUrl, widgetRegistry } = useHomeslateHost();
   const [document, setDocument] = useState<DisplayDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [passcode, setPasscode] = useState<string | null>(null);
+  const [passcodeRequired, setPasscodeRequired] = useState(false);
+  const [pinValue, setPinValue] = useState("");
+  const [pinError, setPinError] = useState(false);
+
+  const load = useCallback(
+    async (candidate: string | null) => {
+      if (!publicId) return;
+      try {
+        const result = await getPublicDocument(apiBaseUrl, publicId, candidate);
+        if (result.status === "passcode-required") {
+          setPasscodeRequired(true);
+          if (candidate) {
+            setPinError(true);
+            setPinValue("");
+          }
+          return;
+        }
+        setPasscodeRequired(false);
+        setPinError(false);
+        setDocument(result.document);
+        setError(null);
+      } catch (cause) {
+        setError(errorMessage(cause));
+      }
+    },
+    [apiBaseUrl, publicId],
+  );
 
   useEffect(() => {
-    if (!publicId) return;
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const body = await getJson<{ document: DisplayDocument }>(
-          joinUrl(apiBaseUrl, `/api/public/${publicId}`),
-        );
-        if (!cancelled) {
-          setDocument(body.document);
-          setError(null);
-        }
-      } catch (cause) {
-        if (!cancelled) setError(errorMessage(cause));
-      }
-    };
-
-    void load();
-    const interval = setInterval(() => void load(), KIOSK_POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [apiBaseUrl, publicId]);
+    void load(passcode);
+    const interval = setInterval(() => void load(passcode), KIOSK_POLL_MS);
+    return () => clearInterval(interval);
+  }, [load, passcode]);
 
   const onChange = useCallback(
     (next: DisplayDocument) => {
       setDocument(next);
       if (!publicId) return;
-      void putJson(joinUrl(apiBaseUrl, `/api/public/${publicId}`), next).then(
+      void putJson(publicDocumentUrl(apiBaseUrl, publicId, passcode), next).then(
         () => setSaveError(null),
         (cause: unknown) => setSaveError(errorMessage(cause)),
       );
     },
-    [apiBaseUrl, publicId],
+    [apiBaseUrl, publicId, passcode],
   );
+
+  if (passcodeRequired && !document) {
+    return (
+      <Stack align="center" justify="center" style={{ minHeight: "100vh", padding: "1rem" }}>
+        <Surface padding="md">
+          <Stack gap="md" align="center">
+            <Text weight="semibold">Enter passcode</Text>
+            <Text size="sm" tone="secondary">
+              This display is locked with a 4-digit PIN.
+            </Text>
+            <PinInput
+              length={4}
+              type="numeric"
+              autoFocus
+              aria-label="Display passcode"
+              value={pinValue}
+              errorMessage={pinError ? "Incorrect PIN" : undefined}
+              onChange={(value) => {
+                setPinValue(value);
+                setPinError(false);
+              }}
+              onComplete={(value) => setPasscode(value)}
+            />
+            <Button
+              intent="primary"
+              size="sm"
+              isDisabled={pinValue.length !== 4}
+              onPress={() => setPasscode(pinValue)}
+            >
+              Unlock
+            </Button>
+          </Stack>
+        </Surface>
+      </Stack>
+    );
+  }
 
   if (error && !document)
     return (

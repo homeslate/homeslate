@@ -10,6 +10,9 @@ import {
   type DisplaySummary,
 } from "./types";
 
+/** On-disk shape. `passcodeHash` is stored here but never leaves as a DisplayRecord. */
+type StoredDisplayRecord = DisplayRecord & { passcodeHash?: string | null };
+
 export class FileDisplayStore implements DisplayStore {
   private readonly dir: string;
 
@@ -30,7 +33,7 @@ export class FileDisplayStore implements DisplayStore {
   }
 
   async put(id: string, document: DisplayDocument): Promise<void> {
-    const record = await this.readRecord(id);
+    const record = await this.readStored(id);
     if (!record) throw new DisplayNotFoundError(id);
 
     const validDocument = assertValidDisplayDocument(document);
@@ -64,6 +67,16 @@ export class FileDisplayStore implements DisplayStore {
     }
   }
 
+  async getPasscodeHash(id: string): Promise<string | null> {
+    return (await this.readStored(id))?.passcodeHash ?? null;
+  }
+
+  async setPasscode(id: string, passcodeHash: string | null): Promise<void> {
+    const record = await this.readStored(id);
+    if (!record) throw new DisplayNotFoundError(id);
+    await this.writeRecord({ ...record, passcodeHash });
+  }
+
   private async jsonFiles(): Promise<string[]> {
     try {
       return (await readdir(this.dir)).filter((file) => file.endsWith(".json"));
@@ -73,9 +86,9 @@ export class FileDisplayStore implements DisplayStore {
     }
   }
 
-  private async readRecord(id: string): Promise<DisplayRecord | null> {
+  private async readStored(id: string): Promise<StoredDisplayRecord | null> {
     try {
-      const record = JSON.parse(await readFile(this.pathFor(id), "utf8")) as DisplayRecord;
+      const record = JSON.parse(await readFile(this.pathFor(id), "utf8")) as StoredDisplayRecord;
       return { ...record, document: assertValidDisplayDocument(record.document) };
     } catch (error) {
       if (isNotFound(error)) return null;
@@ -83,7 +96,14 @@ export class FileDisplayStore implements DisplayStore {
     }
   }
 
-  private async writeRecord(record: DisplayRecord): Promise<void> {
+  private async readRecord(id: string): Promise<DisplayRecord | null> {
+    const stored = await this.readStored(id);
+    if (!stored) return null;
+    const { passcodeHash: _passcodeHash, ...record } = stored;
+    return record;
+  }
+
+  private async writeRecord(record: StoredDisplayRecord): Promise<void> {
     await mkdir(this.dir, { recursive: true });
     const path = this.pathFor(record.id);
     const temporaryPath = `${path}.tmp`;

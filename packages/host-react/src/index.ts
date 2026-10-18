@@ -2,12 +2,25 @@ export const HOST_REACT_PACKAGE_NAME = "@homeslate/host-react";
 
 export { HomeslateApp } from "./HomeslateApp";
 export type { HomeslateAppProps } from "./HomeslateApp";
-export { DisplayListPage, EditorPage, KioskPage } from "./pages";
+export { DisplayListPage, EditorPage, KioskPage, ViewEditorPage } from "./pages";
 export { HomeslateGoogleRuntime } from "./HomeslateGoogleRuntime";
 export type { HomeslateGoogleRuntimeProps } from "./HomeslateGoogleRuntime";
 export { DEFAULT_HOMESLATE_HOST, HomeslateHostProvider, useHomeslateHost } from "./hostContext";
 export type { HomeslateHostConfig } from "./hostContext";
+export { useDisplayDocument } from "./useDisplayDocument";
+export type { DisplayDocumentState } from "./useDisplayDocument";
 export { createDebouncedPersist } from "./createDebouncedPersist";
 export type { DebouncedPersist, PersistPutOptions } from "./createDebouncedPersist";
-export { errorMessage, getJson, joinUrl, postJson, putJson, readError } from "./api";
-export type { DisplayRecord, DisplaySummary } from "./api";
+export {
+  errorMessage,
+  getJson,
+  getPublicDocument,
+  joinUrl,
+  patchJson,
+  postJson,
+  publicDocumentUrl,
+  putJson,
+  readError,
+  setDisplayPasscode,
+} from "./api";
+export type { DisplayRecord, DisplaySummary, KioskDocumentResult } from "./api";
