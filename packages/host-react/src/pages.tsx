@@ -5,15 +5,19 @@ import {
   Button,
   Heading,
   HStack,
+  IconButton,
   Link,
   PinInput,
+  SimpleTooltip,
   Spinner,
   Stack,
   Surface,
   Tabs,
   Text,
+  TextField,
   TopNav,
 } from "@var-ui/react";
+import { IconCheck, IconEdit, IconX } from "@tabler/icons-react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { DisplayDocument, ThemeDocument } from "@homeslate/schema";
 import { Editor, ThemeEditor } from "@homeslate/editor";
@@ -136,6 +140,72 @@ export function DisplayListPage() {
 
 type ManagementTab = "views" | "settings" | "theme";
 
+/** Inline display-name editor for the management header. */
+function DisplayNameHeading(props: { name: string; onRename: (name: string) => void }) {
+  const { name, onRename } = props;
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+
+  const commit = () => {
+    const trimmed = value.trim();
+    setEditing(false);
+    if (trimmed && trimmed !== name) onRename(trimmed);
+  };
+
+  if (!editing) {
+    return (
+      <HStack gap="xs" align="center">
+        <Heading level={4}>{name}</Heading>
+        <SimpleTooltip content="Rename display">
+          <IconButton
+            name="wrench"
+            icon={<IconEdit size={14} />}
+            appearance="ghost"
+            size="sm"
+            aria-label="Rename display"
+            onPress={() => {
+              setValue(name);
+              setEditing(true);
+            }}
+          />
+        </SimpleTooltip>
+      </HStack>
+    );
+  }
+
+  return (
+    <HStack gap="xs" align="center">
+      <TextField
+        aria-label="Display name"
+        size="sm"
+        value={value}
+        autoFocus
+        onChange={setValue}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") commit();
+          if (event.key === "Escape") setEditing(false);
+        }}
+      />
+      <IconButton
+        name="check"
+        icon={<IconCheck size={14} />}
+        appearance="ghost"
+        size="sm"
+        aria-label="Save display name"
+        onPress={commit}
+      />
+      <IconButton
+        name="close"
+        icon={<IconX size={14} />}
+        appearance="ghost"
+        size="sm"
+        aria-label="Cancel rename"
+        onPress={() => setEditing(false)}
+      />
+    </HStack>
+  );
+}
+
 /** Display management: manage views, display settings, and themes. */
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -210,7 +280,10 @@ export function EditorPage() {
             heading={
               <HStack gap="md">
                 <Link href="/">Displays</Link>
-                <Heading level={4}>{document.name}</Heading>
+                <DisplayNameHeading
+                  name={document.name}
+                  onRename={(name) => setDocument({ ...document, name })}
+                />
               </HStack>
             }
             endContent={

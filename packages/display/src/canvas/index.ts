@@ -37,6 +37,13 @@ export {
   replaceViewWidgets,
   setActiveView,
 } from "./patchDocument";
+export {
+  PRESET_VIEW_NAMES,
+  addPresetViews,
+  createPresetView,
+  missingPresetViews,
+} from "./presetViews";
+export type { PresetViewName } from "./presetViews";
 export { DocumentCanvas } from "./DocumentCanvas";
 export type { WidgetRegistryApi } from "./WidgetWrapper";
 export { WidgetWrapper } from "./WidgetWrapper";

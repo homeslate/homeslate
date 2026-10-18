@@ -38,6 +38,15 @@ describe("HomeslateApp", () => {
     expect(source).toMatch(/\bremoveView\b/);
     expect(source).toMatch(/\bmoveView\b/);
     expect(source).toMatch(/\bpatchView\b/);
+    expect(source).toMatch(/\baddPresetViews\b/);
+    expect(source).toMatch(/\bmissingPresetViews\b/);
+  });
+
+  it("renames the display from the management header", () => {
+    const source = read("./pages.tsx");
+    expect(source).toMatch(/DisplayNameHeading/);
+    expect(source).toMatch(/onRename=/);
+    expect(source).toMatch(/setDocument\(\{ \.\.\.document, name \}\)/);
   });
 
   it("wires display settings for alarms, rotation, and passcode", () => {
