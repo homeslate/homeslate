@@ -24,14 +24,18 @@ export {
 } from "./theme/tailwindPalette";
 export type { ColorMode } from "@homeslate/schema";
 export {
+  addView,
   addWidget,
   applyWidgetLayouts,
   findAvailablePosition,
+  moveView,
   patchView,
   patchViewNotes,
   patchWidgetConfig,
+  removeView,
   removeWidget,
   replaceViewWidgets,
+  setActiveView,
 } from "./patchDocument";
 export { DocumentCanvas } from "./DocumentCanvas";
 export type { WidgetRegistryApi } from "./WidgetWrapper";

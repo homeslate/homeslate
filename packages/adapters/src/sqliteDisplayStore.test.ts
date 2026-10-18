@@ -51,4 +51,32 @@ describe("SqliteDisplayStore", () => {
       DisplayNotFoundError,
     );
   });
+
+  it("setPasscode stores a hash without leaking it on get or put", async () => {
+    const displays = await store();
+    const created = await displays.create(createEmptyDisplayDocument("Kitchen"));
+    expect(await displays.getPasscodeHash(created.id)).toBeNull();
+
+    await displays.setPasscode(created.id, "scrypt$abc$def");
+    expect(await displays.getPasscodeHash(created.id)).toBe("scrypt$abc$def");
+    expect(await displays.get(created.id)).toEqual(created);
+
+    await displays.put(created.id, { ...created.document, name: "Patio" });
+    expect(await displays.getPasscodeHash(created.id)).toBe("scrypt$abc$def");
+
+    await displays.setPasscode(created.id, null);
+    expect(await displays.getPasscodeHash(created.id)).toBeNull();
+  });
+
+  it("setPasscode throws DisplayNotFoundError for an unknown id", async () => {
+    const displays = await store();
+    await expect(displays.setPasscode("missing", "hash")).rejects.toBeInstanceOf(
+      DisplayNotFoundError,
+    );
+  });
+
+  it("getPasscodeHash returns null for an unknown id", async () => {
+    const displays = await store();
+    expect(await displays.getPasscodeHash("missing")).toBeNull();
+  });
 });

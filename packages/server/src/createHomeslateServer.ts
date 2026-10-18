@@ -7,6 +7,8 @@ import {
   assertValidDisplayDocument,
   createEmptyDisplayDocument,
   openSqlite,
+  type DisplayRecord,
+  type DisplayStore,
 } from "@homeslate/adapters";
 import {
   DISPLAY_CALENDAR_DAYS_BACK_DEFAULT,
@@ -41,6 +43,7 @@ import {
   isMatchingOAuthState,
 } from "./oauth";
 import { homeslateDatabasePath, homeslateTokensPath } from "./paths";
+import { hashPasscode, isValidPin, verifyPasscode } from "./passcode";
 import { createTtlCache } from "./ttlCache";
 import type { HomeslateServerOptions } from "./types";
 
@@ -195,7 +198,7 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       const document = assertValidDisplayDocument(rawBody.document ?? createEmptyDisplayDocument());
       const record = await displays.create(document);
       await bindings.setAccountIdForDisplay(record.id, accountId);
-      return c.json(record, 201);
+      return c.json(await toDisplayPayload(displays, record), 201);
     } catch (error) {
       return documentWriteError(c, error);
     }
@@ -203,7 +206,8 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
 
   app.get("/api/displays/:id", async (c) => {
     const record = await displays.get(c.req.param("id"));
-    return record ? c.json(record) : c.json({ error: "Display not found" }, 404);
+    if (!record) return c.json({ error: "Display not found" }, 404);
+    return c.json(await toDisplayPayload(displays, record));
   });
 
   app.put("/api/displays/:id", async (c) => {
@@ -211,10 +215,39 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       const document = assertValidDisplayDocument(await c.req.json());
       await displays.put(c.req.param("id"), document);
       const record = await displays.get(c.req.param("id"));
-      return c.json(record);
+      return record ? c.json(await toDisplayPayload(displays, record)) : c.notFound();
     } catch (error) {
       return documentWriteError(c, error);
     }
+  });
+
+  // Sets or clears the 4-digit viewer passcode. The hash stays on the display
+  // record and never appears in a response.
+  app.patch("/api/displays/:id", async (c) => {
+    const id = c.req.param("id");
+    const record = await displays.get(id);
+    if (!record) return c.json({ error: "Display not found" }, 404);
+
+    let body: Record<string, unknown>;
+    try {
+      body = await optionalJsonBody(c.req.raw);
+    } catch {
+      return c.json({ error: "Invalid JSON" }, 400);
+    }
+    if (!("passcode" in body)) {
+      return c.json({ error: "passcode is required" }, 400);
+    }
+    const passcode = body.passcode;
+    if (passcode !== null && (typeof passcode !== "string" || !isValidPin(passcode))) {
+      return c.json({ error: "Passcode must be 4 digits" }, 400);
+    }
+
+    try {
+      await displays.setPasscode(id, passcode === null ? null : hashPasscode(passcode));
+    } catch (error) {
+      return documentWriteError(c, error);
+    }
+    return c.json({ id, passcodeEnabled: passcode !== null });
   });
 
   app.delete("/api/displays/:id", async (c) => {
@@ -224,14 +257,19 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
 
   app.get("/api/public/:publicId", async (c) => {
     const record = await displays.getByPublicId(c.req.param("publicId"));
-    return record
-      ? c.json({ document: record.document })
-      : c.json({ error: "Display not found" }, 404);
+    if (!record) return c.json({ error: "Display not found" }, 404);
+    if (!(await passcodeSatisfied(c, displays, record))) {
+      return c.json({ passcodeRequired: true }, 401);
+    }
+    return c.json({ document: record.document });
   });
 
   app.put("/api/public/:publicId", async (c) => {
     const record = await displays.getByPublicId(c.req.param("publicId"));
     if (!record) return c.json({ error: "Display not found" }, 404);
+    if (!(await passcodeSatisfied(c, displays, record))) {
+      return c.json({ passcodeRequired: true }, 401);
+    }
 
     try {
       const document = assertValidDisplayDocument(await c.req.json());
@@ -354,6 +392,32 @@ async function optionalJsonBody(request: Request): Promise<Record<string, unknow
   if (!body) return {};
   const value: unknown = JSON.parse(body);
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+/** Owner-facing display shape: exposes whether a passcode is set, never the hash. */
+async function toDisplayPayload(
+  displays: DisplayStore,
+  record: DisplayRecord,
+): Promise<DisplayRecord & { passcodeEnabled: boolean }> {
+  const passcodeHash = await displays.getPasscodeHash(record.id);
+  return {
+    id: record.id,
+    publicId: record.publicId,
+    document: record.document,
+    passcodeEnabled: passcodeHash !== null,
+  };
+}
+
+/** True when the display has no passcode or the request carries the right one. */
+async function passcodeSatisfied(
+  c: Context,
+  displays: DisplayStore,
+  record: DisplayRecord,
+): Promise<boolean> {
+  const passcodeHash = await displays.getPasscodeHash(record.id);
+  if (!passcodeHash) return true;
+  const provided = c.req.query("passcode");
+  return typeof provided === "string" && verifyPasscode(provided, passcodeHash);
 }
 
 function documentWriteError(c: Context, error: unknown) {

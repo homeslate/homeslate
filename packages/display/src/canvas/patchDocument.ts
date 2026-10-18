@@ -27,6 +27,52 @@ export function patchView(
   return mapView(document, viewId, (view) => ({ ...view, ...patch }));
 }
 
+/**
+ * Appends a view. Adopts it as the active view only when none is set, so a
+ * display never loses its current selection by adding another view.
+ */
+export function addView(document: DisplayDocument, view: View): DisplayDocument {
+  return {
+    ...document,
+    views: [...document.views, view],
+    activeViewId: document.activeViewId ?? view.id,
+  };
+}
+
+/**
+ * Removes a view. When the removed view was active, the first remaining view
+ * becomes active; removing the last view leaves `activeViewId` null.
+ */
+export function removeView(document: DisplayDocument, viewId: string): DisplayDocument {
+  if (!document.views.some((view) => view.id === viewId)) return document;
+  const views = document.views.filter((view) => view.id !== viewId);
+  const activeViewId =
+    document.activeViewId === viewId ? (views[0]?.id ?? null) : document.activeViewId;
+  return { ...document, views, activeViewId };
+}
+
+/** Moves a view to `toIndex`, clamped to the visible bounds. */
+export function moveView(
+  document: DisplayDocument,
+  viewId: string,
+  toIndex: number,
+): DisplayDocument {
+  const from = document.views.findIndex((view) => view.id === viewId);
+  if (from === -1) return document;
+  const to = Math.max(0, Math.min(toIndex, document.views.length - 1));
+  if (from === to) return document;
+  const views = [...document.views];
+  const [moved] = views.splice(from, 1);
+  views.splice(to, 0, moved);
+  return { ...document, views };
+}
+
+/** Records which view a host should open by default (kiosk ignores it). */
+export function setActiveView(document: DisplayDocument, viewId: string): DisplayDocument {
+  if (document.activeViewId === viewId) return document;
+  return { ...document, activeViewId: viewId };
+}
+
 export function replaceViewWidgets(
   document: DisplayDocument,
   viewId: string,

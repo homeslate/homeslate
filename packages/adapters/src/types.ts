@@ -18,6 +18,10 @@ export interface DisplayStore {
   create(document: DisplayDocument): Promise<DisplayRecord>;
   list(): Promise<DisplaySummary[]>;
   remove(id: string): Promise<void>;
+  /** Hashed viewer passcode, or null when the display has no passcode. */
+  getPasscodeHash(id: string): Promise<string | null>;
+  /** Sets the hashed viewer passcode, or clears it with `null`. */
+  setPasscode(id: string, passcodeHash: string | null): Promise<void>;
 }
 
 export class InvalidDisplayDocumentError extends Error {

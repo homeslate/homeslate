@@ -132,6 +132,91 @@ describe("createHomeslateServer", () => {
     );
   });
 
+  it("sets a passcode, gates the public routes, and never leaks the hash", async () => {
+    const hono = await app();
+    const created = await hono.request("/api/displays", { method: "POST" });
+    const record = (await created.json()) as {
+      id: string;
+      publicId: string;
+      passcodeEnabled: boolean;
+      document: ReturnType<typeof createEmptyDisplayDocument>;
+    };
+    expect(record.passcodeEnabled).toBe(false);
+    expect((await hono.request(`/api/public/${record.publicId}`)).status).toBe(200);
+
+    const patched = await hono.request(`/api/displays/${record.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passcode: "1234" }),
+    });
+    expect(patched.status).toBe(200);
+    expect(await patched.json()).toEqual({ id: record.id, passcodeEnabled: true });
+
+    const owner = await hono.request(`/api/displays/${record.id}`);
+    const ownerBody = (await owner.json()) as Record<string, unknown>;
+    expect(ownerBody.passcodeEnabled).toBe(true);
+    expect(JSON.stringify(ownerBody)).not.toContain("scrypt");
+
+    const blocked = await hono.request(`/api/public/${record.publicId}`);
+    expect(blocked.status).toBe(401);
+    expect(await blocked.json()).toEqual({ passcodeRequired: true });
+
+    expect((await hono.request(`/api/public/${record.publicId}?passcode=0000`)).status).toBe(401);
+
+    const allowed = await hono.request(`/api/public/${record.publicId}?passcode=1234`);
+    expect(allowed.status).toBe(200);
+    expect(((await allowed.json()) as { document: { name: string } }).document.name).toBe(
+      record.document.name,
+    );
+
+    const putBlocked = await hono.request(`/api/public/${record.publicId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(record.document),
+    });
+    expect(putBlocked.status).toBe(401);
+
+    const cleared = await hono.request(`/api/displays/${record.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passcode: null }),
+    });
+    expect(await cleared.json()).toEqual({ id: record.id, passcodeEnabled: false });
+    expect((await hono.request(`/api/public/${record.publicId}`)).status).toBe(200);
+  });
+
+  it("rejects malformed passcodes and a missing passcode field", async () => {
+    const hono = await app();
+    const created = await hono.request("/api/displays", { method: "POST" });
+    const record = (await created.json()) as { id: string };
+
+    for (const passcode of ["123", "12345", "abcd", 1234, ""]) {
+      const response = await hono.request(`/api/displays/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passcode }),
+      });
+      expect(response.status).toBe(400);
+    }
+
+    const missing = await hono.request(`/api/displays/${record.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    expect(missing.status).toBe(400);
+  });
+
+  it("PATCH returns 404 for an unknown display", async () => {
+    const hono = await app();
+    const response = await hono.request("/api/displays/missing", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passcode: "1234" }),
+    });
+    expect(response.status).toBe(404);
+  });
+
   it("PUT with malformed JSON returns 400 on both document routes", async () => {
     const hono = await app();
     const created = await hono.request("/api/displays", { method: "POST" });

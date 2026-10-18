@@ -18,15 +18,38 @@ describe("HomeslateApp", () => {
   });
 
   it("flushes the pending editor PUT on unmount", () => {
-    const source = read("./pages.tsx");
+    const source = read("./useDisplayDocument.ts");
     expect(source).toMatch(/createDebouncedPersist/);
     expect(source).toMatch(/\.flush\(/);
   });
 
-  it("routes the display list, editor, and kiosk", () => {
+  it("routes the display list, management, view editor, and kiosk", () => {
     const source = read("./HomeslateApp.tsx");
     expect(source).toMatch(/path="\/"\s+element=\{<DisplayListPage/);
     expect(source).toMatch(/path="\/edit\/:id"\s+element=\{<EditorPage/);
+    expect(source).toMatch(/path="\/edit\/:id\/views\/:viewId"\s+element=\{<ViewEditorPage/);
     expect(source).toMatch(/path="\/d\/:publicId"\s+element=\{<KioskPage/);
+  });
+
+  it("manages multiple views through the display document helpers", () => {
+    const source = read("./ViewsPanel.tsx");
+    expect(source).toMatch(/from ['"]@homeslate\/display\/canvas['"]/);
+    expect(source).toMatch(/\baddView\b/);
+    expect(source).toMatch(/\bremoveView\b/);
+    expect(source).toMatch(/\bmoveView\b/);
+    expect(source).toMatch(/\bpatchView\b/);
+  });
+
+  it("wires display settings for alarms, rotation, and passcode", () => {
+    const settings = read("./DisplaySettingsPanel.tsx");
+    expect(settings).toMatch(/AlarmListEditor/);
+    expect(settings).toMatch(/rotation/);
+    expect(settings).toMatch(/PinInput/);
+    expect(settings).toMatch(/onSetPasscode/);
+
+    const pages = read("./pages.tsx");
+    expect(pages).toMatch(/DisplaySettingsPanel/);
+    expect(pages).toMatch(/getPublicDocument/);
+    expect(pages).toMatch(/passcodeRequired/);
   });
 });
