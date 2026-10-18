@@ -301,12 +301,16 @@ Open `/edit/<id>` from the display list to manage a display. The page has three
 tabs:
 
 - **Views** — add, rename, reorder, hide, and delete views. Click a view to open
-  its canvas at `/edit/<id>/views/<viewId>`. Hidden views are skipped by
-  auto-rotation and the kiosk switcher, and a display always keeps at least one
-  view.
+  its canvas at `/edit/<id>/views/<viewId>`. **Add preset views** drops in the
+  Morning / Evening / Weekend starter views, skipping any you already have.
+  Hidden views are skipped by auto-rotation and the kiosk switcher, and a display
+  always keeps at least one view.
 - **Settings** — auto-rotate (with interval), sticky notes, alarms, voice
   commands, holiday effects, and the viewer passcode.
 - **Theme** — the shared `ThemeEditor`.
+
+The display name is edited inline in the header; renaming saves with the
+document.
 
 A display with more than one visible view can auto-rotate. Enabling the **viewer
 passcode** sets a 4-digit PIN: the kiosk at `/d/<publicId>` then answers `401`

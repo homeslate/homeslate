@@ -25,7 +25,14 @@ import {
 } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import type { DisplayDocument, View } from "@homeslate/schema";
-import { addView, moveView, patchView, removeView } from "@homeslate/display/canvas";
+import {
+  addPresetViews,
+  addView,
+  missingPresetViews,
+  moveView,
+  patchView,
+  removeView,
+} from "@homeslate/display/canvas";
 
 /** Curated Tabler icon names the kiosk resolves for the view switcher dots. */
 const ICON_OPTIONS = [
@@ -67,6 +74,8 @@ export function ViewsPanel(props: {
 
   const canDelete = document.views.length > 1;
 
+  const missingPresets = missingPresetViews(document);
+
   const addBlankView = () => {
     const view = newView(newName.trim() || `View ${document.views.length + 1}`);
     onChange(addView(document, view));
@@ -99,6 +108,21 @@ export function ViewsPanel(props: {
             <IconPlus size={14} />
             New view
           </Button>
+          <SimpleTooltip
+            content={
+              missingPresets.length > 0
+                ? `Add ${missingPresets.join(", ")}`
+                : "All preset views are already added"
+            }
+          >
+            <Button
+              size="sm"
+              isDisabled={missingPresets.length === 0}
+              onPress={() => onChange(addPresetViews(document))}
+            >
+              Add preset views
+            </Button>
+          </SimpleTooltip>
         </HStack>
       </HStack>
 

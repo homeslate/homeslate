@@ -34,11 +34,17 @@ Compose the exported pages yourself for different chrome or routing, and read
 
 - **Views** (`ViewsPanel`) add, rename, reorder, hide, and delete the views in a
   document, using the `addView` / `removeView` / `moveView` / `patchView` helpers
-  from `@homeslate/display/canvas`.
+  from `@homeslate/display/canvas`. **Add preset views** appends the
+  Morning / Evening / Weekend starter views (`addPresetViews`), skipping any the
+  document already has.
 - **Settings** (`DisplaySettingsPanel`) covers auto-rotate, sticky notes, alarms
   (`AlarmListEditor` from `@homeslate/widgets`), voice commands, holiday effects,
   and the viewer passcode.
 - **Theme** reuses `ThemeEditor` from `@homeslate/editor`.
+
+The display name is edited inline in the management header and saved with the
+document. Renaming is a normal document edit, so it rides the same debounced
+`PUT` as the rest of the display.
 
 The viewer passcode is set through `setDisplayPasscode(baseUrl, id, pin | null)`,
 which `PATCH`es `/api/displays/:id`. The PIN itself is hashed server-side and is
