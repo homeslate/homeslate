@@ -35,7 +35,6 @@ export class SqliteDisplayStore implements DisplayStore {
       .get(publicId) as DisplayRow | undefined;
     return row ? recordFromRow(row) : null;
   }
-
   async put(id: string, document: DisplayDocument): Promise<void> {
     const existing = this.database.prepare("SELECT id FROM displays WHERE id = ?").get(id);
     if (!existing) throw new DisplayNotFoundError(id);
@@ -70,6 +69,20 @@ export class SqliteDisplayStore implements DisplayStore {
 
   async remove(id: string): Promise<void> {
     this.database.prepare("DELETE FROM displays WHERE id = ?").run(id);
+  }
+
+  async getPasscodeHash(id: string): Promise<string | null> {
+    const row = this.database.prepare("SELECT passcode_hash FROM displays WHERE id = ?").get(id) as
+      | { passcode_hash: string | null }
+      | undefined;
+    return row?.passcode_hash ?? null;
+  }
+
+  async setPasscode(id: string, passcodeHash: string | null): Promise<void> {
+    const result = this.database
+      .prepare("UPDATE displays SET passcode_hash = ? WHERE id = ?")
+      .run(passcodeHash, id);
+    if (result.changes === 0) throw new DisplayNotFoundError(id);
   }
 }
 

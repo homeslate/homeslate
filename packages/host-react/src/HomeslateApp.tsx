@@ -1,7 +1,7 @@
 import type { WidgetRegistryApi } from "@homeslate/display/canvas";
 import { Navigate, Route, BrowserRouter, Routes, useHref, useNavigate } from "react-router-dom";
 import { RouterProvider } from "react-aria-components";
-import { DisplayListPage, EditorPage, KioskPage } from "./pages";
+import { DisplayListPage, EditorPage, KioskPage, ViewEditorPage } from "./pages";
 import { HomeslateHostProvider, type HomeslateHostConfig } from "./hostContext";
 
 export type HomeslateAppProps = {
@@ -41,6 +41,7 @@ function HomeslateRoutes() {
       <Routes>
         <Route path="/" element={<DisplayListPage />} />
         <Route path="/edit/:id" element={<EditorPage />} />
+        <Route path="/edit/:id/views/:viewId" element={<ViewEditorPage />} />
         <Route path="/d/:publicId" element={<KioskPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

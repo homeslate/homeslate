@@ -28,11 +28,16 @@ Two packages own the parts that used to live only in the repo:
   calendar / commute / weather proxies. `startHomeslateServer(options)` also
   listens.
 - **`@homeslate/host-react`** — the web shell. `HomeslateApp` is the routed app
-  (display list, editor, kiosk); `HomeslateGoogleRuntime` wires the widgets to
-  the API's Google routes; `createDebouncedPersist` is the editor's save helper.
+  (display list, display management, view editor, kiosk); `HomeslateGoogleRuntime`
+  wires the widgets to the API's Google routes; `createDebouncedPersist` is the
+  editor's save helper.
 
 The editor and kiosk themselves are `@homeslate/editor` and `@homeslate/display`,
 which you can use directly if you want different chrome.
+
+Each display can hold several **views** (see [Manage a display](#manage-a-display)),
+rotate through them on a timer, and optionally require a 4-digit **viewer
+passcode** before the kiosk renders.
 
 ## Prerequisites
 
@@ -144,8 +149,8 @@ createRoot(document.getElementById("root")!).render(
 `HomeslateApp` takes three optional props: `productName`, `apiBaseUrl` (when the
 API is on another origin), and `widgetRegistry` (see
 [Customize](#customize)). To use your own chrome or routing, compose the
-exported `DisplayListPage`, `EditorPage`, and `KioskPage` yourself and read
-`useHomeslateHost()` for the config.
+exported `DisplayListPage`, `EditorPage`, `ViewEditorPage`, and `KioskPage`
+yourself and read `useHomeslateHost()` for the config.
 
 ## 4. Styles and HTML
 
@@ -289,6 +294,30 @@ User=homeslate
 [Install]
 WantedBy=multi-user.target
 ```
+
+## Manage a display
+
+Open `/edit/<id>` from the display list to manage a display. The page has three
+tabs:
+
+- **Views** — add, rename, reorder, hide, and delete views. Click a view to open
+  its canvas at `/edit/<id>/views/<viewId>`. **Add preset views** drops in the
+  Morning / Evening / Weekend starter views, skipping any you already have.
+  Hidden views are skipped by auto-rotation and the kiosk switcher, and a display
+  always keeps at least one view.
+- **Settings** — auto-rotate (with interval), sticky notes, alarms, voice
+  commands, holiday effects, and the viewer passcode.
+- **Theme** — the shared `ThemeEditor`.
+
+The display name is edited inline in the header; renaming saves with the
+document.
+
+A display with more than one visible view can auto-rotate. Enabling the **viewer
+passcode** sets a 4-digit PIN: the kiosk at `/d/<publicId>` then answers `401`
+until the visitor enters it. The PIN is hashed on the server
+(`hashPasscode` / `verifyPasscode` in `@homeslate/server`) and stored on the
+display record — never in the document and never returned by the API, which
+exposes only `passcodeEnabled`.
 
 ## Customize
 

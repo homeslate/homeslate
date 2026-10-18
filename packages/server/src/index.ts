@@ -30,6 +30,7 @@ export {
   isMatchingOAuthState,
 } from "./oauth";
 export { homeslateDatabasePath, homeslateTokensPath } from "./paths";
+export { hashPasscode, isValidPin, verifyPasscode } from "./passcode";
 export { createTtlCache } from "./ttlCache";
 export type { TtlCache } from "./ttlCache";
 export { estimateCommute } from "./commute";

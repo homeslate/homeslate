@@ -24,15 +24,26 @@ export {
 } from "./theme/tailwindPalette";
 export type { ColorMode } from "@homeslate/schema";
 export {
+  addView,
   addWidget,
   applyWidgetLayouts,
   findAvailablePosition,
+  moveView,
   patchView,
   patchViewNotes,
   patchWidgetConfig,
+  removeView,
   removeWidget,
   replaceViewWidgets,
+  setActiveView,
 } from "./patchDocument";
+export {
+  PRESET_VIEW_NAMES,
+  addPresetViews,
+  createPresetView,
+  missingPresetViews,
+} from "./presetViews";
+export type { PresetViewName } from "./presetViews";
 export { DocumentCanvas } from "./DocumentCanvas";
 export type { WidgetRegistryApi } from "./WidgetWrapper";
 export { WidgetWrapper } from "./WidgetWrapper";

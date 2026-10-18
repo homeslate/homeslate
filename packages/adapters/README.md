@@ -22,6 +22,18 @@ Also: `SqliteGoogleBindingStore` (display id → Google account), `FileTokenStor
 
 `SqliteDisplayStore` and `FileDisplayStore` validate on write via `assertValidDisplayDocument` (imports `@homeslate/widgets/schemas` so built-in widget configs are checked). Invalid JSON throws `InvalidDisplayDocumentError`. Missing ids throw `DisplayNotFoundError`.
 
+## Viewer passcodes
+
+Both display stores implement the passcode half of the `DisplayStore` interface:
+
+- `getPasscodeHash(id)` returns the stored hash, or `null` when the display has no passcode.
+- `setPasscode(id, hash)` sets the hash, or clears it with `null`.
+
+Only the hash is persisted: `SqliteDisplayStore` keeps it in a `passcode_hash`
+column (added by an `ALTER TABLE` migration for existing databases) and never
+includes it in the `DisplayRecord` it returns. Hash and verify the PIN with
+`hashPasscode` / `verifyPasscode` from [`@homeslate/server`](https://www.npmjs.com/package/@homeslate/server).
+
 ## See also
 
 - [`@homeslate/schema`](https://www.npmjs.com/package/@homeslate/schema) — document types and validation

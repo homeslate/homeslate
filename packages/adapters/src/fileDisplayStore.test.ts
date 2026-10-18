@@ -86,4 +86,34 @@ describe("FileDisplayStore", () => {
     await expect(displays.remove("../secret")).rejects.toThrow("Invalid display id");
     expect(JSON.parse(await readFile(path, "utf8"))).toEqual(record);
   });
+
+  it("setPasscode persists the hash in the file but strips it from get", async () => {
+    const displays = await store();
+    const created = await displays.create(createEmptyDisplayDocument("Kitchen"));
+    expect(await displays.getPasscodeHash(created.id)).toBeNull();
+
+    await displays.setPasscode(created.id, "scrypt$abc$def");
+    expect(await displays.getPasscodeHash(created.id)).toBe("scrypt$abc$def");
+    expect(await displays.get(created.id)).toEqual(created);
+
+    const onDisk = JSON.parse(await readFile(join(dir, "store", `${created.id}.json`), "utf8")) as {
+      passcodeHash?: string;
+    };
+    expect(onDisk.passcodeHash).toBe("scrypt$abc$def");
+
+    await displays.setPasscode(created.id, null);
+    expect(await displays.getPasscodeHash(created.id)).toBeNull();
+  });
+
+  it("setPasscode throws DisplayNotFoundError for an unknown id", async () => {
+    const displays = await store();
+    await expect(displays.setPasscode("missing", "hash")).rejects.toBeInstanceOf(
+      DisplayNotFoundError,
+    );
+  });
+
+  it("getPasscodeHash returns null for an unknown id", async () => {
+    const displays = await store();
+    expect(await displays.getPasscodeHash("missing")).toBeNull();
+  });
 });
