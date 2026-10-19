@@ -72,6 +72,9 @@ export { FAN_ENTITY_ID, mapFanEntity } from "./server/fanState";
 export { VACUUM_ENTITY_ID, mapVacuumEntity } from "./server/vacuumState";
 export { HUMIDIFIER_ENTITY_ID, mapHumidifierEntity } from "./server/humidifierState";
 export { WATER_HEATER_ENTITY_ID, mapWaterHeaterEntity } from "./server/waterHeaterState";
+export { CAMERA_ENTITY_ID, mapCameraEntity } from "./server/cameraState";
+export { UPDATE_ENTITY_ID, mapUpdateEntity } from "./server/updateState";
+export { LAWN_MOWER_ENTITY_ID, mapLawnMowerEntity } from "./server/lawnMowerState";
 export {
   TODO_EMPTY_COPY,
   TODO_MISSING_CONFIG_COPY,

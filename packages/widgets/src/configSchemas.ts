@@ -306,6 +306,37 @@ export const waterHeaterConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+export const homeStatusConfigSchema = z.object({
+  entityIds: z.array(z.string()).optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const energyConfigSchema = z.object({
+  powerEntityId: z.string().optional(),
+  energyEntityId: z.string().optional(),
+  costRate: z.number().optional(),
+  showCost: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const cameraConfigSchema = z.object({
+  entityId: z.string().optional(),
+  refreshSeconds: z.number().optional(),
+  showPrivacyToggle: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const updatesConfigSchema = z.object({
+  entityIds: z.array(z.string()).optional(),
+  showUpToDate: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const lawnMowerConfigSchema = z.object({
+  entityId: z.string().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const countdownConfigSchema = z.object({
   target: z.string().optional(),
   allDay: z.boolean().optional(),
@@ -400,6 +431,11 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   vacuum: vacuumConfigSchema,
   humidifier: humidifierConfigSchema,
   "water-heater": waterHeaterConfigSchema,
+  "home-status": homeStatusConfigSchema,
+  energy: energyConfigSchema,
+  camera: cameraConfigSchema,
+  updates: updatesConfigSchema,
+  "lawn-mower": lawnMowerConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

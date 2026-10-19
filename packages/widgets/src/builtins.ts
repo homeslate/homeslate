@@ -36,6 +36,11 @@ import type { FanConfig } from "./widgets/FanWidget";
 import type { VacuumConfig } from "./widgets/VacuumWidget";
 import type { HumidifierConfig } from "./widgets/HumidifierWidget";
 import type { WaterHeaterConfig } from "./widgets/WaterHeaterWidget";
+import type { HomeStatusConfig } from "./widgets/HomeStatusWidget";
+import type { EnergyConfig } from "./widgets/EnergyWidget";
+import type { CameraConfig } from "./widgets/CameraWidget";
+import type { UpdatesConfig } from "./widgets/UpdatesWidget";
+import type { LawnMowerConfig } from "./widgets/LawnMowerWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -67,6 +72,11 @@ import {
   vacuumConfigSchema,
   humidifierConfigSchema,
   waterHeaterConfigSchema,
+  homeStatusConfigSchema,
+  energyConfigSchema,
+  cameraConfigSchema,
+  updatesConfigSchema,
+  lawnMowerConfigSchema,
   sportsConfigSchema,
   stocksConfigSchema,
   timersConfigSchema,
@@ -110,6 +120,11 @@ import {
   IconRobot,
   IconDroplet,
   IconFlame,
+  IconHome,
+  IconBolt,
+  IconCamera,
+  IconDownload,
+  IconLawnMower,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -369,6 +384,41 @@ const WaterHeaterWidget = lazy(() =>
 );
 const WaterHeaterWidgetSettings = lazy(() =>
   import("./widgets/WaterHeaterWidget").then((m) => ({ default: m.WaterHeaterWidgetSettings })),
+);
+
+const HomeStatusWidget = lazy(() =>
+  import("./widgets/HomeStatusWidget").then((m) => ({ default: m.HomeStatusWidget })),
+);
+const HomeStatusWidgetSettings = lazy(() =>
+  import("./widgets/HomeStatusWidget").then((m) => ({ default: m.HomeStatusWidgetSettings })),
+);
+
+const EnergyWidget = lazy(() =>
+  import("./widgets/EnergyWidget").then((m) => ({ default: m.EnergyWidget })),
+);
+const EnergyWidgetSettings = lazy(() =>
+  import("./widgets/EnergyWidget").then((m) => ({ default: m.EnergyWidgetSettings })),
+);
+
+const CameraWidget = lazy(() =>
+  import("./widgets/CameraWidget").then((m) => ({ default: m.CameraWidget })),
+);
+const CameraWidgetSettings = lazy(() =>
+  import("./widgets/CameraWidget").then((m) => ({ default: m.CameraWidgetSettings })),
+);
+
+const UpdatesWidget = lazy(() =>
+  import("./widgets/UpdatesWidget").then((m) => ({ default: m.UpdatesWidget })),
+);
+const UpdatesWidgetSettings = lazy(() =>
+  import("./widgets/UpdatesWidget").then((m) => ({ default: m.UpdatesWidgetSettings })),
+);
+
+const LawnMowerWidget = lazy(() =>
+  import("./widgets/LawnMowerWidget").then((m) => ({ default: m.LawnMowerWidget })),
+);
+const LawnMowerWidgetSettings = lazy(() =>
+  import("./widgets/LawnMowerWidget").then((m) => ({ default: m.LawnMowerWidgetSettings })),
 );
 
 // Clock Widget
@@ -1105,3 +1155,89 @@ const waterHeaterEntry: WidgetRegistryEntry<WaterHeaterConfig> = {
   defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
 };
 registerWidget(waterHeaterEntry);
+
+const homeStatusEntry: WidgetRegistryEntry<HomeStatusConfig> = {
+  type: "home-status",
+  name: "Home Status",
+  description: "A roll-up of lights, openings, security, presence, and temperature",
+  configSchema: homeStatusConfigSchema,
+  icon: IconHome,
+  component: HomeStatusWidget,
+  settingsComponent: HomeStatusWidgetSettings,
+  defaultConfig: {
+    entityIds: [],
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 4, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(homeStatusEntry);
+
+const energyEntry: WidgetRegistryEntry<EnergyConfig> = {
+  type: "energy",
+  name: "Energy",
+  description: "Live power, energy today, and an optional cost estimate",
+  configSchema: energyConfigSchema,
+  icon: IconBolt,
+  component: EnergyWidget,
+  settingsComponent: EnergyWidgetSettings,
+  defaultConfig: {
+    powerEntityId: "",
+    energyEntityId: "",
+    costRate: 0,
+    showCost: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 4, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(energyEntry);
+
+const cameraEntry: WidgetRegistryEntry<CameraConfig> = {
+  type: "camera",
+  name: "Camera",
+  description: "A refreshing Home Assistant camera snapshot with a privacy toggle",
+  configSchema: cameraConfigSchema,
+  icon: IconCamera,
+  component: CameraWidget,
+  settingsComponent: CameraWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    refreshSeconds: 60,
+    showPrivacyToggle: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 4, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(cameraEntry);
+
+const updatesEntry: WidgetRegistryEntry<UpdatesConfig> = {
+  type: "updates",
+  name: "Updates",
+  description: "Pending Home Assistant updates with install and skip",
+  configSchema: updatesConfigSchema,
+  icon: IconDownload,
+  component: UpdatesWidget,
+  settingsComponent: UpdatesWidgetSettings,
+  defaultConfig: {
+    entityIds: [],
+    showUpToDate: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 4, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(updatesEntry);
+
+const lawnMowerEntry: WidgetRegistryEntry<LawnMowerConfig> = {
+  type: "lawn-mower",
+  name: "Lawn Mower",
+  description: "Start, pause, dock, and stop a Home Assistant lawn mower",
+  configSchema: lawnMowerConfigSchema,
+  icon: IconLawnMower,
+  component: LawnMowerWidget,
+  settingsComponent: LawnMowerWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(lawnMowerEntry);

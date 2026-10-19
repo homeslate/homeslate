@@ -62,14 +62,19 @@ export async function loadHomeAssistantImage(options: {
   cache: TtlCache<HomeAssistantImage>;
   now: number;
   fetchImage: (path: string) => Promise<HomeAssistantImage>;
+  /** Cache key override; `null` bypasses the cache for a fresh snapshot. */
+  cacheKey?: string | null;
   ttlMs?: number;
   maxBytes?: number;
 }): Promise<HomeAssistantImage> {
   const path = normalizeHomeAssistantImagePath(options.path);
   if (!path) throw new HomeAssistantImageError(400, "Invalid image path");
+  const key = options.cacheKey === null ? null : (options.cacheKey ?? path);
 
-  const cached = options.cache.get(path, options.now);
-  if (cached) return cached;
+  if (key !== null) {
+    const cached = options.cache.get(key, options.now);
+    if (cached) return cached;
+  }
 
   const image = await options.fetchImage(path);
   if (image.body.byteLength > (options.maxBytes ?? HOME_ASSISTANT_IMAGE_MAX_BYTES)) {
@@ -79,11 +84,13 @@ export async function loadHomeAssistantImage(options: {
     contentType: homeAssistantImageContentType(image.contentType),
     body: image.body,
   };
-  options.cache.set(
-    path,
-    normalized,
-    options.ttlMs ?? HOME_ASSISTANT_IMAGE_CACHE_TTL_MS,
-    options.now,
-  );
+  if (key !== null) {
+    options.cache.set(
+      key,
+      normalized,
+      options.ttlMs ?? HOME_ASSISTANT_IMAGE_CACHE_TTL_MS,
+      options.now,
+    );
+  }
   return normalized;
 }

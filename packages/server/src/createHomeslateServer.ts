@@ -189,6 +189,7 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       return c.json({ error: HA_MISSING_CONFIG_COPY }, 501);
     }
 
+    const cacheBust = c.req.query("t") ?? "";
     const fetchImage = homeAssistant.fetchImage.bind(homeAssistant);
     try {
       const image = await loadHomeAssistantImage({
@@ -196,6 +197,7 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
         cache: homeAssistantImageCache,
         now: Date.now(),
         fetchImage,
+        cacheKey: cacheBust ? null : path,
       });
       return c.body(image.body, 200, {
         "Content-Type": image.contentType,
