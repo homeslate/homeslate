@@ -118,19 +118,7 @@ pnpm dev:reference
 
 ### Higher-fidelity alternative
 
-Home Assistant's built-in `demo` integration is less complete for newer domains
-but exercises real HA parsers and service handlers. Run it in Docker:
-
-```yaml
-# mock-ha/configuration.yaml
-default_config:
-demo:
-```
-
-```bash
-docker run --rm -p 8123:8123 -v "$PWD/mock-ha:/config" \
-  ghcr.io/home-assistant/home-assistant:stable
-```
-
-Create a long-lived token in the container's profile and point
-`HOMEASSISTANT_BASE_URL` / `HOMEASSISTANT_TOKEN` at it.
+Home Assistant's built-in `demo` integration exercises real HA parsers and
+service handlers. See
+[`HOME_ASSISTANT_DEMO.md`](./HOME_ASSISTANT_DEMO.md) for the full Docker setup,
+onboarding/token steps, host-vs-container base URLs, and troubleshooting.
