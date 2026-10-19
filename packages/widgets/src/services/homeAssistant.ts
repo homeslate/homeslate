@@ -1,10 +1,14 @@
 import {
+  homeAssistantCalendarEventsUrl,
   homeAssistantEntitiesUrl,
   homeAssistantServiceUrl,
+  homeAssistantWeatherForecastUrl,
   thermostatApiUrl,
   type HomeAssistantEntitySummary,
   type ThermostatState,
 } from "../widgets/homeAssistant";
+import type { HomeAssistantCalendarEvent } from "../widgets/homeAssistantCalendar";
+import type { HomeAssistantWeatherForecast } from "../widgets/homeAssistantWeather";
 import {
   homeAssistantTodoItemsUrl,
   type HomeAssistantTodoItem,
@@ -124,4 +128,32 @@ export function callTodoService(
   data: Record<string, unknown>,
 ): Promise<void> {
   return callHomeAssistantService("todo", service, entityId, data, "Failed to update list");
+}
+
+/** Fetch a `weather.get_forecasts` result for one entity and forecast type. */
+export async function fetchHomeAssistantWeatherForecast(
+  entityId: string,
+  type: "daily" | "hourly",
+  failureCopy: string,
+): Promise<HomeAssistantWeatherForecast[]> {
+  const response = await fetch(homeAssistantWeatherForecastUrl(entityId, type));
+  if (!response.ok) {
+    throw new HomeAssistantHttpError(response.status, await readError(response, failureCopy));
+  }
+  const body = (await response.json()) as { forecast?: unknown };
+  return Array.isArray(body.forecast) ? (body.forecast as HomeAssistantWeatherForecast[]) : [];
+}
+
+/** Fetch `calendar.get_events` results over the next `daysAhead` days. */
+export async function fetchHomeAssistantCalendarEvents(
+  entityId: string,
+  daysAhead: number,
+  failureCopy: string,
+): Promise<HomeAssistantCalendarEvent[]> {
+  const response = await fetch(homeAssistantCalendarEventsUrl(entityId, daysAhead));
+  if (!response.ok) {
+    throw new HomeAssistantHttpError(response.status, await readError(response, failureCopy));
+  }
+  const body = (await response.json()) as { events?: unknown };
+  return Array.isArray(body.events) ? (body.events as HomeAssistantCalendarEvent[]) : [];
 }

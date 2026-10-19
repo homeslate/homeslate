@@ -26,6 +26,9 @@ export type { CommuteConfig } from "./widgets/CommuteWidget";
 export type { WeatherAlertsConfig } from "./widgets/WeatherAlertsWidget";
 export type { EmbedConfig } from "./widgets/EmbedWidget";
 export type { ThermostatConfig } from "./widgets/ThermostatWidget";
+export type { SensorsConfig } from "./widgets/SensorsWidget";
+export type { ScenesConfig } from "./widgets/ScenesWidget";
+export type { PresenceConfig } from "./widgets/PresenceWidget";
 export { useThermostat, useClimateEntities } from "./hooks/useThermostat";
 export type { UseThermostatResult, UseClimateEntitiesResult } from "./hooks/useThermostat";
 export { useHomeAssistantTodo, useTodoEntities } from "./hooks/useHomeAssistantTodo";
@@ -33,13 +36,26 @@ export type {
   UseHomeAssistantTodoResult,
   UseTodoEntitiesResult,
 } from "./hooks/useHomeAssistantTodo";
-export { useEntities, useEntity, useHomeAssistantService } from "./hooks/useHomeAssistant";
+export {
+  useEntities,
+  useEntitiesAcross,
+  useEntity,
+  useEntityList,
+  useHomeAssistantService,
+} from "./hooks/useHomeAssistant";
 export type {
   HomeAssistantServiceCaller,
+  UseEntitiesAcrossResult,
   UseEntitiesResult,
+  UseEntityListOptions,
+  UseEntityListResult,
   UseEntityOptions,
   UseEntityResult,
 } from "./hooks/useHomeAssistant";
+export { useHomeAssistantWeather } from "./hooks/useHomeAssistantWeather";
+export type { UseHomeAssistantWeatherResult } from "./hooks/useHomeAssistantWeather";
+export { useHomeAssistantCalendar } from "./hooks/useHomeAssistantCalendar";
+export type { UseHomeAssistantCalendarResult } from "./hooks/useHomeAssistantCalendar";
 export type { ClockConfig } from "./widgets/ClockWidget";
 export type { TodoItem, TodoConfig, TodoSource } from "./widgets/TodoWidget";
 export type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "./widgets/homeAssistantTodo";

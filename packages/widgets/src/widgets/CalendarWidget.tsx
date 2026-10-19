@@ -12,12 +12,18 @@ import {
   Link,
   Collapsible,
   Calendar,
+  Select,
 } from "@var-ui/react";
 import { IconCalendarEvent, IconRefresh } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig } from "../types";
 import { useCalendar } from "../hooks/useCalendar";
+import { useEntities } from "../hooks/useHomeAssistant";
+import { useHomeAssistantCalendar } from "../hooks/useHomeAssistantCalendar";
+import { useOverlayPortalContainer } from "../overlayPortal";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import type { CalendarEvent } from "../services/calendar";
+import { HA_MISSING_CONFIG_COPY, type HomeAssistantEntitySummary } from "./homeAssistant";
+import { CALENDAR_EMPTY_COPY, CALENDAR_MISSING_CONFIG_COPY } from "./homeAssistantCalendar";
 import * as classes from "./CalendarWidget.styles";
 import dayjs from "dayjs";
 
@@ -28,6 +34,8 @@ export interface CalendarConfig extends WidgetConfig {
   daysAhead: number;
   showCalendar: boolean;
   transparentBackground: boolean;
+  source?: "local" | "homeAssistant";
+  entityId?: string;
 }
 
 const eventColors = [
@@ -64,16 +72,65 @@ function formatEventDate(event: CalendarEvent): string {
 }
 
 export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
-  const { icalUrl, maxEvents, daysAhead, showCalendar, transparentBackground } = widget.config;
-
-  const { events, isLoading, error, refresh, lastUpdated } = useCalendar({
+  const {
     icalUrl,
+    maxEvents,
     daysAhead,
-  });
+    showCalendar,
+    transparentBackground,
+    source = "local",
+    entityId = "",
+  } = widget.config;
+  const useHa = source === "homeAssistant";
+
+  const local = useCalendar({ icalUrl: useHa ? "" : icalUrl, daysAhead });
+  const remote = useHomeAssistantCalendar(
+    useHa ? entityId : "",
+    daysAhead,
+    CALENDAR_MISSING_CONFIG_COPY,
+  );
+
+  const events = useHa ? remote.events : local.events;
+  const isLoading = useHa ? remote.isLoading : local.isLoading;
+  const error = useHa ? remote.error : local.error;
+  const refresh = useHa ? remote.refresh : local.refresh;
+  const lastUpdated = useHa ? remote.lastUpdated : local.lastUpdated;
+  const status = useHa ? remote.status : null;
 
   const upcomingEvents = events.slice(0, maxEvents);
 
-  if (!icalUrl) {
+  if (useHa && !entityId) {
+    return (
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+        <div className={classes.empty}>
+          <IconCalendarEvent size={48} className={classes.emptyIcon} />
+          <Text size="lg" weight="medium">
+            No Calendar Connected
+          </Text>
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
+            {CALENDAR_EMPTY_COPY}
+          </Text>
+        </div>
+      </div>
+    );
+  }
+
+  if (useHa && status === 501) {
+    return (
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+        <div className={classes.empty}>
+          <Text size="lg" weight="medium">
+            Home Assistant isn't connected
+          </Text>
+          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
+            {error ?? HA_MISSING_CONFIG_COPY}
+          </Text>
+        </div>
+      </div>
+    );
+  }
+
+  if (!useHa && !icalUrl) {
     return (
       <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
@@ -181,64 +238,112 @@ export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
 }
 
 export function CalendarWidgetSettings({ widget, onConfigChange }: WidgetProps<CalendarConfig>) {
-  const { icalUrl, maxEvents, daysAhead, showCalendar } = widget.config;
+  const {
+    icalUrl,
+    maxEvents,
+    daysAhead,
+    showCalendar,
+    source = "local",
+    entityId = "",
+  } = widget.config;
   const [showHelp, setShowHelp] = useState(false);
+  const portalContainer = useOverlayPortalContainer();
+  const {
+    entities: calendarEntities,
+    status: entitiesStatus,
+    error: entitiesError,
+  } = useEntities("calendar", CALENDAR_MISSING_CONFIG_COPY);
 
   return (
     <Stack gap="md">
-      <div>
-        <TextField
-          label="Calendar URL (iCal/ICS)"
-          placeholder="https://calendar.google.com/calendar/ical/..."
-          description="Paste your calendar's iCal feed URL"
-          value={icalUrl}
-          onChange={(value) => onConfigChange({ icalUrl: value })}
-        />
-
-        <Collapsible
-          title="How to get your calendar URL"
-          isExpanded={showHelp}
-          onExpandedChange={setShowHelp}
-        >
-          <Surface padding="sm" className={classes.helpBox}>
-            <Text size="sm" weight="semibold">
-              Google Calendar:
+      <Select
+        label="Source"
+        options={[
+          { id: "local", label: "iCal feed" },
+          { id: "homeAssistant", label: "Home Assistant" },
+        ]}
+        selectedKey={source}
+        onSelectionChange={(value) => {
+          if (value === "local" || value === "homeAssistant") onConfigChange({ source: value });
+        }}
+        portalContainer={portalContainer}
+      />
+      {source === "homeAssistant" ? (
+        <Stack gap="xs">
+          <Select
+            label="Calendar Entity"
+            placeholder="Select a calendar…"
+            options={calendarEntities.map((entity: HomeAssistantEntitySummary) => ({
+              id: entity.entityId,
+              label: `${entity.name} (${entity.entityId})`,
+            }))}
+            selectedKey={entityId || null}
+            onSelectionChange={(value) => {
+              if (typeof value === "string") onConfigChange({ entityId: value });
+            }}
+            portalContainer={portalContainer}
+          />
+          {entitiesStatus === 501 && (
+            <Text size="xs" tone="secondary">
+              {entitiesError ?? HA_MISSING_CONFIG_COPY}
             </Text>
-            <ol style={{ paddingLeft: "1rem", margin: 0 }}>
-              <li>
-                Open{" "}
-                <Link href="https://calendar.google.com" target="_blank">
-                  Google Calendar
-                </Link>
-              </li>
-              <li>Click the ⋮ menu next to your calendar</li>
-              <li>Select "Settings and sharing"</li>
-              <li>Scroll to "Secret address in iCal format"</li>
-              <li>Copy the URL</li>
-            </ol>
+          )}
+        </Stack>
+      ) : (
+        <div>
+          <TextField
+            label="Calendar URL (iCal/ICS)"
+            placeholder="https://calendar.google.com/calendar/ical/..."
+            description="Paste your calendar's iCal feed URL"
+            value={icalUrl}
+            onChange={(value) => onConfigChange({ icalUrl: value })}
+          />
 
-            <Text size="sm" weight="semibold">
-              Outlook/Office 365:
-            </Text>
-            <ol style={{ paddingLeft: "1rem", margin: 0 }}>
-              <li>Go to Calendar settings</li>
-              <li>Find "Shared calendars"</li>
-              <li>Publish your calendar</li>
-              <li>Copy the ICS link</li>
-            </ol>
+          <Collapsible
+            title="How to get your calendar URL"
+            isExpanded={showHelp}
+            onExpandedChange={setShowHelp}
+          >
+            <Surface padding="sm" className={classes.helpBox}>
+              <Text size="sm" weight="semibold">
+                Google Calendar:
+              </Text>
+              <ol style={{ paddingLeft: "1rem", margin: 0 }}>
+                <li>
+                  Open{" "}
+                  <Link href="https://calendar.google.com" target="_blank">
+                    Google Calendar
+                  </Link>
+                </li>
+                <li>Click the ⋮ menu next to your calendar</li>
+                <li>Select "Settings and sharing"</li>
+                <li>Scroll to "Secret address in iCal format"</li>
+                <li>Copy the URL</li>
+              </ol>
 
-            <Text size="sm" weight="semibold">
-              Apple iCloud:
-            </Text>
-            <ol style={{ paddingLeft: "1rem", margin: 0 }}>
-              <li>Open Calendar app</li>
-              <li>Right-click calendar → Share Calendar</li>
-              <li>Check "Public Calendar"</li>
-              <li>Copy the URL</li>
-            </ol>
-          </Surface>
-        </Collapsible>
-      </div>
+              <Text size="sm" weight="semibold">
+                Outlook/Office 365:
+              </Text>
+              <ol style={{ paddingLeft: "1rem", margin: 0 }}>
+                <li>Go to Calendar settings</li>
+                <li>Find "Shared calendars"</li>
+                <li>Publish your calendar</li>
+                <li>Copy the ICS link</li>
+              </ol>
+
+              <Text size="sm" weight="semibold">
+                Apple iCloud:
+              </Text>
+              <ol style={{ paddingLeft: "1rem", margin: 0 }}>
+                <li>Open Calendar app</li>
+                <li>Right-click calendar → Share Calendar</li>
+                <li>Check "Public Calendar"</li>
+                <li>Copy the URL</li>
+              </ol>
+            </Surface>
+          </Collapsible>
+        </div>
+      )}
 
       <HStack justify="between">
         <Text size="sm">Show Calendar</Text>

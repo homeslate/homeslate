@@ -19,6 +19,8 @@ export const calendarConfigSchema = z.object({
   daysAhead: z.number().optional(),
   showCalendar: z.boolean().optional(),
   transparentBackground: z.boolean().optional(),
+  source: z.enum(["local", "homeAssistant"]).optional(),
+  entityId: z.string().optional(),
 });
 
 export const googleCalendarConfigSchema = z.object({
@@ -90,6 +92,8 @@ export const weatherConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
   showAirQuality: z.boolean().optional(),
   textAlign: textAlign.optional(),
+  source: z.enum(["local", "homeAssistant"]).optional(),
+  entityId: z.string().optional(),
 });
 
 export const newsConfigSchema = z.object({
@@ -209,6 +213,45 @@ export const groceryConfigSchema = z.object({
   hideChecked: z.boolean().optional(),
   groupByAisle: z.boolean().optional(),
   transparentBackground: z.boolean().optional(),
+  source: z.enum(["local", "homeAssistant"]).optional(),
+  entityId: z.string().optional(),
+});
+
+export const sensorsConfigSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        entityId: z.string(),
+        label: z.string().optional(),
+        min: z.number().optional(),
+        max: z.number().optional(),
+      }),
+    )
+    .optional(),
+  layout: z.enum(["list", "grid"]).optional(),
+  showGauge: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const scenesConfigSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        entityId: z.string(),
+        label: z.string().optional(),
+        icon: z.string().optional(),
+      }),
+    )
+    .optional(),
+  confirm: z.boolean().optional(),
+  columns: z.number().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const presenceConfigSchema = z.object({
+  entityIds: z.array(z.string()).optional(),
+  showZones: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
 });
 
 export const countdownConfigSchema = z.object({
@@ -294,6 +337,9 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   "weather-alerts": weatherAlertsConfigSchema,
   embed: embedConfigSchema,
   thermostat: thermostatConfigSchema,
+  sensors: sensorsConfigSchema,
+  scenes: scenesConfigSchema,
+  presence: presenceConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

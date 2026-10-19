@@ -4,8 +4,12 @@ import {
   buildClimateServicePayload,
   mapClimateEntity,
 } from "./climateState";
+import { CALENDAR_ENTITY_ID } from "./calendarState";
 import { mapHomeAssistantEntity } from "./homeAssistantEntity";
+import { PRESENCE_DOMAIN_ENTITY_IDS, mapPresenceEntity } from "./presenceState";
+import { SENSOR_DOMAIN_ENTITY_IDS, mapSensorEntity } from "./sensorState";
 import { TODO_ENTITY_ID, TODO_SERVICE_KEYS, buildTodoServicePayload } from "./todoState";
+import { WEATHER_ENTITY_ID, mapWeatherEntity } from "./weatherState";
 
 /**
  * One Home Assistant domain, described once and shared by every layer: the
@@ -123,4 +127,63 @@ registerDomainSpec({
   entityId: TODO_ENTITY_ID,
   services: TODO_SERVICE_KEYS,
   buildPayload: buildTodoServicePayload,
+});
+
+/** Read-only sensor family (Sensors widget). */
+for (const domain of ["sensor", "binary_sensor", "number", "input_number"] as const) {
+  registerDomainSpec({
+    domain,
+    entityId: SENSOR_DOMAIN_ENTITY_IDS[domain],
+    services: {},
+    map: mapSensorEntity,
+  });
+}
+
+/** Fire-and-forget scenes, scripts, and buttons (Scenes & Scripts widget). */
+registerDomainSpec({
+  domain: "scene",
+  entityId: /^scene\.[a-z0-9_]+$/,
+  services: { turn_on: ["transition"] },
+});
+
+registerDomainSpec({
+  domain: "script",
+  entityId: /^script\.[a-z0-9_]+$/,
+  services: { turn_on: [], toggle: [] },
+});
+
+registerDomainSpec({
+  domain: "button",
+  entityId: /^button\.[a-z0-9_]+$/,
+  services: { press: [] },
+});
+
+registerDomainSpec({
+  domain: "input_button",
+  entityId: /^input_button\.[a-z0-9_]+$/,
+  services: { press: [] },
+});
+
+/** Read-only presence family (Presence widget). */
+for (const domain of ["person", "device_tracker", "zone"] as const) {
+  registerDomainSpec({
+    domain,
+    entityId: PRESENCE_DOMAIN_ENTITY_IDS[domain],
+    services: {},
+    map: mapPresenceEntity,
+  });
+}
+
+/** Weather and calendar are read through `return_response` service calls. */
+registerDomainSpec({
+  domain: "weather",
+  entityId: WEATHER_ENTITY_ID,
+  services: { get_forecasts: ["type"] },
+  map: mapWeatherEntity,
+});
+
+registerDomainSpec({
+  domain: "calendar",
+  entityId: CALENDAR_ENTITY_ID,
+  services: { get_events: ["start_date_time", "end_date_time", "duration"] },
 });

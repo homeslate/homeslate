@@ -429,3 +429,157 @@ describe("/api/homeassistant", () => {
     });
   });
 });
+
+describe("/api/homeassistant weather + calendar", () => {
+  let dataDir = "";
+
+  afterEach(async () => {
+    globalThis.fetch = originalFetch;
+    if (dataDir) await rm(dataDir, { recursive: true, force: true });
+  });
+
+  async function app(homeAssistant?: {
+    baseUrl?: string;
+    token?: string;
+    transport?: HomeAssistantTransport;
+  }) {
+    dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
+    return createHomeslateServer({ dataDir, homeAssistant });
+  }
+
+  it("returns 501 when Home Assistant is unconfigured", async () => {
+    const hono = await app();
+    expect((await hono.request("/api/homeassistant/weather/weather.home/forecast")).status).toBe(
+      501,
+    );
+    expect((await hono.request("/api/homeassistant/calendar/calendar.home/events")).status).toBe(
+      501,
+    );
+  });
+
+  it("rejects bad weather and calendar entity ids before fetching", async () => {
+    let fetchCount = 0;
+    globalThis.fetch = async () => {
+      fetchCount += 1;
+      return jsonOk({});
+    };
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+
+    expect((await hono.request("/api/homeassistant/weather/sensor.outdoor/forecast")).status).toBe(
+      400,
+    );
+    expect((await hono.request("/api/homeassistant/calendar/weather.home/events")).status).toBe(
+      400,
+    );
+    expect(fetchCount).toBe(0);
+  });
+
+  it("maps a weather forecast through the return_response service call", async () => {
+    const calls: Array<{ url: string; body: unknown }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : null });
+      return jsonOk({
+        "weather.home": {
+          forecast: [
+            { datetime: "2026-10-19T12:00:00+00:00", condition: "sunny", temperature: 21.5 },
+            {
+              datetime: "2026-10-20T12:00:00+00:00",
+              condition: "rainy",
+              temperature: 17,
+              templow: 11,
+            },
+          ],
+        },
+      });
+    };
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    const response = await hono.request(
+      "/api/homeassistant/weather/weather.home/forecast?type=daily",
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      forecast: [
+        {
+          datetime: "2026-10-19T12:00:00+00:00",
+          condition: "sunny",
+          temperature: 21.5,
+          templow: null,
+          precipitationProbability: null,
+          isDay: true,
+        },
+        {
+          datetime: "2026-10-20T12:00:00+00:00",
+          condition: "rainy",
+          temperature: 17,
+          templow: 11,
+          precipitationProbability: null,
+          isDay: true,
+        },
+      ],
+    });
+    expect(calls[0]?.url).toBe(
+      "http://ha.test:8123/api/services/weather/get_forecasts?return_response",
+    );
+    expect(calls[0]?.body).toEqual({ entity_id: "weather.home", type: "daily" });
+  });
+
+  it("maps calendar events through the return_response service call", async () => {
+    const calls: Array<{ url: string; body: Record<string, unknown> }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({
+        url: String(input),
+        body: init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {},
+      });
+      return jsonOk({
+        "calendar.home": {
+          events: [
+            {
+              summary: "Standup",
+              uid: "abc",
+              start: { dateTime: "2026-10-19T09:00:00+00:00" },
+              end: { dateTime: "2026-10-19T09:30:00+00:00" },
+              location: "Zoom",
+            },
+            {
+              summary: "Holiday",
+              start: { date: "2026-10-20" },
+              end: { date: "2026-10-21" },
+            },
+          ],
+        },
+      });
+    };
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    const response = await hono.request(
+      "/api/homeassistant/calendar/calendar.home/events?daysAhead=7",
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      events: [
+        {
+          id: "abc",
+          title: "Standup",
+          location: "Zoom",
+          start: "2026-10-19T09:00:00+00:00",
+          end: "2026-10-19T09:30:00+00:00",
+          allDay: false,
+        },
+        {
+          id: "2026-10-20-1",
+          title: "Holiday",
+          start: "2026-10-20",
+          end: "2026-10-21",
+          allDay: true,
+        },
+      ],
+    });
+    expect(calls[0]?.url).toBe(
+      "http://ha.test:8123/api/services/calendar/get_events?return_response",
+    );
+    expect(calls[0]?.body.entity_id).toBe("calendar.home");
+    expect(typeof calls[0]?.body.start_date_time).toBe("string");
+    expect(typeof calls[0]?.body.end_date_time).toBe("string");
+  });
+});
