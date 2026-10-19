@@ -74,7 +74,7 @@ Without it, the commute route returns 501 and the widget stays designable.
 
 ## Optional Home Assistant
 
-Set these on the API process to enable the thermostat and to-do widgets:
+Set these on the API process to enable the Home Assistant widgets:
 
 ```bash
 HOMEASSISTANT_BASE_URL=http://homeassistant.local:8123
@@ -83,5 +83,42 @@ HOMEASSISTANT_TOKEN=...
 
 Create the token in your Home Assistant profile (Security → Long-lived access
 tokens). Without both variables, `/api/homeassistant/*` returns 501 and the
-thermostat and to-do widgets stay designable but show a "set the env vars"
-notice.
+widgets stay designable but show a "set the env vars" notice.
+
+## Mock Home Assistant (no devices required)
+
+To try every Home Assistant widget without owning the hardware:
+
+```bash
+pnpm dev:mock
+```
+
+That starts two processes:
+
+- a stateful mock Home Assistant on `http://127.0.0.1:8125`
+- the reference app with `HOMEASSISTANT_BASE_URL` and
+  `HOMEASSISTANT_TOKEN=mock-token` already pointed at it
+
+Open `http://127.0.0.1:5174` and add widgets. The mock ships fixtures for every
+domain in the widget registry — climate, lights, switches, fans, covers, locks,
+alarms, media players, cameras, vacuum, humidifier, water heater, weather,
+calendar, to-do, updates, and lawn mowers — and service calls mutate state in
+memory. Restart the mock to reset it.
+
+To run only the mock (for example, against a different API process):
+
+```bash
+pnpm dev:mock-ha
+HOMEASSISTANT_BASE_URL=http://127.0.0.1:8125 \
+HOMEASSISTANT_TOKEN=mock-token \
+pnpm dev:reference
+```
+
+`MOCK_HA_PORT` and `MOCK_HA_TOKEN` override the mock's port and bearer token.
+
+### Higher-fidelity alternative
+
+Home Assistant's built-in `demo` integration exercises real HA parsers and
+service handlers. See
+[`HOME_ASSISTANT_DEMO.md`](./HOME_ASSISTANT_DEMO.md) for the full Docker setup,
+onboarding/token steps, host-vs-container base URLs, and troubleshooting.
