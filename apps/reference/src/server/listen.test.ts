@@ -59,4 +59,10 @@ describe("reference listen entry", () => {
     const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
     expect(source).toMatch(/timingSafeEqual/);
   });
+
+  it("loads apps/reference/.env when that file is present", () => {
+    const source = readFileSync(new URL("./listen.ts", import.meta.url), "utf8");
+    expect(source).toMatch(/loadEnvFile/);
+    expect(source).toMatch(/new URL\(["']\.\.\/\.\.\/\.env["']/);
+  });
 });

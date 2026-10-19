@@ -1,8 +1,14 @@
-import { fileURLToPath } from "node:url";
+import { timingSafeEqual } from "node:crypto";
+import { existsSync } from "node:fs";
 import { Server as HttpServer } from "node:http";
 import process from "node:process";
-import { timingSafeEqual } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { startHomeslateServer } from "@homeslate/server";
+
+// Node does not load `.env` on its own. Docker Compose injects the same
+// values as real environment variables, which take precedence over the file.
+const envFile = fileURLToPath(new URL("../../.env", import.meta.url));
+if (existsSync(envFile)) process.loadEnvFile(envFile);
 import { createHomeAssistantRelay, type AgentBinding } from "@homeslate/relay";
 import { attachNodeWebSocket } from "@homeslate/relay/node";
 

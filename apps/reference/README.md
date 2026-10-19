@@ -30,7 +30,9 @@ vp run dev:reference
 
 Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the Hono server on port 8787. Opening the API port redirects there.
 
-This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. `build:web` (`vp build`) extracts TypeStyles CSS via `@typestyles/vite` from `typestyles-entry.ts`.
+This is a development setup: the Hono server serves `/api` only, and Vite serves the UI. Both run against `packages/*/src`. Editing a package hot-reloads the UI and restarts the API. `build:web` (`vp build`) extracts TypeStyles CSS via `@typestyles/vite` from `typestyles-entry.ts`.
+
+Optional API settings (Google, commute, Home Assistant) go in `apps/reference/.env`. Copy `.env.example` and restart `vp run dev:reference` after editing it. Variables already set in the environment win over the file.
 
 ## Host contract
 

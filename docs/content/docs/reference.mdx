@@ -26,8 +26,12 @@ vp run dev:reference
 
 Open [http://127.0.0.1:5174](http://127.0.0.1:5174). Vite proxies `/api` to the Hono server on port 8787. Opening the API port redirects there.
 
-In dev the Hono server serves `/api` only, and Vite serves the UI. For a
-production static-serving setup, run it as a container — see
+In dev the Hono server serves `/api` only, and Vite serves the UI. Both run
+against `packages/*/src`: editing a package hot-reloads the UI and restarts the
+API. Optional API settings go in `apps/reference/.env` (copy `.env.example`).
+Restart the dev command after changing that file.
+
+For a production static-serving setup, run it as a container — see
 [`CONTAINER.md`](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
 
 ## Typecheck
