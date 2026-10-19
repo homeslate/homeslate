@@ -8,7 +8,8 @@ description: LAN agent that connects a home network's Home Assistant to a hosted
 Connects a home network's Home Assistant to a **hosted** homeslate API. The
 hosted API runs in the cloud and can't reach `homeassistant.local`, so a small
 process on the LAN dials out to a [`@homeslate/relay`](/docs/packages/relay) and
-answers the few Home Assistant calls the thermostat widget needs.
+answers the generic Home Assistant entity and service calls used by every Home
+Assistant widget.
 
 If your homeslate API runs on the same home network (the
 [reference app](/docs/reference) or a [self-hosted](/docs/self-hosting) install),
@@ -21,6 +22,26 @@ you don't need this — `@homeslate/server` talks to Home Assistant directly.
 - **The Home Assistant token stays home.** It's read from the agent's environment
   and never sent to the relay or the cloud. The relay authenticates with a
   separate, revocable, account-bound token.
+
+## Protocol v2
+
+The agent and relay speak one narrow, generic protocol:
+
+| Method | Purpose |
+| --- | --- |
+| `entities.list` | List entity summaries for one allowlisted domain |
+| `entity.get` | Read one entity's raw state (the server applies the domain mapper) |
+| `service.call` | Call an allowlisted service with allowlisted data keys |
+
+There are no per-domain methods. The agent advertises the domains it can serve
+from its `hello` (`agent.domains`, sourced from `knownDomains()`), and the relay
+re-validates every request against the same registry before forwarding it. The
+agent validates again before touching Home Assistant. A protocol mismatch or an
+unknown domain/service/entity id is a clean reject.
+
+The optional `fetchImage` and `history` transport methods are **direct-mode
+only** today; they are not part of the agent protocol yet. In relay mode, media
+artwork falls back to a placeholder and the History widget reports `501`.
 
 ## Run it
 

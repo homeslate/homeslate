@@ -49,19 +49,27 @@ subset driven by the domain registry in `@homeslate/widgets/server`:
 - `GET /api/homeassistant/entities?domain=…` — entity pickers for a known domain.
 - `GET /api/homeassistant/states/:entityId` — one entity, mapped per domain.
 - `GET /api/homeassistant/todo/:entityId/items` — normalized `todo` items.
+- `GET /api/homeassistant/weather/:entityId/forecast` — normalized forecast.
+- `GET /api/homeassistant/calendar/:entityId/events` — normalized events.
+- `GET /api/homeassistant/history/:entityId?hours=…` — numeric history points.
+- `GET /api/homeassistant/image?path=…` — allowlisted HA image proxy.
 - `POST /api/homeassistant/services/:domain/:service` — allowlisted service
   calls (registry-gated: domain → service → allowed data keys).
+- `GET /api/homeassistant/status` — transport/connection state.
 
 Without `homeAssistant`, these routes answer `501` and the widgets stay
 designable with a "set the env vars" notice.
 
-Routes run on a `HomeAssistantTransport`, a generic three-method seam
+Routes run on a `HomeAssistantTransport`, a generic seam
 (`listEntities(domain)`, `getEntity(entityId)`, `callService(domain, service,
-entityId, data, options?)`). The built-in direct client implements it; an
-injected transport (the
-[relay](https://www.npmjs.com/package/@homeslate/relay)) forwards the same
-three methods to a home agent. Adding a widget means adding a domain-registry
-entry, not a transport method.
+entityId, data, options?)`, plus optional `fetchImage(path)` and
+`history(entityId, hours)`). The built-in direct client implements all of it; an
+injected transport (the [relay](https://www.npmjs.com/package/@homeslate/relay))
+forwards the core methods to a home agent. Adding a widget means adding a
+domain-registry entry (entity-id shape, services, data keys, optional payload
+builder/mapper), not a transport method. The image proxy and history route need
+the optional methods, so relay mode answers `501` for history and falls back to a
+placeholder for media artwork until the protocol grows them.
 
 In a container, bind all interfaces so Docker's published port can reach the
 API — Docker forwards to the container's bridge address, not its loopback:

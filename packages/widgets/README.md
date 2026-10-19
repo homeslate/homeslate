@@ -51,24 +51,87 @@ Custom widgets: `registerWidget({ type, name, description, icon, component, defa
 
 ## Subpaths
 
-| Export                       | Role                                                                                                |
-| ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| `@homeslate/widgets`         | React registry + providers (registers built-ins)                                                    |
-| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                                                         |
-| `@homeslate/widgets/server`  | Commute query parsing, NWS alert mapping, Home Assistant climate + to-do mapping, Google error copy |
-| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS                                                   |
+| Export                       | Role                                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `@homeslate/widgets`         | React registry + providers (registers built-ins)                                                        |
+| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                                                             |
+| `@homeslate/widgets/server`  | Home Assistant domain registry, mappers, image/history helpers, commute + NWS alerts, Google error copy |
+| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS                                                       |
 
 ## Home Assistant widgets
 
-The **Thermostat** widget and the **To-Do List** widget can talk to a Home
-Assistant instance. Set `homeAssistant: { baseUrl, token }` on
-`@homeslate/server` and the widgets reach it through the `/api/homeassistant/*`
-proxy — the long-lived token never reaches the browser.
+Set `homeAssistant: { baseUrl, token }` on `@homeslate/server` (or inject a
+relay transport). Every Home Assistant widget reaches the instance through the
+`/api/homeassistant/*` proxy — the long-lived token never reaches the browser.
 
-The To-Do List widget has a **List source** setting. `Local` keeps items in the
-display document (the default); `Home Assistant` binds the widget to one `todo.*`
-entity and reads/writes it in place, so checking items off on the kiosk updates
-Home Assistant and stays in sync everywhere.
+| Widget                           | Domains / behavior                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| **Thermostat**                   | `climate`                                                                      |
+| **Sensors**                      | `sensor`, `binary_sensor`, `number`, `input_number`                            |
+| **Scenes & Scripts**             | `scene`, `script`, `button`, `input_button`                                    |
+| **Presence**                     | `person`, `device_tracker`, `zone`                                             |
+| **Devices**                      | `light`, `switch`, `input_boolean`, `fan` (on/off; brightness for lights)      |
+| **Covers & Garage**              | `cover`, position slider, garage confirmation                                  |
+| **Security**                     | `lock`, `alarm_control_panel`                                                  |
+| **Media Player**                 | `media_player`, artwork through the image proxy                                |
+| **Fan**                          | `fan` speed, preset, and oscillate                                             |
+| **Vacuum**                       | `vacuum` start/pause/dock/stop, battery, fan speed                             |
+| **Humidifier**                   | `humidifier`                                                                   |
+| **Water Heater**                 | `water_heater`                                                                 |
+| **Home Status**                  | Read-only composite of lights, covers, openings, alarm, presence, temperatures |
+| **Energy**                       | Power + energy `sensor` with an optional cost estimate                         |
+| **Camera**                       | `camera` snapshot with a privacy toggle                                        |
+| **Updates**                      | `update` install/skip                                                          |
+| **Lawn Mower**                   | `lawn_mower` start/pause/dock/stop                                             |
+| **Entity Tile**                  | Any registry domain, with a primary control map                                |
+| **Room**                         | Manual group of `light` / `switch` / `cover`                                   |
+| **Notify**                       | `notify.send_message` or `tts.speak` to a `media_player`                       |
+| **History**                      | `sensor` / `number` / `input_number` sparkline                                 |
+| **To-Do List**                   | Local list or one `todo.*` entity                                              |
+| **Weather / Calendar / Grocery** | Existing widgets with a `source: "local" \| "homeAssistant"` toggle            |
+
+### Domain registry
+
+`@homeslate/widgets/server` owns the allowlist. A `DomainSpec` declares the
+domain, its entity-id shape, allowed services and data keys, an optional payload
+builder, and an optional mapper:
+
+```ts
+import { registerDomainSpec, knownDomains } from "@homeslate/widgets/server";
+
+registerDomainSpec({
+  domain: "example",
+  entityId: /^example\.[a-z0-9_]+$/,
+  services: { turn_on: [], set_value: ["value"] },
+  map: (raw) => raw,
+});
+```
+
+The same registry drives the `/api/homeassistant/*` routes, the settings
+pickers, the LAN agent, and the relay. Validation runs on every hop, so an
+unknown domain, entity id, service, or data key never reaches Home Assistant.
+The client-safe `HOME_ASSISTANT_DOMAINS` list mirrors the registry for the Entity
+Tile picker.
+
+### Images and history
+
+- `GET /api/homeassistant/image?path=…` re-serves only
+  `/api/media_player_proxy/…` and `/api/camera_proxy/…`, injects the Home
+  Assistant token, caps images at 5 MB, and caches briefly.
+- `GET /api/homeassistant/history/:entityId?hours=…` returns numeric history for
+  the History widget (1–168 hours, downsampled). It requires a transport with
+  `history` — the direct client implements it; relay transports return `501`
+  until they add it.
+
+### Testing without devices
+
+```bash
+pnpm dev:mock
+```
+
+starts a stateful mock Home Assistant with fixtures for every registry domain and
+points the reference app at it. Use `pnpm dev:mock-ha` to run only the mock. See
+`apps/reference/HOME_ASSISTANT_DEMO.md` for the full Docker demo-container guide.
 
 ## Host styles
 
