@@ -28,6 +28,8 @@ import type { ThermostatConfig } from "./widgets/ThermostatWidget";
 import type { SensorsConfig } from "./widgets/SensorsWidget";
 import type { ScenesConfig } from "./widgets/ScenesWidget";
 import type { PresenceConfig } from "./widgets/PresenceWidget";
+import type { DevicesConfig } from "./widgets/DevicesWidget";
+import type { CoversConfig } from "./widgets/CoversWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -51,6 +53,8 @@ import {
   presenceConfigSchema,
   scenesConfigSchema,
   sensorsConfigSchema,
+  devicesConfigSchema,
+  coversConfigSchema,
   sportsConfigSchema,
   stocksConfigSchema,
   timersConfigSchema,
@@ -86,6 +90,8 @@ import {
   IconGauge,
   IconPlayerPlay,
   IconUsers,
+  IconBulb,
+  IconCarGarage,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -291,6 +297,20 @@ const PresenceWidget = lazy(() =>
 );
 const PresenceWidgetSettings = lazy(() =>
   import("./widgets/PresenceWidget").then((m) => ({ default: m.PresenceWidgetSettings })),
+);
+
+const DevicesWidget = lazy(() =>
+  import("./widgets/DevicesWidget").then((m) => ({ default: m.DevicesWidget })),
+);
+const DevicesWidgetSettings = lazy(() =>
+  import("./widgets/DevicesWidget").then((m) => ({ default: m.DevicesWidgetSettings })),
+);
+
+const CoversWidget = lazy(() =>
+  import("./widgets/CoversWidget").then((m) => ({ default: m.CoversWidget })),
+);
+const CoversWidgetSettings = lazy(() =>
+  import("./widgets/CoversWidget").then((m) => ({ default: m.CoversWidgetSettings })),
 );
 
 // Clock Widget
@@ -887,3 +907,40 @@ const presenceEntry: WidgetRegistryEntry<PresenceConfig> = {
   defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
 };
 registerWidget(presenceEntry);
+
+const devicesEntry: WidgetRegistryEntry<DevicesConfig> = {
+  type: "devices",
+  name: "Devices",
+  description: "Control Home Assistant lights, switches, outlets, and fans",
+  configSchema: devicesConfigSchema,
+  icon: IconBulb,
+  component: DevicesWidget,
+  settingsComponent: DevicesWidgetSettings,
+  defaultConfig: {
+    domains: ["light", "switch", "input_boolean", "fan"],
+    entityIds: [],
+    showBrightness: true,
+    columns: 2,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(devicesEntry);
+
+const coversEntry: WidgetRegistryEntry<CoversConfig> = {
+  type: "covers",
+  name: "Covers & Garage",
+  description: "Open, close, and position Home Assistant covers and garage doors",
+  configSchema: coversConfigSchema,
+  icon: IconCarGarage,
+  component: CoversWidget,
+  settingsComponent: CoversWidgetSettings,
+  defaultConfig: {
+    entityIds: [],
+    showPositionSlider: true,
+    confirmGarage: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(coversEntry);

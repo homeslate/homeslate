@@ -5,6 +5,8 @@ import {
   mapClimateEntity,
 } from "./climateState";
 import { CALENDAR_ENTITY_ID } from "./calendarState";
+import { COVER_ENTITY_ID, mapCoverEntity } from "./coverState";
+import { DEVICE_DOMAIN_ENTITY_IDS, mapDeviceEntity } from "./deviceState";
 import { mapHomeAssistantEntity } from "./homeAssistantEntity";
 import { PRESENCE_DOMAIN_ENTITY_IDS, mapPresenceEntity } from "./presenceState";
 import { SENSOR_DOMAIN_ENTITY_IDS, mapSensorEntity } from "./sensorState";
@@ -186,4 +188,39 @@ registerDomainSpec({
   domain: "calendar",
   entityId: CALENDAR_ENTITY_ID,
   services: { get_events: ["start_date_time", "end_date_time", "duration"] },
+});
+
+/** On/off device family (Devices widget). */
+registerDomainSpec({
+  domain: "light",
+  entityId: DEVICE_DOMAIN_ENTITY_IDS.light,
+  services: {
+    turn_on: ["brightness_pct", "transition"],
+    turn_off: ["transition"],
+    toggle: [],
+  },
+  map: mapDeviceEntity,
+});
+
+for (const domain of ["switch", "input_boolean", "fan"] as const) {
+  registerDomainSpec({
+    domain,
+    entityId: DEVICE_DOMAIN_ENTITY_IDS[domain],
+    services: { turn_on: [], turn_off: [], toggle: [] },
+    map: mapDeviceEntity,
+  });
+}
+
+/** Cover / garage family (Covers & Garage widget). */
+registerDomainSpec({
+  domain: "cover",
+  entityId: COVER_ENTITY_ID,
+  services: {
+    open_cover: [],
+    close_cover: [],
+    stop_cover: [],
+    set_cover_position: ["position"],
+    toggle: [],
+  },
+  map: mapCoverEntity,
 });

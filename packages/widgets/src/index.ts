@@ -29,6 +29,8 @@ export type { ThermostatConfig } from "./widgets/ThermostatWidget";
 export type { SensorsConfig } from "./widgets/SensorsWidget";
 export type { ScenesConfig } from "./widgets/ScenesWidget";
 export type { PresenceConfig } from "./widgets/PresenceWidget";
+export type { DevicesConfig } from "./widgets/DevicesWidget";
+export type { CoversConfig } from "./widgets/CoversWidget";
 export { useThermostat, useClimateEntities } from "./hooks/useThermostat";
 export type { UseThermostatResult, UseClimateEntitiesResult } from "./hooks/useThermostat";
 export { useHomeAssistantTodo, useTodoEntities } from "./hooks/useHomeAssistantTodo";

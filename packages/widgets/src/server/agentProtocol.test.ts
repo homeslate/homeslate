@@ -140,7 +140,7 @@ describe("agentProtocol", () => {
         ok: true,
       });
       expect(validateAgentRequestParams("entities.list", { domain: "todo" })).toEqual({ ok: true });
-      expect(validateAgentRequestParams("entities.list", { domain: "light" })).toEqual({
+      expect(validateAgentRequestParams("entities.list", { domain: "weird" })).toEqual({
         ok: false,
         error: "Unsupported domain",
       });
@@ -154,7 +154,7 @@ describe("agentProtocol", () => {
       expect(validateAgentRequestParams("entity.get", { entityId: "climate.living_room" })).toEqual(
         { ok: true },
       );
-      for (const entityId of ["light.kitchen", "climate../x", "climate.", "climate.LivingRoom"]) {
+      for (const entityId of ["weird.thing", "climate../x", "climate.", "climate.LivingRoom"]) {
         expect(validateAgentRequestParams("entity.get", { entityId })).toEqual({
           ok: false,
           error: "Invalid entity id",
@@ -196,8 +196,8 @@ describe("agentProtocol", () => {
       ).toEqual({ ok: false, error: "Invalid entity id" });
       expect(
         validateAgentRequestParams("service.call", {
-          domain: "light",
-          entityId: "light.kitchen",
+          domain: "weird",
+          entityId: "weird.thing",
           service: "turn_on",
         }),
       ).toEqual({ ok: false, error: "Unsupported domain" });

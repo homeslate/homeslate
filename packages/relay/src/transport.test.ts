@@ -105,9 +105,9 @@ describe("relay transport", () => {
 
   it("rejects an unknown domain before touching the socket", async () => {
     const { sent, transport } = setup();
-    await expect(transport.listEntities("light")).rejects.toMatchObject({ status: 400 });
+    await expect(transport.listEntities("weird")).rejects.toMatchObject({ status: 400 });
     await expect(
-      transport.callService("light", "turn_on", "light.kitchen", {}),
+      transport.callService("weird", "turn_on", "weird.thing", {}),
     ).rejects.toMatchObject({ status: 400 });
     expect(sent).toHaveLength(0);
   });
