@@ -7,6 +7,13 @@ import {
 import { CALENDAR_ENTITY_ID } from "./calendarState";
 import { COVER_ENTITY_ID, mapCoverEntity } from "./coverState";
 import { DEVICE_DOMAIN_ENTITY_IDS, mapDeviceEntity } from "./deviceState";
+import { ALARM_ENTITY_ID, mapAlarmEntity } from "./alarmState";
+import { FAN_ENTITY_ID, mapFanEntity } from "./fanState";
+import { HUMIDIFIER_ENTITY_ID, mapHumidifierEntity } from "./humidifierState";
+import { LOCK_ENTITY_ID, mapLockEntity } from "./lockState";
+import { MEDIA_PLAYER_ENTITY_ID, mapMediaPlayerEntity } from "./mediaPlayerState";
+import { VACUUM_ENTITY_ID, mapVacuumEntity } from "./vacuumState";
+import { WATER_HEATER_ENTITY_ID, mapWaterHeaterEntity } from "./waterHeaterState";
 import { mapHomeAssistantEntity } from "./homeAssistantEntity";
 import { PRESENCE_DOMAIN_ENTITY_IDS, mapPresenceEntity } from "./presenceState";
 import { SENSOR_DOMAIN_ENTITY_IDS, mapSensorEntity } from "./sensorState";
@@ -105,6 +112,7 @@ export function buildServicePayload(
     if (value === undefined) continue;
     if (typeof value === "string" && value.length > 0) payload[key] = value;
     else if (typeof value === "number" && Number.isFinite(value)) payload[key] = value;
+    else if (typeof value === "boolean") payload[key] = value;
   }
   return payload;
 }
@@ -202,7 +210,7 @@ registerDomainSpec({
   map: mapDeviceEntity,
 });
 
-for (const domain of ["switch", "input_boolean", "fan"] as const) {
+for (const domain of ["switch", "input_boolean"] as const) {
   registerDomainSpec({
     domain,
     entityId: DEVICE_DOMAIN_ENTITY_IDS[domain],
@@ -210,6 +218,21 @@ for (const domain of ["switch", "input_boolean", "fan"] as const) {
     map: mapDeviceEntity,
   });
 }
+
+/** Full fan control (Devices widget keeps the on/off subset). */
+registerDomainSpec({
+  domain: "fan",
+  entityId: FAN_ENTITY_ID,
+  services: {
+    turn_on: [],
+    turn_off: [],
+    toggle: [],
+    set_percentage: ["percentage"],
+    set_preset_mode: ["preset_mode"],
+    oscillate: ["oscillating"],
+  },
+  map: mapFanEntity,
+});
 
 /** Cover / garage family (Covers & Garage widget). */
 registerDomainSpec({
@@ -223,4 +246,83 @@ registerDomainSpec({
     toggle: [],
   },
   map: mapCoverEntity,
+});
+
+/** Security: locks and alarm panels. */
+registerDomainSpec({
+  domain: "lock",
+  entityId: LOCK_ENTITY_ID,
+  services: { lock: [], unlock: [], open: [] },
+  map: mapLockEntity,
+});
+
+registerDomainSpec({
+  domain: "alarm_control_panel",
+  entityId: ALARM_ENTITY_ID,
+  services: {
+    alarm_arm_home: [],
+    alarm_arm_away: [],
+    alarm_arm_night: [],
+    alarm_arm_vacation: [],
+    alarm_disarm: [],
+  },
+  map: mapAlarmEntity,
+});
+
+/** Media player, with artwork served through the host image proxy. */
+registerDomainSpec({
+  domain: "media_player",
+  entityId: MEDIA_PLAYER_ENTITY_ID,
+  services: {
+    media_play_pause: [],
+    media_next_track: [],
+    media_previous_track: [],
+    volume_set: ["volume_level"],
+    volume_mute: ["is_volume_muted"],
+    select_source: ["source"],
+    turn_on: [],
+    turn_off: [],
+  },
+  map: mapMediaPlayerEntity,
+});
+
+/** Vacuum family. */
+registerDomainSpec({
+  domain: "vacuum",
+  entityId: VACUUM_ENTITY_ID,
+  services: {
+    start: [],
+    pause: [],
+    stop: [],
+    return_to_base: [],
+    locate: [],
+    clean_spot: [],
+    set_fan_speed: ["fan_speed"],
+  },
+  map: mapVacuumEntity,
+});
+
+/** Humidifier and water heater controls. */
+registerDomainSpec({
+  domain: "humidifier",
+  entityId: HUMIDIFIER_ENTITY_ID,
+  services: {
+    turn_on: [],
+    turn_off: [],
+    set_mode: ["mode"],
+    set_humidity: ["humidity"],
+  },
+  map: mapHumidifierEntity,
+});
+
+registerDomainSpec({
+  domain: "water_heater",
+  entityId: WATER_HEATER_ENTITY_ID,
+  services: {
+    turn_on: [],
+    turn_off: [],
+    set_temperature: ["temperature"],
+    set_operation_mode: ["operation_mode"],
+  },
+  map: mapWaterHeaterEntity,
 });

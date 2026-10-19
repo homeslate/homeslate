@@ -21,6 +21,7 @@ export {
   type HomeAssistantStatusProvider,
   type HomeAssistantTransport,
 } from "./homeAssistant";
+export type { HomeAssistantImage } from "./homeAssistantImage";
 export {
   DEFAULT_PUBLIC_BASE_URL,
   GOOGLE_OAUTH_STATE_COOKIE,

@@ -269,6 +269,43 @@ export const coversConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+export const securityConfigSchema = z.object({
+  entityIds: z.array(z.string()).optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const mediaPlayerConfigSchema = z.object({
+  entityId: z.string().optional(),
+  showVolume: z.boolean().optional(),
+  showSource: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const fanConfigSchema = z.object({
+  entityId: z.string().optional(),
+  showPreset: z.boolean().optional(),
+  showOscillate: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const vacuumConfigSchema = z.object({
+  entityId: z.string().optional(),
+  showFanSpeed: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const humidifierConfigSchema = z.object({
+  entityId: z.string().optional(),
+  showMode: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const waterHeaterConfigSchema = z.object({
+  entityId: z.string().optional(),
+  showMode: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const countdownConfigSchema = z.object({
   target: z.string().optional(),
   allDay: z.boolean().optional(),
@@ -357,6 +394,12 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   presence: presenceConfigSchema,
   devices: devicesConfigSchema,
   covers: coversConfigSchema,
+  security: securityConfigSchema,
+  "media-player": mediaPlayerConfigSchema,
+  fan: fanConfigSchema,
+  vacuum: vacuumConfigSchema,
+  humidifier: humidifierConfigSchema,
+  "water-heater": waterHeaterConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

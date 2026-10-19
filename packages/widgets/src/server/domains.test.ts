@@ -301,3 +301,143 @@ describe("the phase 2 device and cover domains", () => {
     });
   });
 });
+
+describe("the phase 3 controller domains", () => {
+  it("knows the security, media, fan, vacuum, humidifier, and water heater domains", () => {
+    for (const domain of [
+      "lock",
+      "alarm_control_panel",
+      "media_player",
+      "fan",
+      "vacuum",
+      "humidifier",
+      "water_heater",
+    ]) {
+      expect(isKnownDomain(domain), domain).toBe(true);
+    }
+  });
+
+  it("allowlists the controller services", () => {
+    expect(isAllowedService("lock", "lock")).toBe(true);
+    expect(isAllowedService("lock", "unlock")).toBe(true);
+    expect(isAllowedService("lock", "open")).toBe(true);
+    expect(isAllowedService("alarm_control_panel", "alarm_arm_home")).toBe(true);
+    expect(isAllowedService("alarm_control_panel", "alarm_disarm")).toBe(true);
+    expect(isAllowedService("alarm_control_panel", "alarm_trigger")).toBe(false);
+    expect(isAllowedService("media_player", "media_play_pause")).toBe(true);
+    expect(isAllowedService("media_player", "volume_set")).toBe(true);
+    expect(isAllowedService("media_player", "select_source")).toBe(true);
+    expect(isAllowedService("fan", "set_percentage")).toBe(true);
+    expect(isAllowedService("fan", "set_preset_mode")).toBe(true);
+    expect(isAllowedService("fan", "oscillate")).toBe(true);
+    expect(isAllowedService("vacuum", "return_to_base")).toBe(true);
+    expect(isAllowedService("vacuum", "set_fan_speed")).toBe(true);
+    expect(isAllowedService("humidifier", "set_humidity")).toBe(true);
+    expect(isAllowedService("water_heater", "set_temperature")).toBe(true);
+    expect(isAllowedService("water_heater", "set_operation_mode")).toBe(true);
+  });
+
+  it("validates entity ids per domain", () => {
+    expect(isValidEntityId("lock", "lock.front_door")).toBe(true);
+    expect(isValidEntityId("lock", "lock.Bad")).toBe(false);
+    expect(isValidEntityId("alarm_control_panel", "alarm_control_panel.home")).toBe(true);
+    expect(isValidEntityId("media_player", "media_player.kitchen")).toBe(true);
+    expect(isValidEntityId("vacuum", "vacuum.downstairs")).toBe(true);
+    expect(isValidEntityId("humidifier", "humidifier.bedroom")).toBe(true);
+    expect(isValidEntityId("water_heater", "water_heater.basement")).toBe(true);
+    expect(isValidEntityId("water_heater", "humidifier.bedroom")).toBe(false);
+  });
+
+  it("keeps booleans in allowlisted service payloads", () => {
+    expect(
+      buildServicePayload("media_player", "volume_mute", "media_player.kitchen", {
+        is_volume_muted: true,
+      }),
+    ).toEqual({ entity_id: "media_player.kitchen", is_volume_muted: true });
+    expect(buildServicePayload("fan", "oscillate", "fan.bedroom", { oscillating: false })).toEqual({
+      entity_id: "fan.bedroom",
+      oscillating: false,
+    });
+    expect(
+      buildServicePayload("media_player", "volume_set", "media_player.kitchen", {
+        volume_level: 0.4,
+        junk: true,
+      }),
+    ).toEqual({ entity_id: "media_player.kitchen", volume_level: 0.4 });
+    expect(
+      buildServicePayload("vacuum", "set_fan_speed", "vacuum.downstairs", {
+        fan_speed: "turbo",
+      }),
+    ).toEqual({ entity_id: "vacuum.downstairs", fan_speed: "turbo" });
+  });
+
+  it("builds security and climate-auxiliary payloads", () => {
+    expect(buildServicePayload("lock", "unlock", "lock.front_door", {})).toEqual({
+      entity_id: "lock.front_door",
+    });
+    expect(
+      buildServicePayload("alarm_control_panel", "alarm_arm_home", "alarm_control_panel.home", {}),
+    ).toEqual({ entity_id: "alarm_control_panel.home" });
+    expect(
+      buildServicePayload("humidifier", "set_humidity", "humidifier.bedroom", { humidity: 45 }),
+    ).toEqual({ entity_id: "humidifier.bedroom", humidity: 45 });
+    expect(
+      buildServicePayload("humidifier", "set_mode", "humidifier.bedroom", { mode: "auto" }),
+    ).toEqual({ entity_id: "humidifier.bedroom", mode: "auto" });
+    expect(
+      buildServicePayload("water_heater", "set_temperature", "water_heater.basement", {
+        temperature: 52,
+      }),
+    ).toEqual({ entity_id: "water_heater.basement", temperature: 52 });
+    expect(
+      buildServicePayload("water_heater", "set_operation_mode", "water_heater.basement", {
+        operation_mode: "eco",
+      }),
+    ).toEqual({ entity_id: "water_heater.basement", operation_mode: "eco" });
+    expect(buildServicePayload("vacuum", "start", "vacuum.downstairs", {})).toEqual({
+      entity_id: "vacuum.downstairs",
+    });
+  });
+
+  it("maps the controller families through their mappers", () => {
+    expect(
+      mapEntity("lock", {
+        entity_id: "lock.front_door",
+        state: "locked",
+        attributes: { supported_features: 1 },
+      }),
+    ).toMatchObject({ kind: "lock", isLocked: true, supportsOpen: true });
+
+    expect(
+      mapEntity("alarm_control_panel", {
+        entity_id: "alarm_control_panel.home",
+        state: "armed_away",
+        attributes: { supported_features: 39 },
+      }),
+    ).toMatchObject({ kind: "alarm", state: "armed_away", supportedFeatures: 39 });
+
+    expect(
+      mapEntity("media_player", {
+        entity_id: "media_player.kitchen",
+        state: "playing",
+        attributes: { media_title: "Song", volume_level: 0.5 },
+      }),
+    ).toMatchObject({ title: "Song", volumeLevel: 0.5, state: "playing" });
+
+    expect(
+      mapEntity("fan", {
+        entity_id: "fan.bedroom",
+        state: "on",
+        attributes: { percentage: 66, preset_modes: ["normal"], oscillating: true },
+      }),
+    ).toMatchObject({ domain: "fan", percentage: 66, presetModes: ["normal"], oscillating: true });
+
+    expect(
+      mapEntity("vacuum", {
+        entity_id: "vacuum.downstairs",
+        state: "docked",
+        attributes: { battery_level: 72 },
+      }),
+    ).toMatchObject({ state: "docked", batteryLevel: 72 });
+  });
+});

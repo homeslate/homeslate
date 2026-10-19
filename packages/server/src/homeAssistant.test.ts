@@ -583,3 +583,83 @@ describe("/api/homeassistant weather + calendar", () => {
     expect(typeof calls[0]?.body.end_date_time).toBe("string");
   });
 });
+
+describe("/api/homeassistant image proxy", () => {
+  let dataDir = "";
+
+  afterEach(async () => {
+    if (dataDir) await rm(dataDir, { recursive: true, force: true });
+  });
+
+  async function app(homeAssistant?: {
+    baseUrl?: string;
+    token?: string;
+    transport?: HomeAssistantTransport;
+  }) {
+    dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
+    return createHomeslateServer({ dataDir, homeAssistant });
+  }
+
+  it("returns 501 for a valid path when Home Assistant is unconfigured", async () => {
+    const hono = await app();
+    const path = encodeURIComponent("/api/media_player_proxy/media_player.kitchen");
+    expect((await hono.request(`/api/homeassistant/image?path=${path}`)).status).toBe(501);
+  });
+
+  it("rejects arbitrary paths before fetching", async () => {
+    const hono = await app({
+      transport: {
+        async listEntities() {
+          return [];
+        },
+        async getEntity() {
+          return null;
+        },
+        async callService() {},
+        async fetchImage() {
+          throw new Error("should not fetch");
+        },
+      },
+    });
+    for (const path of [
+      "/api/states",
+      "/etc/passwd",
+      "https://evil.test/api/media_player_proxy/x",
+    ]) {
+      expect(
+        (await hono.request(`/api/homeassistant/image?path=${encodeURIComponent(path)}`)).status,
+      ).toBe(400);
+    }
+  });
+
+  it("serves allowlisted artwork through the transport and caches it", async () => {
+    let calls = 0;
+    const body = new Uint8Array([112, 110, 103]).buffer as ArrayBuffer;
+    const hono = await app({
+      transport: {
+        async listEntities() {
+          return [];
+        },
+        async getEntity() {
+          return null;
+        },
+        async callService() {},
+        async fetchImage(path) {
+          calls += 1;
+          expect(path).toBe("/api/media_player_proxy/media_player.kitchen?token=abc");
+          return { contentType: "image/png", body };
+        },
+      },
+    });
+
+    const path = encodeURIComponent("/api/media_player_proxy/media_player.kitchen?token=abc");
+    const first = await hono.request(`/api/homeassistant/image?path=${path}`);
+    expect(first.status).toBe(200);
+    expect(first.headers.get("content-type")).toBe("image/png");
+    expect((await first.arrayBuffer()).byteLength).toBe(3);
+
+    const second = await hono.request(`/api/homeassistant/image?path=${path}`);
+    expect(second.status).toBe(200);
+    expect(calls).toBe(1);
+  });
+});

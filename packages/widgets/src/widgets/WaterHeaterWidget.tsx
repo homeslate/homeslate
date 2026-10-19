@@ -1,0 +1,299 @@
+import { Button, HStack, Select, Spinner, Stack, Switch, Text } from "@var-ui/react";
+import { IconFlame, IconMinus, IconPlus, IconPower, IconRefresh } from "@tabler/icons-react";
+import type { WidgetConfig, WidgetProps } from "../types";
+import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { useEntities, useEntity } from "../hooks/useHomeAssistant";
+import { useOverlayPortalContainer } from "../overlayPortal";
+import {
+  WATER_HEATER_EMPTY_COPY,
+  WATER_HEATER_MISSING_CONFIG_COPY,
+  clampWaterHeaterTemperature,
+  getWaterHeaterSizeTier,
+  waterHeaterModeLabel,
+  waterHeaterStateLabel,
+  waterHeaterTemperatureLabel,
+  type HomeAssistantWaterHeater,
+} from "./homeAssistantWaterHeater";
+import * as classes from "./ClimateAuxWidget.styles";
+
+export interface WaterHeaterConfig extends WidgetConfig {
+  entityId: string;
+  showMode: boolean;
+  transparentBackground: boolean;
+}
+
+export function WaterHeaterWidget({ widget, isEditing }: WidgetProps<WaterHeaterConfig>) {
+  const { entityId = "", showMode = true, transparentBackground = false } = widget.config;
+  const {
+    entity: waterHeater,
+    isLoading,
+    error,
+    controlError,
+    status,
+    lastUpdated,
+    pending,
+    refresh,
+    call,
+  } = useEntity<HomeAssistantWaterHeater>(entityId, {
+    domain: "water_heater",
+    fetchFailureCopy: WATER_HEATER_MISSING_CONFIG_COPY,
+    callFailureCopy: WATER_HEATER_MISSING_CONFIG_COPY,
+  });
+  const portalContainer = useOverlayPortalContainer();
+  const containerClass = `${classes.container} ${transparentBackground ? classes.transparent : ""}`;
+
+  if (!entityId) {
+    return (
+      <div className={containerClass}>
+        <div className={classes.empty}>
+          <IconFlame size={32} className={classes.emptyIcon} />
+          <Text className={classes.emptyTitle}>{WATER_HEATER_EMPTY_COPY}</Text>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 501) {
+    return (
+      <div className={containerClass}>
+        <div className={classes.empty}>
+          <Text className={classes.emptyTitle}>Home Assistant isn't connected</Text>
+          <Text size="sm" tone="secondary">
+            {error ?? WATER_HEATER_MISSING_CONFIG_COPY}
+          </Text>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading && !waterHeater) {
+    return (
+      <div className={containerClass}>
+        <div className={classes.empty}>
+          <Spinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!waterHeater) {
+    return (
+      <div className={containerClass}>
+        <div className={classes.empty}>
+          <Text size="sm" tone="danger">
+            {error ?? "Failed to fetch water heater"}
+          </Text>
+          <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
+            <IconRefresh size={14} />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!waterHeater.available) {
+    return (
+      <div className={containerClass}>
+        <div className={classes.empty}>
+          <IconFlame size={32} className={classes.emptyIcon} />
+          <Text size="sm" tone="secondary">
+            Unavailable
+          </Text>
+        </div>
+      </div>
+    );
+  }
+
+  const tier = getWaterHeaterSizeTier(widget.layout.w, widget.layout.h);
+  const adjust = (delta: number) => {
+    const base =
+      waterHeater.targetTemperature ??
+      waterHeater.currentTemperature ??
+      (waterHeater.minTemp + waterHeater.maxTemp) / 2;
+    const next = clampWaterHeaterTemperature(
+      base + delta,
+      waterHeater.minTemp,
+      waterHeater.maxTemp,
+    );
+    const snapped = Math.round(next / waterHeater.step) * waterHeater.step;
+    const temperature = clampWaterHeaterTemperature(
+      Number(snapped.toFixed(6)),
+      waterHeater.minTemp,
+      waterHeater.maxTemp,
+    );
+    void call("set_temperature", { temperature }, (current) => ({
+      ...current,
+      targetTemperature: temperature,
+    }));
+  };
+
+  return (
+    <div className={containerClass}>
+      <div className={classes.header}>
+        <Text className={classes.title}>
+          <IconFlame size={18} />
+          {tier === "compact" ? "Water heater" : waterHeater.name}
+        </Text>
+        <Button
+          appearance="subtle"
+          size="sm"
+          aria-label={waterHeater.isOn ? "Turn off" : "Turn on"}
+          onPress={() =>
+            void call(waterHeater.isOn ? "turn_off" : "turn_on", {}, (current) => ({
+              ...current,
+              isOn: !current.isOn,
+            }))
+          }
+          isDisabled={pending}
+        >
+          <IconPower size={16} />
+          {waterHeater.isOn ? "On" : "Off"}
+        </Button>
+      </div>
+
+      <div className={classes.reading}>
+        <Text className={classes.value}>
+          {waterHeater.currentTemperature === null
+            ? "—"
+            : `${Math.round(waterHeater.currentTemperature * 10) / 10}${waterHeater.unit}`}
+        </Text>
+        <Text size="xs" tone="secondary">
+          Current · {waterHeaterStateLabel(waterHeater)}
+        </Text>
+      </div>
+
+      <div className={classes.targetRow}>
+        <span className={classes.targetLabel}>Target temperature</span>
+        <div className={classes.targetControls}>
+          <Button
+            appearance="subtle"
+            size="sm"
+            aria-label="Lower temperature"
+            onPress={() => adjust(-waterHeater.step)}
+            isDisabled={pending}
+          >
+            <IconMinus size={16} />
+          </Button>
+          <Text className={classes.targetValue}>{waterHeaterTemperatureLabel(waterHeater)}</Text>
+          <Button
+            appearance="subtle"
+            size="sm"
+            aria-label="Raise temperature"
+            onPress={() => adjust(waterHeater.step)}
+            isDisabled={pending}
+          >
+            <IconPlus size={16} />
+          </Button>
+        </div>
+      </div>
+
+      {showMode && tier !== "compact" && waterHeater.operationModes.length > 0 && (
+        <div className={classes.modes}>
+          <Select
+            label="Operation mode"
+            options={waterHeater.operationModes.map((mode) => ({
+              id: mode,
+              label: waterHeaterModeLabel(mode),
+            }))}
+            selectedKey={waterHeater.operationMode}
+            onSelectionChange={(key) => {
+              if (typeof key === "string" && key !== waterHeater.operationMode) {
+                void call("set_operation_mode", { operation_mode: key }, (current) => ({
+                  ...current,
+                  operationMode: key,
+                }));
+              }
+            }}
+            portalContainer={portalContainer}
+          />
+        </div>
+      )}
+
+      {(controlError || error) && (
+        <div className={classes.errorBox}>
+          <Text size="xs" tone="danger">
+            {controlError ?? error}
+          </Text>
+          <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
+            <IconRefresh size={14} />
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {!isEditing && (
+        <WidgetDataStatus
+          widgetId={widget.id}
+          lastUpdated={lastUpdated}
+          error={error}
+          isLoading={isLoading}
+        />
+      )}
+    </div>
+  );
+}
+
+export function WaterHeaterWidgetSettings({
+  widget,
+  onConfigChange,
+}: WidgetProps<WaterHeaterConfig>) {
+  const { entityId = "", showMode = true, transparentBackground = false } = widget.config;
+  const portalContainer = useOverlayPortalContainer();
+  const { entities, isLoading, error, status, refresh } = useEntities(
+    "water_heater",
+    WATER_HEATER_MISSING_CONFIG_COPY,
+  );
+
+  return (
+    <Stack gap="md">
+      {status === 501 ? (
+        <Text size="sm">{WATER_HEATER_MISSING_CONFIG_COPY}</Text>
+      ) : (
+        <HStack gap="xs" align="end">
+          <div className={classes.fieldGrow}>
+            <Select
+              label="Water heater"
+              placeholder="Select a water heater…"
+              options={entities.map((entity) => ({
+                id: entity.entityId,
+                label: `${entity.name} (${entity.entityId})`,
+              }))}
+              selectedKey={entityId || null}
+              onSelectionChange={(key) => {
+                if (typeof key === "string") onConfigChange({ entityId: key });
+              }}
+              portalContainer={portalContainer}
+            />
+          </div>
+          <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
+            <IconRefresh size={14} />
+          </Button>
+        </HStack>
+      )}
+
+      {error && status !== 501 && (
+        <Text size="xs" tone="danger">
+          {error}
+        </Text>
+      )}
+
+      <HStack gap="sm" align="center" justify="between">
+        <Text size="sm">Show operation mode picker</Text>
+        <Switch
+          aria-label="Show operation mode picker"
+          isSelected={showMode}
+          onChange={(value) => onConfigChange({ showMode: value })}
+        />
+      </HStack>
+      <HStack gap="sm" align="center" justify="between">
+        <Text size="sm">Transparent background</Text>
+        <Switch
+          aria-label="Transparent background"
+          isSelected={transparentBackground}
+          onChange={(value) => onConfigChange({ transparentBackground: value })}
+        />
+      </HStack>
+    </Stack>
+  );
+}

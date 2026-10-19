@@ -6,6 +6,11 @@ import {
   type HomeAssistantEntitySummary,
   type HomeAssistantState,
 } from "@homeslate/widgets/server";
+import {
+  HOME_ASSISTANT_IMAGE_MAX_BYTES,
+  normalizeHomeAssistantImagePath,
+  type HomeAssistantImage,
+} from "./homeAssistantImage";
 
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -76,6 +81,12 @@ export type HomeAssistantTransport = {
     data: Record<string, unknown>,
     options?: HomeAssistantServiceOptions,
   ): Promise<unknown>;
+  /**
+   * Fetch an allowlisted Home Assistant image proxy path (media artwork or a
+   * camera snapshot). Direct LAN transports implement this; relay transports
+   * may add it later.
+   */
+  fetchImage?(path: string): Promise<HomeAssistantImage>;
 };
 
 /** @deprecated Use {@link HomeAssistantTransport}. */
@@ -181,6 +192,26 @@ export function createHomeAssistantClient(
       }
       if (!callOptions?.returnResponse) return undefined;
       return response.json().catch(() => null);
+    },
+
+    async fetchImage(path) {
+      const normalized = normalizeHomeAssistantImagePath(path);
+      if (!normalized) throw new HomeAssistantError(400, "Invalid image path");
+      const response = await fetchImpl(`${baseUrl}${normalized}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        throw new HomeAssistantError(response.status, "Home Assistant image request failed");
+      }
+      const length = Number(response.headers.get("content-length") ?? "");
+      if (Number.isFinite(length) && length > HOME_ASSISTANT_IMAGE_MAX_BYTES) {
+        throw new HomeAssistantError(502, "Home Assistant image is too large");
+      }
+      return {
+        contentType: response.headers.get("content-type") ?? "application/octet-stream",
+        body: await response.arrayBuffer(),
+      };
     },
   };
 }

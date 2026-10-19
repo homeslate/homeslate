@@ -65,6 +65,13 @@ export { WEATHER_ENTITY_ID, mapWeatherEntity, mapWeatherForecast } from "./serve
 export { CALENDAR_ENTITY_ID, mapCalendarEvents } from "./server/calendarState";
 export { DEVICE_DOMAIN_ENTITY_IDS, mapDeviceEntity } from "./server/deviceState";
 export { COVER_ENTITY_ID, mapCoverEntity } from "./server/coverState";
+export { LOCK_ENTITY_ID, mapLockEntity } from "./server/lockState";
+export { ALARM_ENTITY_ID, mapAlarmEntity } from "./server/alarmState";
+export { MEDIA_PLAYER_ENTITY_ID, mapMediaPlayerEntity } from "./server/mediaPlayerState";
+export { FAN_ENTITY_ID, mapFanEntity } from "./server/fanState";
+export { VACUUM_ENTITY_ID, mapVacuumEntity } from "./server/vacuumState";
+export { HUMIDIFIER_ENTITY_ID, mapHumidifierEntity } from "./server/humidifierState";
+export { WATER_HEATER_ENTITY_ID, mapWaterHeaterEntity } from "./server/waterHeaterState";
 export {
   TODO_EMPTY_COPY,
   TODO_MISSING_CONFIG_COPY,
