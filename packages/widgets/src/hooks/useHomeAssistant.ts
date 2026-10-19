@@ -50,6 +50,124 @@ export function useEntities(domain: string, failureCopy: string): UseEntitiesRes
   return { entities, isLoading, error, status, refresh: fetchData };
 }
 
+export type UseEntitiesAcrossResult = UseEntitiesResult;
+
+/**
+ * Load entity summaries for several allowlisted domains at once, for a settings
+ * picker that spans a family (`scene` + `script` + `button` + `input_button`).
+ */
+export function useEntitiesAcross(domains: string[], failureCopy: string): UseEntitiesAcrossResult {
+  const key = domains.join("|");
+  const [entities, setEntities] = useState<HomeAssistantEntitySummary[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<number | null>(null);
+
+  const fetchData = useCallback(async () => {
+    const list = key.split("|").filter(Boolean);
+    if (list.length === 0) {
+      setEntities([]);
+      setError(null);
+      setStatus(null);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const lists = await Promise.all(list.map((domain) => fetchEntities(domain, failureCopy)));
+      setEntities(lists.flat().sort((a, b) => a.name.localeCompare(b.name)));
+      setError(null);
+      setStatus(200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : failureCopy);
+      if (err instanceof HomeAssistantHttpError) setStatus(err.status);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [key, failureCopy]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  return { entities, isLoading, error, status, refresh: fetchData };
+}
+
+export type UseEntityListOptions = {
+  /** Fallback message when a fetch fails without a server body. */
+  fetchFailureCopy: string;
+  /** Poll cadence. Defaults to 30s. */
+  pollIntervalMs?: number;
+};
+
+export type UseEntityListResult<T> = {
+  entities: T[];
+  isLoading: boolean;
+  error: string | null;
+  /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
+  status: number | null;
+  lastUpdated: number | null;
+  refresh: () => void;
+};
+
+/**
+ * Fetch several mapped entities in parallel and poll them together. The
+ * multi-entity counterpart to `useEntity`, used by the Sensors and Presence
+ * widgets.
+ */
+export function useEntityList<T>(
+  entityIds: string[],
+  options: UseEntityListOptions,
+): UseEntityListResult<T> {
+  const { fetchFailureCopy, pollIntervalMs = ENTITY_POLL_INTERVAL_MS } = options;
+  const key = entityIds.join("|");
+  const [entities, setEntities] = useState<T[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<number | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
+
+  const fetchData = useCallback(async () => {
+    const ids = key.split("|").filter(Boolean);
+    if (ids.length === 0) {
+      setEntities([]);
+      setError(null);
+      setStatus(null);
+      setLastUpdated(null);
+      setConsecutiveFailures(0);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const next = await Promise.all(ids.map((id) => fetchEntity<T>(id, fetchFailureCopy)));
+      setEntities(next);
+      setError(null);
+      setStatus(200);
+      setLastUpdated(Date.now());
+      setConsecutiveFailures(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : fetchFailureCopy);
+      if (err instanceof HomeAssistantHttpError) setStatus(err.status);
+      setConsecutiveFailures((value) => value + 1);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [key, fetchFailureCopy]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (!key) return;
+    const timeout = setTimeout(fetchData, getNextPollDelay(pollIntervalMs, consecutiveFailures));
+    return () => clearTimeout(timeout);
+  }, [consecutiveFailures, fetchData, key, pollIntervalMs]);
+
+  return { entities, isLoading, error, status, lastUpdated, refresh: fetchData };
+}
+
 /** A stable caller for allowlisted Home Assistant services. */
 export type HomeAssistantServiceCaller = (
   domain: string,

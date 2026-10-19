@@ -25,6 +25,9 @@ import type { CommuteConfig } from "./widgets/CommuteWidget";
 import type { WeatherAlertsConfig } from "./widgets/WeatherAlertsWidget";
 import type { EmbedConfig } from "./widgets/EmbedWidget";
 import type { ThermostatConfig } from "./widgets/ThermostatWidget";
+import type { SensorsConfig } from "./widgets/SensorsWidget";
+import type { ScenesConfig } from "./widgets/ScenesWidget";
+import type { PresenceConfig } from "./widgets/PresenceWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -45,6 +48,9 @@ import {
   googlePhotoCollageConfigSchema,
   newsConfigSchema,
   photoConfigSchema,
+  presenceConfigSchema,
+  scenesConfigSchema,
+  sensorsConfigSchema,
   sportsConfigSchema,
   stocksConfigSchema,
   timersConfigSchema,
@@ -77,6 +83,9 @@ import {
   IconAlertTriangle,
   IconAppWindow,
   IconTemperature,
+  IconGauge,
+  IconPlayerPlay,
+  IconUsers,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -261,6 +270,27 @@ const ThermostatWidget = lazy(() =>
 );
 const ThermostatWidgetSettings = lazy(() =>
   import("./widgets/ThermostatWidget").then((m) => ({ default: m.ThermostatWidgetSettings })),
+);
+
+const SensorsWidget = lazy(() =>
+  import("./widgets/SensorsWidget").then((m) => ({ default: m.SensorsWidget })),
+);
+const SensorsWidgetSettings = lazy(() =>
+  import("./widgets/SensorsWidget").then((m) => ({ default: m.SensorsWidgetSettings })),
+);
+
+const ScenesWidget = lazy(() =>
+  import("./widgets/ScenesWidget").then((m) => ({ default: m.ScenesWidget })),
+);
+const ScenesWidgetSettings = lazy(() =>
+  import("./widgets/ScenesWidget").then((m) => ({ default: m.ScenesWidgetSettings })),
+);
+
+const PresenceWidget = lazy(() =>
+  import("./widgets/PresenceWidget").then((m) => ({ default: m.PresenceWidget })),
+);
+const PresenceWidgetSettings = lazy(() =>
+  import("./widgets/PresenceWidget").then((m) => ({ default: m.PresenceWidgetSettings })),
 );
 
 // Clock Widget
@@ -804,3 +834,56 @@ const thermostatEntry: WidgetRegistryEntry<ThermostatConfig> = {
   defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
 };
 registerWidget(thermostatEntry);
+
+const sensorsEntry: WidgetRegistryEntry<SensorsConfig> = {
+  type: "sensors",
+  name: "Sensors",
+  description: "Show Home Assistant sensor and binary-sensor readings",
+  configSchema: sensorsConfigSchema,
+  icon: IconGauge,
+  component: SensorsWidget,
+  settingsComponent: SensorsWidgetSettings,
+  defaultConfig: {
+    items: [],
+    layout: "list",
+    showGauge: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(sensorsEntry);
+
+const scenesEntry: WidgetRegistryEntry<ScenesConfig> = {
+  type: "scenes",
+  name: "Scenes & Scripts",
+  description: "Run Home Assistant scenes, scripts, and buttons",
+  configSchema: scenesConfigSchema,
+  icon: IconPlayerPlay,
+  component: ScenesWidget,
+  settingsComponent: ScenesWidgetSettings,
+  defaultConfig: {
+    items: [],
+    confirm: false,
+    columns: 2,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(scenesEntry);
+
+const presenceEntry: WidgetRegistryEntry<PresenceConfig> = {
+  type: "presence",
+  name: "Presence",
+  description: "Show who is home from Home Assistant",
+  configSchema: presenceConfigSchema,
+  icon: IconUsers,
+  component: PresenceWidget,
+  settingsComponent: PresenceWidgetSettings,
+  defaultConfig: {
+    entityIds: [],
+    showZones: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(presenceEntry);

@@ -29,8 +29,10 @@ import {
   isKnownDomain,
   isValidEntityId,
   isValidTodoEntityId,
+  mapCalendarEvents,
   mapEntity,
   mapTodoItems,
+  mapWeatherForecast,
   parseCommuteQuery,
   type CommuteEstimate,
   type WeatherAlertsResponse,
@@ -204,6 +206,57 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
         },
       );
       return c.json({ items: mapTodoItems(result, entityId) });
+    } catch (error) {
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
+    }
+  });
+
+  app.get("/api/homeassistant/weather/:entityId/forecast", async (c) => {
+    const entityId = c.req.param("entityId");
+    if (!isValidEntityId("weather", entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: HA_MISSING_CONFIG_COPY }, 501);
+
+    const type = c.req.query("type") === "hourly" ? "hourly" : "daily";
+    try {
+      const result = await homeAssistant.callService(
+        "weather",
+        "get_forecasts",
+        entityId,
+        { type },
+        { returnResponse: true },
+      );
+      return c.json({ forecast: mapWeatherForecast(result, entityId) });
+    } catch (error) {
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
+    }
+  });
+
+  app.get("/api/homeassistant/calendar/:entityId/events", async (c) => {
+    const entityId = c.req.param("entityId");
+    if (!isValidEntityId("calendar", entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: HA_MISSING_CONFIG_COPY }, 501);
+
+    const requested = Number(c.req.query("daysAhead") ?? "30");
+    const daysAhead = Number.isFinite(requested)
+      ? Math.min(90, Math.max(1, Math.round(requested)))
+      : 30;
+    const start = new Date();
+    const end = new Date(start.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+    try {
+      const result = await homeAssistant.callService(
+        "calendar",
+        "get_events",
+        entityId,
+        { start_date_time: start.toISOString(), end_date_time: end.toISOString() },
+        { returnResponse: true },
+      );
+      return c.json({ events: mapCalendarEvents(result, entityId) });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);

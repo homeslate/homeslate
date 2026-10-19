@@ -59,6 +59,10 @@ export {
 export type { DomainSpec } from "./server/domains";
 export { mapHomeAssistantEntity, mapHomeAssistantState } from "./server/homeAssistantEntity";
 export type { HomeAssistantEntity, HomeAssistantState } from "./server/homeAssistantEntity";
+export { SENSOR_DOMAIN_ENTITY_IDS, mapSensorEntity } from "./server/sensorState";
+export { PRESENCE_DOMAIN_ENTITY_IDS, mapPresenceEntity } from "./server/presenceState";
+export { WEATHER_ENTITY_ID, mapWeatherEntity, mapWeatherForecast } from "./server/weatherState";
+export { CALENDAR_ENTITY_ID, mapCalendarEvents } from "./server/calendarState";
 export {
   TODO_EMPTY_COPY,
   TODO_MISSING_CONFIG_COPY,

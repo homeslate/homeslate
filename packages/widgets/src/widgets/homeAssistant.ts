@@ -70,6 +70,17 @@ export function homeAssistantStatusUrl(): string {
   return "/api/homeassistant/status";
 }
 
+export function homeAssistantWeatherForecastUrl(
+  entityId: string,
+  type: "daily" | "hourly",
+): string {
+  return `/api/homeassistant/weather/${encodeURIComponent(entityId)}/forecast?type=${type}`;
+}
+
+export function homeAssistantCalendarEventsUrl(entityId: string, daysAhead: number): string {
+  return `/api/homeassistant/calendar/${encodeURIComponent(entityId)}/events?daysAhead=${daysAhead}`;
+}
+
 /**
  * Health of the host's Home Assistant transport, from
  * `GET /api/homeassistant/status`. `transport: "relay"` with `connected: false`

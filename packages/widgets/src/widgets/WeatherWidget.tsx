@@ -26,7 +26,11 @@ import {
 import type { WidgetProps, WidgetConfig, TextAlign } from "../types";
 import { useOverlayPortalContainer } from "../overlayPortal";
 import { useWeather } from "../hooks/useWeather";
+import { useEntities } from "../hooks/useHomeAssistant";
+import { useHomeAssistantWeather } from "../hooks/useHomeAssistantWeather";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
+import { HA_MISSING_CONFIG_COPY, type HomeAssistantEntitySummary } from "./homeAssistant";
+import { WEATHER_EMPTY_COPY, WEATHER_MISSING_CONFIG_COPY } from "./homeAssistantWeather";
 import {
   searchLocations,
   getWeatherDescription,
@@ -48,6 +52,8 @@ export interface WeatherConfig extends WidgetConfig {
   transparentBackground: boolean;
   showAirQuality: boolean;
   textAlign: TextAlign;
+  source?: "local" | "homeAssistant";
+  entityId?: string;
 }
 
 interface AqiBand {
@@ -106,18 +112,21 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
     transparentBackground,
     showAirQuality,
     textAlign = "left",
+    source = "local",
+    entityId = "",
   } = widget.config;
+  const useHa = source === "homeAssistant";
   const [aqData, setAqData] = useState<AirQualityData | null>(null);
 
   useEffect(() => {
-    if (!showAirQuality || latitude === null || longitude === null) {
+    if (useHa || !showAirQuality || latitude === null || longitude === null) {
       setAqData(null);
       return;
     }
     fetchAirQuality(latitude, longitude)
       .then(setAqData)
       .catch(() => setAqData(null));
-  }, [showAirQuality, latitude, longitude]);
+  }, [useHa, showAirQuality, latitude, longitude]);
 
   const locationInfo = useMemo(() => {
     if (!location) return undefined;
@@ -131,23 +140,65 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
   }, [location]);
 
   const {
-    data: weather,
-    isLoading,
-    error,
-    refresh,
-    lastUpdated,
+    data: localWeather,
+    isLoading: localLoading,
+    error: localError,
+    refresh: refreshLocal,
+    lastUpdated: localLastUpdated,
   } = useWeather({
-    latitude,
-    longitude,
+    latitude: useHa ? null : latitude,
+    longitude: useHa ? null : longitude,
     units,
     locationInfo,
   });
+  const remote = useHomeAssistantWeather(useHa ? entityId : "", WEATHER_MISSING_CONFIG_COPY);
 
-  const tempUnit = units === "metric" ? "°C" : "°F";
-  const windUnit = units === "metric" ? "km/h" : "mph";
+  const weather = useHa ? remote.data : localWeather;
+  const isLoading = useHa ? remote.isLoading : localLoading;
+  const error = useHa ? remote.error : localError;
+  const refresh = useHa ? remote.refresh : refreshLocal;
+  const lastUpdated = useHa ? remote.lastUpdated : localLastUpdated;
+  const status = useHa ? remote.status : null;
+
+  const unitSystem = weather?.units ?? units;
+  const tempUnit = unitSystem === "metric" ? "°C" : "°F";
+  const windUnit = unitSystem === "metric" ? "km/h" : "mph";
+
+  // No Home Assistant weather entity configured.
+  if (useHa && !entityId) {
+    return (
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+        <div className={classes.empty}>
+          <IconMapPin size={48} className={classes.emptyIcon} />
+          <Text size="lg" weight="medium">
+            No Weather Entity Set
+          </Text>
+          <Text size="sm" tone="secondary">
+            {WEATHER_EMPTY_COPY}
+          </Text>
+        </div>
+      </div>
+    );
+  }
+
+  // Home Assistant is not configured.
+  if (useHa && status === 501) {
+    return (
+      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+        <div className={classes.empty}>
+          <Text size="lg" weight="medium">
+            Home Assistant isn't connected
+          </Text>
+          <Text size="sm" tone="secondary">
+            {error ?? WEATHER_MISSING_CONFIG_COPY}
+          </Text>
+        </div>
+      </div>
+    );
+  }
 
   // No location configured
-  if (!latitude || !longitude) {
+  if (!useHa && (!latitude || !longitude)) {
     return (
       <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
         <div className={classes.empty}>
@@ -362,7 +413,14 @@ export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<We
     forecastDays,
     showAirQuality,
     textAlign = "left",
+    source = "local",
+    entityId = "",
   } = widget.config;
+  const {
+    entities: weatherEntities,
+    status: entitiesStatus,
+    error: entitiesError,
+  } = useEntities("weather", WEATHER_MISSING_CONFIG_COPY);
 
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebouncedValue(searchQuery, 300);
@@ -421,66 +479,103 @@ export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<We
 
   return (
     <Stack gap="md">
-      <div>
-        <TextField
-          label="Search Location"
-          placeholder="Enter city name..."
-          value={searchQuery}
-          onChange={(value) => handleQueryChange(value)}
-        />
-        {isSearching && <Spinner size="sm" />}
-
-        {searchResults.length > 0 && (
-          <Surface className={classes.searchResults} padding="sm">
-            <Stack gap="xs">
-              {searchResults.map((result) => (
-                <Button
-                  key={result.id}
-                  appearance="ghost"
-                  size="sm"
-
-                  onPress={() => selectLocation(result)}
-                  className={classes.searchResult}
-                >
-                  <IconMapPin size={14} style={{ marginRight: 8 }} />
-                  {result.name}
-                  {result.admin1 && `, ${result.admin1}`}
-                  {result.country && ` · ${result.country}`}
-                </Button>
-              ))}
-            </Stack>
-          </Surface>
-        )}
-      </div>
-
-      {location && (
-        <Surface padding="sm" className={classes.currentLocation}>
-          <HStack gap="xs">
-            <IconMapPin size={16} />
-            <div>
-              <Text size="sm" tone="secondary">
-                Current Location
-              </Text>
-              <Text size="sm" weight="medium">
-                {location}
-              </Text>
-            </div>
-          </HStack>
-        </Surface>
-      )}
-
       <Select
-        label="Temperature Units"
+        label="Source"
         options={[
-          { id: "imperial", label: "Fahrenheit (°F)" },
-          { id: "metric", label: "Celsius (°C)" },
+          { id: "local", label: "Open-Meteo" },
+          { id: "homeAssistant", label: "Home Assistant" },
         ]}
-        selectedKey={units}
-        onSelectionChange={(value) =>
-          onConfigChange({ units: (value as "imperial" | "metric") || "imperial" })
-        }
+        selectedKey={source}
+        onSelectionChange={(value) => {
+          if (value === "local" || value === "homeAssistant") onConfigChange({ source: value });
+        }}
         portalContainer={portalContainer}
       />
+
+      {source === "homeAssistant" ? (
+        <Stack gap="xs">
+          <Select
+            label="Weather Entity"
+            placeholder="Select a weather entity…"
+            options={weatherEntities.map((entity: HomeAssistantEntitySummary) => ({
+              id: entity.entityId,
+              label: `${entity.name} (${entity.entityId})`,
+            }))}
+            selectedKey={entityId || null}
+            onSelectionChange={(value) => {
+              if (typeof value === "string") onConfigChange({ entityId: value });
+            }}
+            portalContainer={portalContainer}
+          />
+          {entitiesStatus === 501 && (
+            <Text size="xs" tone="secondary">
+              {entitiesError ?? HA_MISSING_CONFIG_COPY}
+            </Text>
+          )}
+        </Stack>
+      ) : (
+        <>
+          <div>
+            <TextField
+              label="Search Location"
+              placeholder="Enter city name..."
+              value={searchQuery}
+              onChange={(value) => handleQueryChange(value)}
+            />
+            {isSearching && <Spinner size="sm" />}
+
+            {searchResults.length > 0 && (
+              <Surface className={classes.searchResults} padding="sm">
+                <Stack gap="xs">
+                  {searchResults.map((result) => (
+                    <Button
+                      key={result.id}
+                      appearance="ghost"
+                      size="sm"
+                      onPress={() => selectLocation(result)}
+                      className={classes.searchResult}
+                    >
+                      <IconMapPin size={14} style={{ marginRight: 8 }} />
+                      {result.name}
+                      {result.admin1 && `, ${result.admin1}`}
+                      {result.country && ` · ${result.country}`}
+                    </Button>
+                  ))}
+                </Stack>
+              </Surface>
+            )}
+          </div>
+
+          {location && (
+            <Surface padding="sm" className={classes.currentLocation}>
+              <HStack gap="xs">
+                <IconMapPin size={16} />
+                <div>
+                  <Text size="sm" tone="secondary">
+                    Current Location
+                  </Text>
+                  <Text size="sm" weight="medium">
+                    {location}
+                  </Text>
+                </div>
+              </HStack>
+            </Surface>
+          )}
+
+          <Select
+            label="Temperature Units"
+            options={[
+              { id: "imperial", label: "Fahrenheit (°F)" },
+              { id: "metric", label: "Celsius (°C)" },
+            ]}
+            selectedKey={units}
+            onSelectionChange={(value) =>
+              onConfigChange({ units: (value as "imperial" | "metric") || "imperial" })
+            }
+            portalContainer={portalContainer}
+          />
+        </>
+      )}
 
       <HStack justify="between">
         <Text size="sm">Show Forecast</Text>
@@ -500,13 +595,15 @@ export function WeatherWidgetSettings({ widget, onConfigChange }: WidgetProps<We
         />
       )}
 
-      <HStack justify="between">
-        <Text size="sm">Show Air Quality (US AQI)</Text>
-        <Switch
-          isSelected={showAirQuality ?? false}
-          onChange={(value) => onConfigChange({ showAirQuality: value })}
-        />
-      </HStack>
+      {source !== "homeAssistant" && (
+        <HStack justify="between">
+          <Text size="sm">Show Air Quality (US AQI)</Text>
+          <Switch
+            isSelected={showAirQuality ?? false}
+            onChange={(value) => onConfigChange({ showAirQuality: value })}
+          />
+        </HStack>
+      )}
       <Select
         label="Text Alignment"
         options={[
