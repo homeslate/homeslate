@@ -62,6 +62,18 @@ describe("reference API + mock Home Assistant", () => {
       ).json()) as { items: unknown[] };
       expect(todo.items.length).toBeGreaterThan(0);
 
+      const history = (await (
+        await app.request("/api/homeassistant/history/sensor.outdoor_temperature?hours=24")
+      ).json()) as { points: unknown[] };
+      expect(history.points.length).toBeGreaterThan(1);
+
+      const notify = await app.request("/api/homeassistant/services/notify/send_message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entity_id: "notify.kitchen", message: "Test notification" }),
+      });
+      expect(notify.status).toBe(200);
+
       const imagePath = encodeURIComponent(
         "/api/media_player_proxy/media_player.kitchen?token=mock",
       );

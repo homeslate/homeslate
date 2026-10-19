@@ -205,6 +205,30 @@ describe("mock Home Assistant", () => {
     }
   });
 
+  it("records notify and TTS service calls", async () => {
+    const mock = createMockHomeAssistant({ token: "test-token" });
+
+    await post(mock, "notify/send_message", {
+      entity_id: "notify.kitchen",
+      message: "Dinner is ready",
+      title: "Kitchen",
+    });
+    expect((await state(mock, "notify.kitchen")).attributes).toMatchObject({
+      last_message: "Dinner is ready",
+      last_title: "Kitchen",
+    });
+
+    await post(mock, "tts/speak", {
+      entity_id: "tts.home",
+      message: "Welcome home",
+      media_player_entity_id: "media_player.kitchen",
+    });
+    expect((await state(mock, "tts.home")).attributes).toMatchObject({
+      last_message: "Welcome home",
+      media_player_entity_id: "media_player.kitchen",
+    });
+  });
+
   it("rejects unknown services and can reset fixtures", async () => {
     const mock = createMockHomeAssistant({ token: "test-token" });
     expect((await post(mock, "light/reload", { entity_id: "light.kitchen" })).status).toBe(400);

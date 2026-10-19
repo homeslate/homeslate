@@ -76,6 +76,14 @@ export { CAMERA_ENTITY_ID, mapCameraEntity } from "./server/cameraState";
 export { UPDATE_ENTITY_ID, mapUpdateEntity } from "./server/updateState";
 export { LAWN_MOWER_ENTITY_ID, mapLawnMowerEntity } from "./server/lawnMowerState";
 export {
+  HISTORY_HOURS_DEFAULT,
+  HISTORY_HOURS_MAX,
+  HISTORY_UNAVAILABLE_COPY,
+  clampHistoryHours,
+  type HomeAssistantHistoryPoint,
+} from "./widgets/homeAssistantHistory";
+export { mapHistoryPoints } from "./server/historyState";
+export {
   TODO_EMPTY_COPY,
   TODO_MISSING_CONFIG_COPY,
   homeAssistantTodoItemsUrl,

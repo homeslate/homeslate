@@ -298,6 +298,10 @@ function seedEntities(): Map<string, MockEntity> {
   });
   add("lawn_mower.back_yard", "docked", { friendly_name: "Back Yard Mower" });
 
+  // Notification + TTS targets
+  add("notify.kitchen", "ok", { friendly_name: "Kitchen Notifications" });
+  add("tts.home", "idle", { friendly_name: "Home TTS" });
+
   return entities;
 }
 
@@ -723,6 +727,24 @@ function applyService(
       return false;
     }
 
+    case "notify": {
+      if (service !== "send_message") return false;
+      const message = text(body.message);
+      if (!message) return false;
+      target.attributes.last_message = message;
+      target.attributes.last_title = text(body.title);
+      return true;
+    }
+
+    case "tts": {
+      if (service !== "speak") return false;
+      const message = text(body.message);
+      if (!message) return false;
+      target.attributes.last_message = message;
+      target.attributes.media_player_entity_id = text(body.media_player_entity_id);
+      return true;
+    }
+
     default:
       return false;
   }
@@ -771,6 +793,26 @@ export function createMockHomeAssistant(options: MockHomeAssistantOptions = {}):
   app.get("/api/states/:entityId", (c) => {
     const target = entities.get(c.req.param("entityId"));
     return target ? c.json(target) : c.json({ error: "Entity not found" }, 404);
+  });
+
+  app.get("/api/history/period/:timestamp", (c) => {
+    const entityId = c.req.query("filter_entity_id") ?? "";
+    const target = entities.get(entityId);
+    if (!target) return c.json([]);
+    const base =
+      typeof target.state === "string" && Number.isFinite(Number(target.state))
+        ? Number(target.state)
+        : 20;
+    const points = Array.from({ length: 48 }, (_, index) => {
+      const at = new Date(Date.now() - (47 - index) * 30 * 60 * 1000).toISOString();
+      const value = base + Math.sin(index / 4) * 3;
+      return {
+        entity_id: entityId,
+        state: String(Math.round(value * 10) / 10),
+        last_changed: at,
+      };
+    });
+    return c.json([points]);
   });
 
   app.get("/api/media_player_proxy/:entityId", (c) =>
