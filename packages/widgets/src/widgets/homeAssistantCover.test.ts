@@ -4,6 +4,7 @@ import {
   COVER_FEATURE_OPEN,
   COVER_FEATURE_SET_POSITION,
   COVER_FEATURE_STOP,
+  applyCoverOverride,
   coverIsOpen,
   coverNeedsOpenConfirm,
   coverStateLabel,
@@ -22,6 +23,19 @@ const cover = (overrides: Partial<HomeAssistantCover>): HomeAssistantCover => ({
   isGarage: false,
   available: true,
   ...overrides,
+});
+
+describe("applyCoverOverride", () => {
+  it("merges optimistic state and position without mutating the fetched state", () => {
+    const base = cover({ state: "closed", position: 0 });
+    expect(applyCoverOverride(base, { state: "opening", position: 30 })).toEqual({
+      ...base,
+      state: "opening",
+      position: 30,
+    });
+    expect(base.state).toBe("closed");
+    expect(applyCoverOverride(base, undefined)).toBe(base);
+  });
 });
 
 describe("coverStateLabel", () => {

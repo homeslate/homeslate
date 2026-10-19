@@ -54,6 +54,17 @@ export function coverNeedsOpenConfirm(cover: HomeAssistantCover): boolean {
   return cover.isGarage;
 }
 
+/** Optimistic fields the widget can merge before the next fetch lands. */
+export type CoverOverride = Partial<Pick<HomeAssistantCover, "state" | "position">>;
+
+/** Merge an optimistic override onto the last fetched cover state. */
+export function applyCoverOverride(
+  cover: HomeAssistantCover,
+  override: CoverOverride | undefined,
+): HomeAssistantCover {
+  return override ? { ...cover, ...override } : cover;
+}
+
 export type CoversSizeTier = "compact" | "medium" | "full";
 
 /** Compact = state + open/close; medium = + position; full = + slider. */

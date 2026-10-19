@@ -28,6 +28,19 @@ export function deviceService(domain: DeviceDomain, on: boolean): string {
   return on ? "turn_on" : "turn_off";
 }
 
+/** Optimistic fields the widget can merge before the next fetch lands. */
+export type DeviceOverride = Partial<
+  Pick<HomeAssistantDevice, "isOn" | "brightnessPct" | "percentage">
+>;
+
+/** Merge an optimistic override onto the last fetched device state. */
+export function applyDeviceOverride(
+  device: HomeAssistantDevice,
+  override: DeviceOverride | undefined,
+): HomeAssistantDevice {
+  return override ? { ...device, ...override } : device;
+}
+
 /** Readable on/off label. */
 export function deviceStatusLabel(device: HomeAssistantDevice): string {
   if (!device.available) return "Unavailable";

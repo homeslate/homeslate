@@ -15,10 +15,12 @@ import {
   COVERS_EMPTY_COPY,
   COVERS_MISSING_CONFIG_COPY,
   COVER_FEATURE_STOP,
+  applyCoverOverride,
   coverNeedsOpenConfirm,
   coverStateLabel,
   coverSupports,
   getCoversSizeTier,
+  type CoverOverride,
   type HomeAssistantCover,
 } from "./homeAssistantCover";
 import * as classes from "./CoversWidget.styles";
@@ -30,7 +32,7 @@ export interface CoversConfig extends WidgetConfig {
   transparentBackground: boolean;
 }
 
-type CoverOverride = Partial<Pick<HomeAssistantCover, "state" | "position">>;
+type CoverOverrideMap = Record<string, CoverOverride>;
 
 export function CoversWidget({ widget, isEditing }: WidgetProps<CoversConfig>) {
   const {
@@ -45,7 +47,7 @@ export function CoversWidget({ widget, isEditing }: WidgetProps<CoversConfig>) {
       fetchFailureCopy: COVERS_MISSING_CONFIG_COPY,
     });
   const callService = useHomeAssistantService(COVERS_MISSING_CONFIG_COPY);
-  const [overrides, setOverrides] = useState<Record<string, CoverOverride>>({});
+  const [overrides, setOverrides] = useState<CoverOverrideMap>({});
   const [drafts, setDrafts] = useState<Record<string, number>>({});
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export function CoversWidget({ widget, isEditing }: WidgetProps<CoversConfig>) {
   const merged = (entityId: string): HomeAssistantCover | null => {
     const base = byId.get(entityId);
     if (!base) return null;
-    return { ...base, ...overrides[entityId] };
+    return applyCoverOverride(base, overrides[entityId]);
   };
 
   const tier = getCoversSizeTier(widget.layout.w, widget.layout.h);

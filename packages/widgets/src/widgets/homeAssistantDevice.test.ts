@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
+  applyDeviceOverride,
   deviceService,
   deviceStatusLabel,
   getDevicesSizeTier,
@@ -17,6 +18,19 @@ const device = (overrides: Partial<HomeAssistantDevice>): HomeAssistantDevice =>
   control: "toggle",
   available: true,
   ...overrides,
+});
+
+describe("applyDeviceOverride", () => {
+  it("merges optimistic fields without mutating the fetched state", () => {
+    const base = device({ isOn: false, brightnessPct: 10 });
+    expect(applyDeviceOverride(base, { isOn: true, brightnessPct: 80 })).toEqual({
+      ...base,
+      isOn: true,
+      brightnessPct: 80,
+    });
+    expect(base.isOn).toBe(false);
+    expect(applyDeviceOverride(base, undefined)).toBe(base);
+  });
 });
 
 describe("deviceService", () => {

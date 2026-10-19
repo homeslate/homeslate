@@ -9,10 +9,12 @@ import {
   DEVICES_EMPTY_COPY,
   DEVICES_MISSING_CONFIG_COPY,
   DEVICE_DOMAINS,
+  applyDeviceOverride,
   deviceService,
   deviceStatusLabel,
   getDevicesSizeTier,
   type DeviceDomain,
+  type DeviceOverride,
   type HomeAssistantDevice,
 } from "./homeAssistantDevice";
 import * as classes from "./DevicesWidget.styles";
@@ -32,7 +34,7 @@ const DOMAIN_LABELS: Record<DeviceDomain, string> = {
   fan: "Fans",
 };
 
-type DeviceOverride = Partial<Pick<HomeAssistantDevice, "isOn" | "brightnessPct" | "percentage">>;
+type DeviceOverrideMap = Record<string, DeviceOverride>;
 
 export function DevicesWidget({ widget, isEditing }: WidgetProps<DevicesConfig>) {
   const {
@@ -45,7 +47,7 @@ export function DevicesWidget({ widget, isEditing }: WidgetProps<DevicesConfig>)
   const { entities, isLoading, error, status, lastUpdated, refresh } =
     useEntityList<HomeAssistantDevice>(ids, { fetchFailureCopy: DEVICES_MISSING_CONFIG_COPY });
   const callService = useHomeAssistantService(DEVICES_MISSING_CONFIG_COPY);
-  const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>({});
+  const [overrides, setOverrides] = useState<DeviceOverrideMap>({});
   const [drafts, setDrafts] = useState<Record<string, number>>({});
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export function DevicesWidget({ widget, isEditing }: WidgetProps<DevicesConfig>)
   const merged = (entityId: string): HomeAssistantDevice | null => {
     const base = byId.get(entityId);
     if (!base) return null;
-    return { ...base, ...overrides[entityId] };
+    return applyDeviceOverride(base, overrides[entityId]);
   };
 
   const tier = getDevicesSizeTier(widget.layout.w, widget.layout.h);
