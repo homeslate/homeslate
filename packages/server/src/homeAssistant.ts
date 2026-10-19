@@ -32,11 +32,29 @@ export class HomeAssistantError extends Error {
   }
 }
 
-export type HomeAssistantClient = {
+/**
+ * A transport failure that already knows its own HTTP status and a safe,
+ * user-facing message. A relay transport throws this to report `503` (agent
+ * offline) and `504` (timeout) without the routes knowing what a relay is.
+ */
+export class HomeAssistantTransportError extends Error {
+  constructor(
+    readonly status: number,
+    readonly userMessage: string,
+  ) {
+    super(userMessage);
+    this.name = "HomeAssistantTransportError";
+  }
+}
+
+/**
+ * Everything the `/api/homeassistant/*` routes need from Home Assistant. The
+ * direct LAN client and the hosted relay transport both implement this, so the
+ * routes never care which one is wired up.
+ */
+export type HomeAssistantTransport = {
   /** Sorted climate entities for the widget settings picker. */
   listClimateEntities(): Promise<HomeAssistantEntitySummary[]>;
-  /** Sorted `todo` entities for the widget settings picker. */
-  listTodoEntities(): Promise<HomeAssistantEntitySummary[]>;
   /** `null` when Home Assistant has no such entity. */
   getClimateState(entityId: string): Promise<ThermostatState | null>;
   /** Rejects with a `400` `HomeAssistantError` when the call is invalid. */
@@ -45,15 +63,55 @@ export type HomeAssistantClient = {
     entityId: string,
     data: Record<string, unknown>,
   ): Promise<void>;
+};
+
+/**
+ * Optional capability for transports that can read and write Home Assistant
+ * `todo` lists. The direct LAN client implements it; the relay transport does
+ * not yet, so the routes report an explicit "unsupported" error instead of
+ * pretending the calls work.
+ */
+export type HomeAssistantTodoTransport = {
+  /** Sorted `todo` entities for the widget settings picker. */
+  listTodoEntities(): Promise<HomeAssistantEntitySummary[]>;
   /** Items for a `todo` entity, normalized and in Home Assistant order. */
   getTodoItems(entityId: string): Promise<HomeAssistantTodoItem[]>;
   /** Rejects with a `400` `HomeAssistantError` when the call is invalid. */
   callTodoService(service: string, entityId: string, data: Record<string, unknown>): Promise<void>;
 };
 
+/** Narrows a transport to one that supports Home Assistant `todo` lists. */
+export function hasTodoSupport(
+  transport: HomeAssistantTransport,
+): transport is HomeAssistantTransport & HomeAssistantTodoTransport {
+  return typeof (transport as { listTodoEntities?: unknown }).listTodoEntities === "function";
+}
+
+/** @deprecated Use {@link HomeAssistantTransport}. */
+export type HomeAssistantClient = HomeAssistantTransport;
+
+/** Health of the configured transport, surfaced by `GET /api/homeassistant/status`. */
+export type HomeAssistantStatus = {
+  configured: boolean;
+  transport: "direct" | "relay" | null;
+  connected: boolean;
+  haReachable: boolean | null;
+};
+
+/** A transport that can report its own liveness (the relay transport does). */
+export type HomeAssistantStatusProvider = {
+  status(): Promise<Partial<HomeAssistantStatus>> | Partial<HomeAssistantStatus>;
+};
+
+export function hasStatus(
+  transport: HomeAssistantTransport,
+): transport is HomeAssistantTransport & HomeAssistantStatusProvider {
+  return typeof (transport as { status?: unknown }).status === "function";
+}
+
 export function createHomeAssistantClient(
   options: HomeAssistantClientOptions,
-): HomeAssistantClient {
+): HomeAssistantTransport & HomeAssistantTodoTransport {
   const baseUrl = options.baseUrl.trim().replace(/\/+$/, "");
   const token = options.token.trim();
   const fetchImpl = options.fetchImpl ?? fetch;

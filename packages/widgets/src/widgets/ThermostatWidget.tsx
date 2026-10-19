@@ -25,6 +25,7 @@ import { useOverlayPortalContainer } from "../overlayPortal";
 import { WidgetDataStatus } from "../chrome/WidgetDataStatus";
 import { useClimateEntities, useThermostat } from "../hooks/useThermostat";
 import {
+  HA_AGENT_OFFLINE_COPY,
   THERMOSTAT_EMPTY_COPY,
   THERMOSTAT_MISSING_CONFIG_COPY,
   THERMOSTAT_UNAVAILABLE_COPY,
@@ -128,6 +129,26 @@ export function ThermostatWidget({ widget }: WidgetProps<ThermostatConfig>) {
         <Surface className={classes.notice} padding="sm">
           <Text size="sm">{THERMOSTAT_MISSING_CONFIG_COPY}</Text>
         </Surface>
+      </div>
+    );
+  }
+
+  if (status === 503) {
+    return (
+      <div className={containerClass}>
+        <div className={classes.header}>
+          <Text className={classes.title}>
+            <IconTemperature size={18} />
+            Thermostat
+          </Text>
+        </div>
+        <div className={classes.empty}>
+          <IconWind size={40} className={classes.emptyIcon} />
+          <Text size="sm" tone="secondary">
+            {error ?? HA_AGENT_OFFLINE_COPY}
+          </Text>
+          <RetryButton onPress={refresh} />
+        </div>
       </div>
     );
   }
@@ -375,13 +396,18 @@ export function ThermostatWidgetSettings({
   return (
     <Stack gap="md">
       <Text size="xs" tone="secondary">
-        Connect Home Assistant by setting HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the
-        server.
+        {status === 503
+          ? "Connect the homeslate Home Assistant agent for this account."
+          : "Connect Home Assistant by setting HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server."}
       </Text>
 
       {status === 501 ? (
         <Surface className={classes.notice} padding="sm">
           <Text size="sm">{THERMOSTAT_MISSING_CONFIG_COPY}</Text>
+        </Surface>
+      ) : status === 503 ? (
+        <Surface className={classes.notice} padding="sm">
+          <Text size="sm">{error ?? HA_AGENT_OFFLINE_COPY}</Text>
         </Surface>
       ) : (
         <HStack gap="xs">
@@ -407,7 +433,7 @@ export function ThermostatWidgetSettings({
         </HStack>
       )}
 
-      {error && status !== 501 && (
+      {error && status !== 501 && status !== 503 && (
         <Text size="xs" style={{ color: "var(--var-ui-color-tone-danger-foreground)" }}>
           {error}
         </Text>

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createHomeslateServer } from "./createHomeslateServer";
+import { HomeAssistantTransportError, type HomeAssistantTransport } from "./homeAssistant";
 
 const originalFetch = globalThis.fetch;
 
@@ -33,7 +34,11 @@ describe("/api/homeassistant", () => {
     if (dataDir) await rm(dataDir, { recursive: true, force: true });
   });
 
-  async function app(homeAssistant?: { baseUrl?: string; token?: string }) {
+  async function app(homeAssistant?: {
+    baseUrl?: string;
+    token?: string;
+    transport?: HomeAssistantTransport;
+  }) {
     dataDir = await mkdtemp(join(tmpdir(), "homeslate-ref-"));
     return createHomeslateServer({ dataDir, homeAssistant });
   }
@@ -290,5 +295,144 @@ describe("/api/homeassistant", () => {
       ).status,
     ).toBe(400);
     expect(fetchCount).toBe(0);
+  });
+
+  it("reports 503 for todo routes when the transport has no todo support", async () => {
+    const transport: HomeAssistantTransport = {
+      async listClimateEntities() {
+        return [];
+      },
+      async getClimateState() {
+        return null;
+      },
+      async callClimateService() {},
+    };
+    const hono = await app({ transport });
+
+    const entities = await hono.request("/api/homeassistant/entities?domain=todo");
+    expect(entities.status).toBe(503);
+    expect(await entities.json()).toEqual({
+      error: "This Home Assistant connection does not support to-do lists yet.",
+    });
+
+    expect((await hono.request("/api/homeassistant/todo/todo.shopping/items")).status).toBe(503);
+    expect(
+      (
+        await hono.request("/api/homeassistant/services/todo/add_item", {
+          method: "POST",
+          body: JSON.stringify({ entity_id: "todo.shopping", item: "Milk" }),
+        })
+      ).status,
+    ).toBe(503);
+  });
+
+  it("uses an injected transport instead of fetch", async () => {
+    let fetchCount = 0;
+    globalThis.fetch = async () => {
+      fetchCount += 1;
+      return jsonOk([]);
+    };
+    const calls: string[] = [];
+    const transport: HomeAssistantTransport = {
+      async listClimateEntities() {
+        calls.push("list");
+        return [{ entityId: "climate.attic", name: "Attic", state: "off" }];
+      },
+      async getClimateState() {
+        calls.push("get");
+        return null;
+      },
+      async callClimateService() {
+        calls.push("call");
+      },
+    };
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token", transport });
+    const list = await hono.request("/api/homeassistant/entities?domain=climate");
+    expect(list.status).toBe(200);
+    expect(await list.json()).toEqual({
+      entities: [{ entityId: "climate.attic", name: "Attic", state: "off" }],
+    });
+    expect((await hono.request("/api/homeassistant/states/climate.attic")).status).toBe(404);
+    expect(
+      (
+        await hono.request("/api/homeassistant/services/climate/turn_off", {
+          method: "POST",
+          body: JSON.stringify({ entity_id: "climate.attic" }),
+        })
+      ).status,
+    ).toBe(200);
+
+    expect(calls).toEqual(["list", "get", "call"]);
+    expect(fetchCount).toBe(0);
+  });
+
+  it("maps transport errors to their own status and copy", async () => {
+    const hono = await app({
+      transport: {
+        async listClimateEntities() {
+          throw new HomeAssistantTransportError(503, "agent offline");
+        },
+        async getClimateState() {
+          throw new HomeAssistantTransportError(504, "timed out");
+        },
+        async callClimateService() {
+          throw new HomeAssistantTransportError(503, "agent offline");
+        },
+      },
+    });
+
+    const list = await hono.request("/api/homeassistant/entities?domain=climate");
+    expect(list.status).toBe(503);
+    expect(await list.json()).toEqual({ error: "agent offline" });
+
+    const state = await hono.request("/api/homeassistant/states/climate.attic");
+    expect(state.status).toBe(504);
+    expect(await state.json()).toEqual({ error: "timed out" });
+
+    const call = await hono.request("/api/homeassistant/services/climate/turn_off", {
+      method: "POST",
+      body: JSON.stringify({ entity_id: "climate.attic" }),
+    });
+    expect(call.status).toBe(503);
+  });
+
+  it("reports status for unconfigured, direct, and relay transports", async () => {
+    const bare = await app();
+    expect(await (await bare.request("/api/homeassistant/status")).json()).toEqual({
+      configured: false,
+      transport: null,
+      connected: false,
+      haReachable: null,
+    });
+
+    const direct = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    expect(await (await direct.request("/api/homeassistant/status")).json()).toEqual({
+      configured: true,
+      transport: "direct",
+      connected: true,
+      haReachable: true,
+    });
+
+    const relay = await app({
+      transport: {
+        async listClimateEntities() {
+          return [];
+        },
+        async getClimateState() {
+          return null;
+        },
+        async callClimateService() {},
+        async status() {
+          return { connected: false, haReachable: false };
+        },
+      },
+    });
+    expect(await (await relay.request("/api/homeassistant/status")).json()).toEqual({
+      configured: true,
+      transport: "relay",
+      connected: false,
+      haReachable: false,
+    });
   });
 });

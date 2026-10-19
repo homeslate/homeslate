@@ -1,5 +1,6 @@
 import type { DisplayStore } from "@homeslate/adapters";
 import type { TokenStore } from "@homeslate/google";
+import type { HomeAssistantTransport } from "./homeAssistant";
 
 /** Google OAuth client credentials. Empty strings disable the calendar routes. */
 export type HomeslateGoogleCredentials = {
@@ -14,6 +15,11 @@ export type HomeslateGoogleCredentials = {
 export type HomeslateHomeAssistantCredentials = {
   baseUrl?: string;
   token?: string;
+  /**
+   * Supply a transport directly (e.g. the relay transport for a hosted host)
+   * instead of `baseUrl`/`token`. Takes precedence when set.
+   */
+  transport?: HomeAssistantTransport;
 };
 
 export type HomeslateServerOptions = {

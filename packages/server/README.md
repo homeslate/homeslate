@@ -55,6 +55,13 @@ subset:
 Without `homeAssistant`, these routes answer `501` and the widgets stay
 designable with a "set the env vars" notice.
 
+Routes run on a `HomeAssistantTransport`. The built-in direct client
+(`{ baseUrl, token }`) serves climate and to-do; an injected transport (the
+[relay](https://www.npmjs.com/package/@homeslate/relay)) may serve climate only.
+To-do is an optional capability (`HomeAssistantTodoTransport`, checked with
+`hasTodoSupport`), so `domain=todo` requests against a transport without it
+answer `503` with an "unsupported" copy.
+
 In a container, bind all interfaces so Docker's published port can reach the
 API — Docker forwards to the container's bridge address, not its loopback:
 

@@ -77,6 +77,9 @@ importers:
       '@homeslate/host-react':
         specifier: workspace:*
         version: link:../../packages/host-react
+      '@homeslate/relay':
+        specifier: workspace:*
+        version: link:../../packages/relay
       '@homeslate/schema':
         specifier: workspace:*
         version: link:../../packages/schema
@@ -197,6 +200,15 @@ importers:
         specifier: ^13.0.0
         version: 13.0.2
 
+  packages/agent:
+    dependencies:
+      '@homeslate/server':
+        specifier: workspace:*
+        version: link:../server
+      '@homeslate/widgets':
+        specifier: workspace:*
+        version: link:../widgets
+
   packages/display:
     dependencies:
       '@homeslate/schema':
@@ -303,6 +315,22 @@ importers:
       uuid:
         specifier: ^13.0.0
         version: 13.0.2
+
+  packages/relay:
+    dependencies:
+      '@homeslate/server':
+        specifier: workspace:*
+        version: link:../server
+      '@homeslate/widgets':
+        specifier: workspace:*
+        version: link:../widgets
+      ws:
+        specifier: ^8.22.0
+        version: 8.22.0
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.18.2
+        version: 8.18.2
 
   packages/schema:
     dependencies:
@@ -1820,6 +1848,9 @@ packages:
 
   '@types/uuid@10.0.0':
     resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
+
+  '@types/ws@8.18.2':
+    resolution: {integrity: sha512-67MQl+fpWKVTT1NYdnmo3U4sc/xPo/zQBncVnI74qmQa0z/b+1g6iYqNmGCPbxO+zz2aklb08a0oHfegiVd0/w==}
 
   '@typestyles/build-runner@0.5.2':
     resolution: {integrity: sha512-WGjJoRc0e+UbzgSZytq5AZFNSQ6EdiqN9hGkpAFNOvy3sSIF/VIHx/PX05BHHARqPGEA8A1LQ5BqmP1gUOitXw==}
@@ -3948,6 +3979,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.22.0:
+    resolution: {integrity: sha512-Ydggc987+RO0AnWtZ/7Wq9FtNvcrL1b/RO0ud9mWjUPgDrsAAwQSF51sm2hm1XofbU/4jkpGEsLFsZZxU+1DOg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xxhash-wasm@1.1.0:
     resolution: {integrity: sha512-147y/6YNh+tlp6nd/2pWq38i9h6mz/EuQ6njIrmW8D1BS5nCqs0P6DG+m6zTGnNz5I+uhZ0SHxBs9BsPrwcKDA==}
 
@@ -5245,6 +5288,10 @@ snapshots:
   '@types/unist@3.0.3': {}
 
   '@types/uuid@10.0.0': {}
+
+  '@types/ws@8.18.2':
+    dependencies:
+      '@types/node': 24.13.4
 
   '@typestyles/build-runner@0.5.2':
     dependencies:
@@ -7855,6 +7902,8 @@ snapshots:
       strip-ansi: 7.2.0
 
   ws@8.21.3: {}
+
+  ws@8.22.0: {}
 
   xxhash-wasm@1.1.0: {}
 

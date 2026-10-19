@@ -15,6 +15,7 @@
     "@homeslate/editor": "workspace:*",
     "@homeslate/google": "workspace:*",
     "@homeslate/host-react": "workspace:*",
+    "@homeslate/relay": "workspace:*",
     "@homeslate/schema": "workspace:*",
     "@homeslate/server": "workspace:*",
     "@homeslate/widgets": "workspace:*",

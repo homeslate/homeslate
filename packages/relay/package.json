@@ -1,0 +1,42 @@
+{
+  "name": "@homeslate/relay",
+  "version": "0.0.0",
+  "description": "Runtime-agnostic relay that forwards homeslate API Home Assistant calls to connected LAN agents.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/homeslate/homeslate.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./node": {
+      "types": "./dist/node.d.mts",
+      "import": "./dist/node.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@homeslate/server": "workspace:*",
+    "@homeslate/widgets": "workspace:*",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

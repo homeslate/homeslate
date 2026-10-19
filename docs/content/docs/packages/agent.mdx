@@ -1,0 +1,87 @@
+---
+title: "@homeslate/agent"
+description: LAN agent that connects a home network's Home Assistant to a hosted homeslate relay.
+---
+
+# @homeslate/agent
+
+Connects a home network's Home Assistant to a **hosted** homeslate API. The
+hosted API runs in the cloud and can't reach `homeassistant.local`, so a small
+process on the LAN dials out to a [`@homeslate/relay`](/docs/packages/relay) and
+answers the few Home Assistant calls the thermostat widget needs.
+
+If your homeslate API runs on the same home network (the
+[reference app](/docs/reference) or a [self-hosted](/docs/self-hosting) install),
+you don't need this — `@homeslate/server` talks to Home Assistant directly.
+
+## Why an agent
+
+- **Outbound only.** The agent opens the socket to the relay; nothing listens on
+  the LAN, and Home Assistant is never exposed to the internet.
+- **The Home Assistant token stays home.** It's read from the agent's environment
+  and never sent to the relay or the cloud. The relay authenticates with a
+  separate, revocable, account-bound token.
+
+## Run it
+
+```bash
+HOMEASSISTANT_BASE_URL=http://homeassistant.local:8123 \
+HOMEASSISTANT_TOKEN=<home-assistant-long-lived-token> \
+HOMESLATE_RELAY_URL=wss://relay.homeslate.app/agent \
+HOMESLATE_ACCOUNT_ID=<account> \
+HOMESLATE_AGENT_TOKEN=<relay-token-from-the-hosted-ui> \
+npx @homeslate/agent
+```
+
+| Env | Meaning |
+| --- | --- |
+| `HOMEASSISTANT_BASE_URL` | Home Assistant origin on the LAN. |
+| `HOMEASSISTANT_TOKEN` | Home Assistant long-lived access token. |
+| `HOMESLATE_RELAY_URL` | Relay WebSocket URL (`wss://…/agent`). |
+| `HOMESLATE_ACCOUNT_ID` | Account the agent is paired with. |
+| `HOMESLATE_AGENT_TOKEN` | Revocable relay token, bound to the account. |
+| `HOMESLATE_AGENT_ID` | Optional stable id for this instance. |
+
+## Docker
+
+Home Assistant advertises itself via mDNS, which a bridge-network container can't
+resolve. Use host networking, or set `HOMEASSISTANT_BASE_URL` to the LAN IP.
+
+```bash
+docker run --network host \
+  -e HOMEASSISTANT_BASE_URL=http://homeassistant.local:8123 \
+  -e HOMEASSISTANT_TOKEN=… \
+  -e HOMESLATE_RELAY_URL=wss://relay.homeslate.app/agent \
+  -e HOMESLATE_ACCOUNT_ID=… \
+  -e HOMESLATE_AGENT_TOKEN=… \
+  homeslate/agent
+```
+
+## Library
+
+```ts
+import { createHomeslateAgent } from "@homeslate/agent";
+
+const agent = createHomeslateAgent({
+  relayUrl: "wss://relay.example.com/agent",
+  token: relayToken,
+  accountId,
+  baseUrl: "http://homeassistant.local:8123",
+  haToken,
+});
+agent.onStateChange((state) => console.log(state)); // connecting | connected | disconnected
+agent.start();
+```
+
+The agent reconnects with exponential backoff (1s → 60s, ±20% jitter), heartbeats
+through the relay, and only forwards the allowlisted climate methods
+(`climate.entities.list`, `climate.state.get`, `climate.service.call`). It
+re-validates every request before touching Home Assistant, reusing the same
+helpers the API routes use.
+
+## See also
+
+- [`@homeslate/relay`](/docs/packages/relay) — the cloud side of the bridge.
+- [`@homeslate/server`](/docs/packages/server) — the API and its
+  `homeAssistant.transport` option.
+- [API](/docs/api/agent)

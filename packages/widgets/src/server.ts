@@ -15,11 +15,15 @@ export {
   THERMOSTAT_EMPTY_COPY,
   THERMOSTAT_MISSING_CONFIG_COPY,
   THERMOSTAT_UNAVAILABLE_COPY,
+  HA_AGENT_BUSY_COPY,
+  HA_AGENT_OFFLINE_COPY,
+  HA_AGENT_TIMEOUT_COPY,
   clampSetpoint,
   formatTemperature,
   getThermostatSizeTier,
   homeAssistantEntitiesUrl,
   homeAssistantServiceUrl,
+  homeAssistantStatusUrl,
   hvacActionLabel,
   hvacModeLabel,
   isDualSetpoint,
@@ -28,6 +32,7 @@ export {
 } from "./widgets/homeAssistant";
 export type {
   HomeAssistantEntitySummary,
+  HomeAssistantStatusSummary,
   ThermostatSizeTier,
   ThermostatState,
   ThermostatUnit,
@@ -42,6 +47,7 @@ export {
 export {
   TODO_EMPTY_COPY,
   TODO_MISSING_CONFIG_COPY,
+  TODO_UNSUPPORTED_COPY,
   homeAssistantTodoItemsUrl,
 } from "./widgets/homeAssistantTodo";
 export type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "./widgets/homeAssistantTodo";
@@ -52,3 +58,21 @@ export {
   isValidTodoEntityId,
   mapTodoItems,
 } from "./server/todoState";
+export {
+  AGENT_METHODS,
+  AGENT_PROTOCOL_VERSION,
+  decodeAgentMessage,
+  encodeAgentMessage,
+  isAgentMethod,
+  validateAgentRequestParams,
+} from "./server/agentProtocol";
+export type {
+  AgentHelloMessage,
+  AgentMessage,
+  AgentMethod,
+  AgentPingMessage,
+  AgentPongMessage,
+  AgentRequestMessage,
+  AgentResponseMessage,
+  AgentWelcomeMessage,
+} from "./server/agentProtocol";

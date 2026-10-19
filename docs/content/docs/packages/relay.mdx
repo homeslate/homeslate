@@ -1,0 +1,73 @@
+---
+title: "@homeslate/relay"
+description: Runtime-agnostic relay that forwards homeslate API Home Assistant calls to connected LAN agents.
+---
+
+# @homeslate/relay
+
+The cloud side of the [agent](/docs/packages/agent) bridge. It tracks one live
+agent per account and forwards the `/api/homeassistant/*` calls down that agent's
+socket.
+
+The package is **runtime-agnostic**: it never touches a WebSocket library. You
+bind it to your runtime (Node, a Durable Object, anything) and hand its transport
+to [`@homeslate/server`](/docs/packages/server). That keeps the WebSocket
+dependency out of hosts that don't need a relay.
+
+## Wire it up
+
+```ts
+import { createHomeslateServer } from "@homeslate/server";
+import { createHomeAssistantRelay } from "@homeslate/relay";
+import { attachNodeWebSocket } from "@homeslate/relay/node";
+import { serve } from "@hono/node-server";
+
+const relay = createHomeAssistantRelay({
+  // Resolve a `hello` to an account binding, or return null to reject.
+  authenticate: (hello) => resolveAccountForToken(hello.token),
+});
+
+const app = createHomeslateServer({
+  dataDir,
+  homeAssistant: { transport: relay.transport(accountId) },
+});
+
+const server = serve({ fetch: app.fetch, hostname: "0.0.0.0", port: 8787 });
+attachNodeWebSocket(relay, server); // upgrades GET /agent
+```
+
+`authenticate` is where the hosted product validates its relay token and maps it
+to an account. The account id in the `hello` must match the binding, or the
+socket is closed.
+
+## Transport
+
+`relay.transport(accountId)` returns a `HomeAssistantTransport` (from
+`@homeslate/server`) with a `status()` that reports `connected`. When no agent is
+connected, requests reject with a `503` "agent offline" error, which the routes
+surface as `503`; a timeout becomes `504`.
+
+## Runtime-agnostic core
+
+If you don't use the Node binding, drive the relay yourself. `relay.accept(socket)`
+takes any object with `send(data)` / `close(code?, reason?)` and returns a session:
+
+```ts
+const session = relay.accept({
+  send: (data) => ws.send(data),
+  close: (code, reason) => ws.close(code, reason),
+});
+ws.on("message", (data) => session.handleMessage(data.toString()));
+ws.on("close", () => session.close());
+```
+
+Also exported: `createAgentRegistry`, `createRelayCore`,
+`createRelaySession` / `authorizeHello`, and `createRelayHomeAssistantTransport`
+— the pieces the relay is composed of, so a host can swap the presence store
+(a Durable Object, Redis) without forking the protocol.
+
+## See also
+
+- [`@homeslate/agent`](/docs/packages/agent) — the LAN side.
+- [`@homeslate/server`](/docs/packages/server) — the API that consumes the transport.
+- [API](/docs/api/relay)

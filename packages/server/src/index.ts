@@ -11,9 +11,16 @@ export type {
 } from "./types";
 export {
   HomeAssistantError,
+  HomeAssistantTransportError,
   createHomeAssistantClient,
+  hasStatus,
+  hasTodoSupport,
   type HomeAssistantClient,
   type HomeAssistantClientOptions,
+  type HomeAssistantStatus,
+  type HomeAssistantStatusProvider,
+  type HomeAssistantTodoTransport,
+  type HomeAssistantTransport,
 } from "./homeAssistant";
 export {
   DEFAULT_PUBLIC_BASE_URL,

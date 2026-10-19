@@ -1,6 +1,10 @@
 import { fileURLToPath } from "node:url";
+import { Server as HttpServer } from "node:http";
 import process from "node:process";
+import { timingSafeEqual } from "node:crypto";
 import { startHomeslateServer } from "@homeslate/server";
+import { createHomeAssistantRelay, type AgentBinding } from "@homeslate/relay";
+import { attachNodeWebSocket } from "@homeslate/relay/node";
 
 // HOMESLATE_DATA_DIR controls where the sqlite file and Google refresh
 // tokens are persisted. In production (the reference Docker image) this
@@ -24,7 +28,31 @@ const publicBaseUrl = process.env.HOMESLATE_PUBLIC_BASE_URL?.trim() || "http://1
 // Caddy. Set HOMESLATE_HOSTNAME=127.0.0.1 to bind loopback only.
 const hostname = process.env.HOMESLATE_HOSTNAME?.trim() || "0.0.0.0";
 
-await startHomeslateServer({
+// Optional relay mode: run this API off the home network and let a LAN
+// agent (@homeslate/agent) reach Home Assistant for it. Set
+// HOMESLATE_RELAY_TOKEN to the shared secret the agent presents and
+// HOMESLATE_ACCOUNT_ID to name the pairing (defaults to "self-hosted").
+// When HOMESLATE_RELAY_TOKEN is unset, the API talks to Home Assistant
+// directly with the credentials below.
+const relayToken = process.env.HOMESLATE_RELAY_TOKEN?.trim() || "";
+const relayAccountId = process.env.HOMESLATE_ACCOUNT_ID?.trim() || "self-hosted";
+
+function tokenMatches(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+const relay = relayToken
+  ? createHomeAssistantRelay({
+      authenticate: (hello): AgentBinding | null =>
+        tokenMatches(hello.token, relayToken) && hello.accountId === relayAccountId
+          ? { accountId: relayAccountId, agentId: hello.agentId }
+          : null,
+    })
+  : null;
+
+const server = await startHomeslateServer({
   dataDir,
   publicBaseUrl,
   hostname,
@@ -33,13 +61,19 @@ await startHomeslateServer({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   },
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
-  homeAssistant: {
-    baseUrl: process.env.HOMEASSISTANT_BASE_URL,
-    token: process.env.HOMEASSISTANT_TOKEN,
-  },
+  homeAssistant: relay
+    ? { transport: relay.transport(relayAccountId) }
+    : {
+        baseUrl: process.env.HOMEASSISTANT_BASE_URL,
+        token: process.env.HOMEASSISTANT_TOKEN,
+      },
   seedEmptyDisplay: true,
   onListen: ({ port }) => {
     console.log(`Reference API listening on http://127.0.0.1:${port}`);
     console.log(`Open the UI at ${publicBaseUrl}`);
   },
 });
+
+// Upgrade `GET /agent` on the same server so a LAN agent can dial out to
+// this API. Only mounted in relay mode; the direct setup exposes nothing.
+if (relay && server instanceof HttpServer) attachNodeWebSocket(relay, server);
