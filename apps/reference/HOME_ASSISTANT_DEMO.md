@@ -33,6 +33,11 @@ entities. The container will write its database and onboarding state into
 
 ## 2. Start the container
 
+> **Pick one.** The Docker and Docker Compose examples below use the same
+> container name (`homeslate-ha-demo`). Run only one of them. Running both, or
+> leaving an old container behind, causes
+> `Conflict. The container name "/homeslate-ha-demo" is already in use`.
+
 ### Docker
 
 ```bash
@@ -201,12 +206,13 @@ Assistant behavior.
 
 ## Troubleshooting
 
-| Symptom                                | Likely cause                                                                                  |
-| -------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `curl` gets connection refused         | The container is still starting, or port `8123` is taken. Check `docker compose logs`.        |
-| `curl` gets `401`                      | Missing/wrong token, or the token was created before the config was reset.                    |
-| homeslate widgets show `501`           | `HOMEASSISTANT_BASE_URL` / `HOMEASSISTANT_TOKEN` are not set on the API process.              |
-| homeslate widgets show `502`           | The API process cannot reach the URL. Use the host/container table above.                     |
-| Widget settings list is empty          | The token is valid but the demo entities have not finished loading. Refresh the picker.       |
-| Media artwork or camera snapshot fails | Not every demo entity exposes an image. Try another media player/camera entity.               |
-| `demo:` config error                   | Confirm `configuration.yaml` is in the mounted `/config` directory and restart the container. |
+| Symptom                                | Likely cause                                                                                                                                                                 |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `curl` gets connection refused         | The container is still starting, or port `8123` is taken. Check `docker compose logs`.                                                                                       |
+| `curl` gets `401`                      | Missing/wrong token, or the token was created before the config was reset.                                                                                                   |
+| homeslate widgets show `501`           | `HOMEASSISTANT_BASE_URL` / `HOMEASSISTANT_TOKEN` are not set on the API process.                                                                                             |
+| homeslate widgets show `502`           | The API process cannot reach the URL. Use the host/container table above.                                                                                                    |
+| Widget settings list is empty          | The token is valid but the demo entities have not finished loading. Refresh the picker.                                                                                      |
+| Media artwork or camera snapshot fails | Not every demo entity exposes an image. Try another media player/camera entity.                                                                                              |
+| `demo:` config error                   | Confirm `configuration.yaml` is in the mounted `/config` directory and restart the container.                                                                                |
+| Container name already in use          | You ran both Docker and Compose, or an old container exists. See the note under “Start the container”; remove it with `docker rm -f homeslate-ha-demo` and start one method. |
