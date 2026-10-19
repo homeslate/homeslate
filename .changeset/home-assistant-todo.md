@@ -10,9 +10,8 @@ Integrate the To-Do List widget with Home Assistant `todo` lists.
   `GET /api/homeassistant/todo/:entityId/items` reads items through
   `todo.get_items`, and `POST /api/homeassistant/services/todo/:service`
   forwards the allowlisted `add_item` / `update_item` / `remove_item` calls.
-  To-do is an optional transport capability: the direct client implements
-  `HomeAssistantTodoTransport`, and `hasTodoSupport(transport)` narrows a
-  transport to the ones that can serve it (a transport without it answers `503`).
+  To-do is served through the same generic `HomeAssistantTransport` seam as
+  climate (`listEntities` / `getEntity` / `callService`).
 - **`@homeslate/widgets`** — the To-Do List widget gains a **List source**
   setting. Choose `Home Assistant`, pick one `todo.*` entity, and the kiosk
   reads and writes that list in place (items stay in sync across displays).

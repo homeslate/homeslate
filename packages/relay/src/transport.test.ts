@@ -25,7 +25,13 @@ function setup() {
 describe("relay transport", () => {
   it("lists entities through the agent", async () => {
     const { core, transport, lastRequest } = setup();
-    const promise = transport.listClimateEntities();
+    const promise = transport.listEntities("climate");
+    expect(lastRequest()).toEqual({
+      type: "request",
+      id: expect.any(String),
+      method: "entities.list",
+      params: { domain: "climate" },
+    });
     core.handleResponse("acct", {
       type: "response",
       id: lastRequest().id,
@@ -39,31 +45,34 @@ describe("relay transport", () => {
 
   it("returns an empty list for a non-array result", async () => {
     const { core, transport, lastRequest } = setup();
-    const promise = transport.listClimateEntities();
+    const promise = transport.listEntities("climate");
     core.handleResponse("acct", { type: "response", id: lastRequest().id, ok: true, result: null });
     await expect(promise).resolves.toEqual([]);
   });
 
   it("returns null for an unknown entity", async () => {
     const { core, transport, lastRequest } = setup();
-    const promise = transport.getClimateState("climate.attic");
+    const promise = transport.getEntity("climate.attic");
+    expect(lastRequest().method).toBe("entity.get");
     core.handleResponse("acct", { type: "response", id: lastRequest().id, ok: true, result: null });
     await expect(promise).resolves.toBeNull();
   });
 
-  it("forwards a service call with entity, service, and data", async () => {
+  it("forwards a service call with domain, entity, service, and data", async () => {
     const { core, transport, lastRequest } = setup();
-    const promise = transport.callClimateService("set_temperature", "climate.attic", {
+    const promise = transport.callService("climate", "set_temperature", "climate.attic", {
       temperature: 21,
     });
     expect(lastRequest()).toEqual({
       type: "request",
       id: expect.any(String),
-      method: "climate.service.call",
+      method: "service.call",
       params: {
+        domain: "climate",
         entityId: "climate.attic",
         service: "set_temperature",
         data: { temperature: 21 },
+        returnResponse: false,
       },
     });
     core.handleResponse("acct", {
@@ -73,6 +82,42 @@ describe("relay transport", () => {
       result: { ok: true },
     });
     await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("returns the raw result when returnResponse is set", async () => {
+    const { core, transport, lastRequest } = setup();
+    const promise = transport.callService(
+      "todo",
+      "get_items",
+      "todo.shopping",
+      {},
+      { returnResponse: true },
+    );
+    expect(lastRequest().params).toMatchObject({ returnResponse: true });
+    core.handleResponse("acct", {
+      type: "response",
+      id: lastRequest().id,
+      ok: true,
+      result: { "todo.shopping": { items: [] } },
+    });
+    await expect(promise).resolves.toEqual({ "todo.shopping": { items: [] } });
+  });
+
+  it("rejects an unknown domain before touching the socket", async () => {
+    const { sent, transport } = setup();
+    await expect(transport.listEntities("light")).rejects.toMatchObject({ status: 400 });
+    await expect(
+      transport.callService("light", "turn_on", "light.kitchen", {}),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(sent).toHaveLength(0);
+  });
+
+  it("rejects an out-of-scope service before touching the socket", async () => {
+    const { sent, transport } = setup();
+    await expect(
+      transport.callService("climate", "reload", "climate.attic", {}),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(sent).toHaveLength(0);
   });
 
   it("reports connection status", async () => {

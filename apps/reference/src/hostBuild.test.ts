@@ -53,13 +53,18 @@ describe("reference app build boundary", () => {
 
   it("starts the Vite UI from the package dev script, not only the API", () => {
     const manifest = readJson<{ scripts: Record<string, string> }>("../package.json");
-    expect(manifest.scripts["dev:api"]).toMatch(/listen\.ts/);
+    expect(manifest.scripts["dev:api"]).toMatch(/dev-api\.ts/);
     expect(manifest.scripts["dev:web"]).toMatch(/vp dev|vite/);
     expect(manifest.scripts.dev).toMatch(/dev\.ts/);
 
     const orchestrator = readFileSync(new URL("../src/server/dev.ts", import.meta.url), "utf8");
     expect(orchestrator).toMatch(/dev:api/);
     expect(orchestrator).toMatch(/dev:web/);
+
+    // `dev:api` boots the workspace-resolving entry, which delegates to the real
+    // listen entry, so the API still ends up running `listen.ts`.
+    const apiEntry = readFileSync(new URL("../src/server/dev-api.ts", import.meta.url), "utf8");
+    expect(apiEntry).toMatch(/\.\/listen\.ts/);
   });
 
   it("loads the theme preset webfonts the compiled display theme names", () => {

@@ -18,6 +18,7 @@ export {
   HA_AGENT_BUSY_COPY,
   HA_AGENT_OFFLINE_COPY,
   HA_AGENT_TIMEOUT_COPY,
+  HA_MISSING_CONFIG_COPY,
   clampSetpoint,
   formatTemperature,
   getThermostatSizeTier,
@@ -45,9 +46,22 @@ export {
   mapClimateEntity,
 } from "./server/climateState";
 export {
+  buildServicePayload,
+  entityDomain,
+  getDomainSpec,
+  isAllowedService,
+  isKnownDomain,
+  isValidEntityId,
+  knownDomains,
+  mapEntity,
+  registerDomainSpec,
+} from "./server/domains";
+export type { DomainSpec } from "./server/domains";
+export { mapHomeAssistantEntity, mapHomeAssistantState } from "./server/homeAssistantEntity";
+export type { HomeAssistantEntity, HomeAssistantState } from "./server/homeAssistantEntity";
+export {
   TODO_EMPTY_COPY,
   TODO_MISSING_CONFIG_COPY,
-  TODO_UNSUPPORTED_COPY,
   homeAssistantTodoItemsUrl,
 } from "./widgets/homeAssistantTodo";
 export type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "./widgets/homeAssistantTodo";
@@ -67,6 +81,7 @@ export {
   validateAgentRequestParams,
 } from "./server/agentProtocol";
 export type {
+  AgentCapabilities,
   AgentHelloMessage,
   AgentMessage,
   AgentMethod,

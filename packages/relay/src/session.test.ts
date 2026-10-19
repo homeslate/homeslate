@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
+  AGENT_PROTOCOL_VERSION,
   HA_AGENT_OFFLINE_COPY,
   decodeAgentMessage,
   type AgentMessage,
@@ -18,11 +19,11 @@ const HEARTBEAT = 1_000_000;
 
 const hello = (overrides: Record<string, unknown> = {}) => ({
   type: "hello",
-  protocol: 1,
+  protocol: AGENT_PROTOCOL_VERSION,
   accountId: "acct",
   agentId: "a1",
   token: "tok",
-  agent: { version: "0.1.0", haBaseUrl: "http://ha" },
+  agent: { version: "0.1.0", haBaseUrl: "http://ha", domains: ["climate", "todo"] },
   ...overrides,
 });
 
@@ -89,7 +90,10 @@ describe("relay session", () => {
 
     expect(session.state()).toBe("authenticated");
     expect(registry.get("acct")?.agentId).toBe("a1");
-    expect(lastMessage(socket.sent)).toMatchObject({ type: "welcome", protocol: 1 });
+    expect(lastMessage(socket.sent)).toMatchObject({
+      type: "welcome",
+      protocol: AGENT_PROTOCOL_VERSION,
+    });
 
     session.close();
     expect(session.state()).toBe("closed");
@@ -110,7 +114,7 @@ describe("relay session", () => {
     const { core, session, socket } = authSession();
     await session.handleMessage(hello());
 
-    const promise = core.request("acct", "climate.state.get", { entityId: "climate.attic" });
+    const promise = core.request("acct", "entity.get", { entityId: "climate.attic" });
     const request = decodeAgentMessage(socket.sent.at(-1) ?? "") as Extract<
       AgentMessage,
       { type: "request" }
@@ -141,7 +145,7 @@ describe("relay session", () => {
     const { core, registry, session } = authSession();
     await session.handleMessage(hello());
 
-    const promise = core.request("acct", "climate.entities.list", {});
+    const promise = core.request("acct", "entities.list", { domain: "climate" });
     session.close();
 
     await expect(promise).rejects.toThrow(HA_AGENT_OFFLINE_COPY);

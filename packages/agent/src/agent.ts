@@ -8,6 +8,7 @@ import {
   AGENT_PROTOCOL_VERSION,
   decodeAgentMessage,
   encodeAgentMessage,
+  knownDomains,
   validateAgentRequestParams,
   type AgentMessage,
   type AgentMethod,
@@ -46,8 +47,8 @@ export type HomeslateAgent = {
 
 /**
  * Create a LAN agent that dials out to a homeslate relay and serves the
- * allowlisted Home Assistant climate methods over that socket. Nothing listens
- * on the LAN; the Home Assistant token stays in this process.
+ * allowlisted Home Assistant entity/service methods over that socket. Nothing
+ * listens on the LAN; the Home Assistant token stays in this process.
  */
 export function createHomeslateAgent(options: HomeslateAgentOptions): HomeslateAgent {
   const haClient =
@@ -87,33 +88,41 @@ export function createHomeslateAgent(options: HomeslateAgentOptions): HomeslateA
     try {
       let response: AgentResponseMessage;
       switch (method) {
-        case "climate.entities.list":
+        case "entities.list":
           response = {
             type: "response",
             id,
             ok: true,
-            result: await haClient.listClimateEntities(),
+            result: await haClient.listEntities(params.domain as string),
           };
           break;
-        case "climate.state.get":
+        case "entity.get":
           response = {
             type: "response",
             id,
             ok: true,
-            result: await haClient.getClimateState(params.entityId as string),
+            result: await haClient.getEntity(params.entityId as string),
           };
           break;
-        case "climate.service.call": {
+        case "service.call": {
           const data =
             params.data && typeof params.data === "object"
               ? (params.data as Record<string, unknown>)
               : {};
-          await haClient.callClimateService(
+          const returnResponse = params.returnResponse === true;
+          const result = await haClient.callService(
+            params.domain as string,
             params.service as string,
             params.entityId as string,
             data,
+            { returnResponse },
           );
-          response = { type: "response", id, ok: true, result: { ok: true } };
+          response = {
+            type: "response",
+            id,
+            ok: true,
+            result: returnResponse ? result : { ok: true },
+          };
           break;
         }
       }
@@ -181,7 +190,11 @@ export function createHomeslateAgent(options: HomeslateAgentOptions): HomeslateA
         accountId: options.accountId,
         agentId,
         token: options.token,
-        agent: { version: options.agentVersion ?? "", haBaseUrl: options.baseUrl },
+        agent: {
+          version: options.agentVersion ?? "",
+          haBaseUrl: options.baseUrl,
+          domains: knownDomains(),
+        },
       });
     };
     ws.onmessage = (event) => handleMessage(event.data);

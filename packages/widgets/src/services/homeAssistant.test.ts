@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import {
   HomeAssistantHttpError,
+  callHomeAssistantService,
   callThermostatService,
   callTodoService,
   fetchClimateEntities,
+  fetchEntities,
+  fetchEntity,
   fetchThermostat,
   fetchTodoEntities,
   fetchTodoItems,
@@ -164,5 +167,58 @@ describe("callTodoService", () => {
     await expect(callTodoService("todo.den", "remove_item", { item: "1" })).rejects.toBeInstanceOf(
       HomeAssistantHttpError,
     );
+  });
+});
+
+describe("generic helpers", () => {
+  it("fetchEntities targets the domain query and returns the list", async () => {
+    let requested = "";
+    globalThis.fetch = async (input) => {
+      requested = String(input);
+      return jsonResponse({ entities: [{ entityId: "light.den", name: "Den", state: "on" }] });
+    };
+    const entities = await fetchEntities("light", "Failed to load devices");
+    expect(requested).toBe("/api/homeassistant/entities?domain=light");
+    expect(entities).toHaveLength(1);
+  });
+
+  it("fetchEntities falls back to the failure copy without a JSON body", async () => {
+    globalThis.fetch = async () => new Response("nope", { status: 502 });
+    await expect(fetchEntities("light", "Failed to load devices")).rejects.toMatchObject({
+      status: 502,
+      message: "Failed to load devices",
+    });
+  });
+
+  it("fetchEntity reads any state url", async () => {
+    let requested = "";
+    globalThis.fetch = async (input) => {
+      requested = String(input);
+      return jsonResponse({ entityId: "light.den", state: "on" });
+    };
+    const entity = await fetchEntity<{ entityId: string; state: string }>(
+      "light.den",
+      "Failed to fetch device",
+    );
+    expect(requested).toBe("/api/homeassistant/states/light.den");
+    expect(entity.state).toBe("on");
+  });
+
+  it("callHomeAssistantService posts the entity id and data", async () => {
+    const calls: Array<{ url: string; method?: string; body: unknown }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({
+        url: String(input),
+        method: init?.method,
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+      });
+      return jsonResponse({ ok: true });
+    };
+    await callHomeAssistantService("light", "turn_on", "light.den", { brightness_pct: 40 }, "no");
+    expect(calls[0]).toEqual({
+      url: "/api/homeassistant/services/light/turn_on",
+      method: "POST",
+      body: { entity_id: "light.den", brightness_pct: 40 },
+    });
   });
 });

@@ -44,23 +44,24 @@ manage passcodes themselves.
 
 Set `homeAssistant: { baseUrl, token }` to enable the Home Assistant widgets.
 The browser never sees the long-lived token; the server forwards an allowlisted
-subset:
+subset driven by the domain registry in `@homeslate/widgets/server`:
 
-- `GET /api/homeassistant/entities?domain=climate|todo` — entity pickers.
-- `GET /api/homeassistant/states/:entityId` — climate state.
+- `GET /api/homeassistant/entities?domain=…` — entity pickers for a known domain.
+- `GET /api/homeassistant/states/:entityId` — one entity, mapped per domain.
 - `GET /api/homeassistant/todo/:entityId/items` — normalized `todo` items.
 - `POST /api/homeassistant/services/:domain/:service` — allowlisted service
-  calls (`climate` and `todo` write services).
+  calls (registry-gated: domain → service → allowed data keys).
 
 Without `homeAssistant`, these routes answer `501` and the widgets stay
 designable with a "set the env vars" notice.
 
-Routes run on a `HomeAssistantTransport`. The built-in direct client
-(`{ baseUrl, token }`) serves climate and to-do; an injected transport (the
-[relay](https://www.npmjs.com/package/@homeslate/relay)) may serve climate only.
-To-do is an optional capability (`HomeAssistantTodoTransport`, checked with
-`hasTodoSupport`), so `domain=todo` requests against a transport without it
-answer `503` with an "unsupported" copy.
+Routes run on a `HomeAssistantTransport`, a generic three-method seam
+(`listEntities(domain)`, `getEntity(entityId)`, `callService(domain, service,
+entityId, data, options?)`). The built-in direct client implements it; an
+injected transport (the
+[relay](https://www.npmjs.com/package/@homeslate/relay)) forwards the same
+three methods to a home agent. Adding a widget means adding a domain-registry
+entry, not a transport method.
 
 In a container, bind all interfaces so Docker's published port can reach the
 API — Docker forwards to the container's bridge address, not its loopback:

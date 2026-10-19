@@ -297,35 +297,6 @@ describe("/api/homeassistant", () => {
     expect(fetchCount).toBe(0);
   });
 
-  it("reports 503 for todo routes when the transport has no todo support", async () => {
-    const transport: HomeAssistantTransport = {
-      async listClimateEntities() {
-        return [];
-      },
-      async getClimateState() {
-        return null;
-      },
-      async callClimateService() {},
-    };
-    const hono = await app({ transport });
-
-    const entities = await hono.request("/api/homeassistant/entities?domain=todo");
-    expect(entities.status).toBe(503);
-    expect(await entities.json()).toEqual({
-      error: "This Home Assistant connection does not support to-do lists yet.",
-    });
-
-    expect((await hono.request("/api/homeassistant/todo/todo.shopping/items")).status).toBe(503);
-    expect(
-      (
-        await hono.request("/api/homeassistant/services/todo/add_item", {
-          method: "POST",
-          body: JSON.stringify({ entity_id: "todo.shopping", item: "Milk" }),
-        })
-      ).status,
-    ).toBe(503);
-  });
-
   it("uses an injected transport instead of fetch", async () => {
     let fetchCount = 0;
     globalThis.fetch = async () => {
@@ -334,16 +305,16 @@ describe("/api/homeassistant", () => {
     };
     const calls: string[] = [];
     const transport: HomeAssistantTransport = {
-      async listClimateEntities() {
-        calls.push("list");
+      async listEntities(domain) {
+        calls.push(`list:${domain}`);
         return [{ entityId: "climate.attic", name: "Attic", state: "off" }];
       },
-      async getClimateState() {
+      async getEntity() {
         calls.push("get");
         return null;
       },
-      async callClimateService() {
-        calls.push("call");
+      async callService(domain, service) {
+        calls.push(`call:${domain}/${service}`);
       },
     };
 
@@ -363,20 +334,42 @@ describe("/api/homeassistant", () => {
       ).status,
     ).toBe(200);
 
-    expect(calls).toEqual(["list", "get", "call"]);
+    expect(calls).toEqual(["list:climate", "get", "call:climate/turn_off"]);
     expect(fetchCount).toBe(0);
+  });
+
+  it("returns a generic entity for a domain without a mapper", async () => {
+    globalThis.fetch = async () =>
+      jsonOk({
+        entity_id: "todo.shopping",
+        state: "2",
+        attributes: { friendly_name: "Shopping", hidden: 1 },
+      });
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    const response = await hono.request("/api/homeassistant/states/todo.shopping");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      entityId: "todo.shopping",
+      name: "Shopping",
+      state: "2",
+      unit: null,
+      deviceClass: null,
+      supportedFeatures: null,
+      attributes: {},
+    });
   });
 
   it("maps transport errors to their own status and copy", async () => {
     const hono = await app({
       transport: {
-        async listClimateEntities() {
+        async listEntities() {
           throw new HomeAssistantTransportError(503, "agent offline");
         },
-        async getClimateState() {
+        async getEntity() {
           throw new HomeAssistantTransportError(504, "timed out");
         },
-        async callClimateService() {
+        async callService() {
           throw new HomeAssistantTransportError(503, "agent offline");
         },
       },
@@ -416,13 +409,13 @@ describe("/api/homeassistant", () => {
 
     const relay = await app({
       transport: {
-        async listClimateEntities() {
+        async listEntities() {
           return [];
         },
-        async getClimateState() {
+        async getEntity() {
           return null;
         },
-        async callClimateService() {},
+        async callService() {},
         async status() {
           return { connected: false, haReachable: false };
         },

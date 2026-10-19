@@ -21,13 +21,16 @@ import {
   COMMUTE_MISSING_KEY_COPY,
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
+  HA_MISSING_CONFIG_COPY,
   THERMOSTAT_MISSING_CONFIG_COPY,
   TODO_MISSING_CONFIG_COPY,
-  TODO_UNSUPPORTED_COPY,
-  isAllowedClimateService,
-  isAllowedTodoService,
-  isValidClimateEntityId,
+  entityDomain,
+  isAllowedService,
+  isKnownDomain,
+  isValidEntityId,
   isValidTodoEntityId,
+  mapEntity,
+  mapTodoItems,
   parseCommuteQuery,
   type CommuteEstimate,
   type WeatherAlertsResponse,
@@ -40,9 +43,7 @@ import {
   HomeAssistantTransportError,
   createHomeAssistantClient,
   hasStatus,
-  hasTodoSupport,
   type HomeAssistantStatus,
-  type HomeAssistantTodoTransport,
   type HomeAssistantTransport,
 } from "./homeAssistant";
 import { fetchWeatherAlerts, parseWeatherAlertPoint } from "./weatherAlerts";
@@ -172,24 +173,13 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
 
   app.get("/api/homeassistant/entities", async (c) => {
     const domain = c.req.query("domain") ?? "climate";
-    if (domain !== "climate" && domain !== "todo") {
-      return c.json({ error: "Only the climate and todo domains are supported" }, 400);
+    if (!isKnownDomain(domain)) {
+      return c.json({ error: "Unsupported domain" }, 400);
     }
-    if (!homeAssistant) {
-      return c.json(
-        { error: domain === "todo" ? TODO_MISSING_CONFIG_COPY : THERMOSTAT_MISSING_CONFIG_COPY },
-        501,
-      );
-    }
+    if (!homeAssistant) return c.json({ error: homeAssistantMissingConfigCopy(domain) }, 501);
 
     try {
-      if (domain === "todo") {
-        if (!hasTodoSupport(homeAssistant)) {
-          return c.json({ error: TODO_UNSUPPORTED_COPY }, 503);
-        }
-        return c.json({ entities: await homeAssistant.listTodoEntities() });
-      }
-      return c.json({ entities: await homeAssistant.listClimateEntities() });
+      return c.json({ entities: await homeAssistant.listEntities(domain) });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);
@@ -202,12 +192,18 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       return c.json({ error: "Invalid entity id" }, 400);
     }
     if (!homeAssistant) return c.json({ error: TODO_MISSING_CONFIG_COPY }, 501);
-    if (!hasTodoSupport(homeAssistant)) {
-      return c.json({ error: TODO_UNSUPPORTED_COPY }, 503);
-    }
 
     try {
-      return c.json({ items: await homeAssistant.getTodoItems(entityId) });
+      const result = await homeAssistant.callService(
+        "todo",
+        "get_items",
+        entityId,
+        {},
+        {
+          returnResponse: true,
+        },
+      );
+      return c.json({ items: mapTodoItems(result, entityId) });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);
@@ -216,14 +212,16 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
 
   app.get("/api/homeassistant/states/:entityId", async (c) => {
     const entityId = c.req.param("entityId");
-    if (!isValidClimateEntityId(entityId)) {
+    const domain = entityDomain(entityId);
+    if (!domain || !isKnownDomain(domain) || !isValidEntityId(domain, entityId)) {
       return c.json({ error: "Invalid entity id" }, 400);
     }
-    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+    if (!homeAssistant) return c.json({ error: homeAssistantMissingConfigCopy(domain) }, 501);
 
     try {
-      const state = await homeAssistant.getClimateState(entityId);
-      return state ? c.json(state) : c.json({ error: "Entity not found" }, 404);
+      const state = await homeAssistant.getEntity(entityId);
+      if (!state) return c.json({ error: "Entity not found" }, 404);
+      return c.json(mapEntity(domain, state) ?? state);
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);
@@ -233,22 +231,10 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   app.post("/api/homeassistant/services/:domain/:service", async (c) => {
     const domain = c.req.param("domain");
     const service = c.req.param("service");
-    if (domain !== "climate" && domain !== "todo") {
-      return c.json({ error: "Only the climate and todo domains are supported" }, 400);
-    }
-
-    const isClimate = domain === "climate";
-    if (isClimate ? !isAllowedClimateService(service) : !isAllowedTodoService(service)) {
+    if (!isKnownDomain(domain) || !isAllowedService(domain, service)) {
       return c.json({ error: "Unsupported service" }, 400);
     }
-    const missingConfigCopy = isClimate ? THERMOSTAT_MISSING_CONFIG_COPY : TODO_MISSING_CONFIG_COPY;
-    if (!homeAssistant) return c.json({ error: missingConfigCopy }, 501);
-
-    const todoTransport: HomeAssistantTodoTransport | null =
-      !isClimate && hasTodoSupport(homeAssistant) ? homeAssistant : null;
-    if (!isClimate && !todoTransport) {
-      return c.json({ error: TODO_UNSUPPORTED_COPY }, 503);
-    }
+    if (!homeAssistant) return c.json({ error: homeAssistantMissingConfigCopy(domain) }, 501);
 
     let body: Record<string, unknown>;
     try {
@@ -257,17 +243,12 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       return c.json({ error: "Invalid JSON" }, 400);
     }
     const entityId = typeof body.entity_id === "string" ? body.entity_id : "";
-    const isValidEntityId = isClimate ? isValidClimateEntityId : isValidTodoEntityId;
-    if (!isValidEntityId(entityId)) {
+    if (!isValidEntityId(domain, entityId)) {
       return c.json({ error: "Invalid entity id" }, 400);
     }
 
     try {
-      if (isClimate) {
-        await homeAssistant.callClimateService(service, entityId, body);
-      } else if (todoTransport) {
-        await todoTransport.callTodoService(service, entityId, body);
-      }
+      await homeAssistant.callService(domain, service, entityId, body);
       return c.json({ ok: true });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
@@ -475,6 +456,13 @@ async function optionalJsonBody(request: Request): Promise<Record<string, unknow
   if (!body) return {};
   const value: unknown = JSON.parse(body);
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+/** User-facing "Home Assistant is not configured" copy, domain-aware. */
+function homeAssistantMissingConfigCopy(domain: string): string {
+  if (domain === "climate") return THERMOSTAT_MISSING_CONFIG_COPY;
+  if (domain === "todo") return TODO_MISSING_CONFIG_COPY;
+  return HA_MISSING_CONFIG_COPY;
 }
 
 /**
