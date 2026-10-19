@@ -64,6 +64,7 @@ agent.start();
 ```
 
 The agent reconnects with exponential backoff (1s → 60s, ±20% jitter) and
-heartbeats through the relay. It only forwards the allowlisted climate methods
-(`climate.entities.list`, `climate.state.get`, `climate.service.call`) and
-re-validates every request before touching Home Assistant.
+heartbeats through the relay. It only forwards the allowlisted generic methods
+(`entities.list`, `entity.get`, `service.call`), advertising the domains it
+serves in its `hello`, and re-validates every request against the domain
+registry before touching Home Assistant.

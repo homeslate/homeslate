@@ -42,6 +42,9 @@ export const THERMOSTAT_EMPTY_COPY = "Pick a thermostat in settings.";
 export const THERMOSTAT_MISSING_CONFIG_COPY =
   "Set HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server.";
 export const THERMOSTAT_UNAVAILABLE_COPY = "Unavailable";
+/** Generic copy for an unmapped domain when Home Assistant is unconfigured. */
+export const HA_MISSING_CONFIG_COPY =
+  "Set HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server.";
 
 /** Relay configured, but no LAN agent is connected to it. */
 export const HA_AGENT_OFFLINE_COPY =

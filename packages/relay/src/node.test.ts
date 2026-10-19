@@ -18,11 +18,11 @@ function listen(server: Server): Promise<number> {
 const hello = (agentId: string) =>
   JSON.stringify({
     type: "hello",
-    protocol: 1,
+    protocol: 2,
     accountId: "acct",
     agentId,
     token: "tok",
-    agent: { version: "0.1.0", haBaseUrl: "http://ha" },
+    agent: { version: "0.1.0", haBaseUrl: "http://ha", domains: ["climate", "todo"] },
   });
 
 describe("attachNodeWebSocket", () => {
@@ -54,7 +54,7 @@ describe("attachNodeWebSocket", () => {
     const welcome = once(client, "message").then(([data]) => decodeAgentMessage(String(data)));
     client.send(hello("a1"));
 
-    await expect(welcome).resolves.toMatchObject({ type: "welcome", protocol: 1 });
+    await expect(welcome).resolves.toMatchObject({ type: "welcome", protocol: 2 });
     expect(relay.isConnected("acct")).toBe(true);
   });
 

@@ -14,7 +14,8 @@ export const CLIMATE_SERVICES = [
   "turn_off",
 ] as const;
 
-const CLIMATE_ENTITY_ID = /^climate\.[a-z0-9_]+$/;
+/** Entity-id shape for the `climate` domain; also seeded into the registry. */
+export const CLIMATE_ENTITY_ID = /^climate\.[a-z0-9_]+$/;
 
 export function isValidClimateEntityId(id: string): boolean {
   return CLIMATE_ENTITY_ID.test(id);
@@ -42,7 +43,11 @@ function attributeObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-const CLIMATE_SERVICE_KEYS: Record<string, readonly string[]> = {
+/**
+ * Allowed data keys per climate service. The domain registry uses this both to
+ * decide which services are allowed and to build the outgoing payload.
+ */
+export const CLIMATE_SERVICE_KEYS: Record<string, readonly string[]> = {
   set_temperature: ["temperature", "target_temp_high", "target_temp_low"],
   set_hvac_mode: ["hvac_mode"],
   set_fan_mode: ["fan_mode"],

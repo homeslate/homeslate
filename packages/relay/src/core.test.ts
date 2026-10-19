@@ -35,7 +35,7 @@ afterEach(() => {
 describe("relay core", () => {
   it("rejects when no agent is connected", async () => {
     const core = createRelayCore({ registry: createAgentRegistry() });
-    await expect(core.request("acct", "climate.entities.list", {})).rejects.toThrow(
+    await expect(core.request("acct", "entities.list", { domain: "climate" })).rejects.toThrow(
       HA_AGENT_OFFLINE_COPY,
     );
   });
@@ -46,11 +46,11 @@ describe("relay core", () => {
     registry.bind(handle);
     const core = createRelayCore({ registry, newRequestId: () => "req-1" });
 
-    const promise = core.request("acct", "climate.state.get", { entityId: "climate.attic" });
+    const promise = core.request("acct", "entity.get", { entityId: "climate.attic" });
     expect(requestOf(sent[0])).toEqual({
       type: "request",
       id: "req-1",
-      method: "climate.state.get",
+      method: "entity.get",
       params: { entityId: "climate.attic" },
     });
 
@@ -68,7 +68,7 @@ describe("relay core", () => {
     registry.bind(fakeHandle().handle);
     const core = createRelayCore({ registry, newRequestId: () => "req-1" });
 
-    const promise = core.request("acct", "climate.state.get", { entityId: "climate.attic" });
+    const promise = core.request("acct", "entity.get", { entityId: "climate.attic" });
     core.handleResponse("acct", {
       type: "response",
       id: "req-1",
@@ -92,7 +92,7 @@ describe("relay core", () => {
       newRequestId: () => "req-1",
     });
 
-    const promise = core.request("acct", "climate.entities.list", {});
+    const promise = core.request("acct", "entities.list", { domain: "climate" });
     const assertion = expect(promise).rejects.toThrow(HA_AGENT_TIMEOUT_COPY);
     await vi.advanceTimersByTimeAsync(5_000);
     await assertion;
@@ -109,8 +109,8 @@ describe("relay core", () => {
       newRequestId: () => `req-${++seq}`,
     });
 
-    const first = core.request("acct", "climate.entities.list", {});
-    await expect(core.request("acct", "climate.entities.list", {})).rejects.toThrow(
+    const first = core.request("acct", "entities.list", { domain: "climate" });
+    await expect(core.request("acct", "entities.list", { domain: "climate" })).rejects.toThrow(
       HA_AGENT_BUSY_COPY,
     );
     expect(core.inFlight("acct")).toBe(1);
@@ -126,7 +126,7 @@ describe("relay core", () => {
     registry.bind(fakeHandle().handle);
     const core = createRelayCore({ registry, newRequestId: () => "req-1" });
 
-    const promise = core.request("acct", "climate.entities.list", {});
+    const promise = core.request("acct", "entities.list", { domain: "climate" });
     const foreign: AgentResponseMessage = { type: "response", id: "other", ok: true, result: 1 };
     core.handleResponse("acct", foreign);
     expect(core.inFlight("acct")).toBe(1);
@@ -140,8 +140,8 @@ describe("relay core", () => {
     let seq = 0;
     const core = createRelayCore({ registry, newRequestId: () => `req-${++seq}` });
 
-    const first = core.request("acct", "climate.entities.list", {});
-    const second = core.request("acct", "climate.entities.list", {});
+    const first = core.request("acct", "entities.list", { domain: "climate" });
+    const second = core.request("acct", "entities.list", { domain: "climate" });
     core.rejectAll("acct", new Error("gone"));
     await expect(first).rejects.toThrow("gone");
     await expect(second).rejects.toThrow("gone");

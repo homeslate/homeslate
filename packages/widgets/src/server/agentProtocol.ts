@@ -1,26 +1,34 @@
-import { isAllowedClimateService, isValidClimateEntityId } from "./climateState";
+import { entityDomain, isAllowedService, isKnownDomain, isValidEntityId } from "./domains";
 
 /**
  * Version of the agent ⇄ relay wire protocol. A mismatch is a clean reject on
  * both ends, so the two can ship independently.
+ *
+ * v2 replaced the per-domain methods (`climate.*`) with a generic entity +
+ * service rail, and added the agent's supported-domain capability list to the
+ * `hello`.
  */
-export const AGENT_PROTOCOL_VERSION = 1;
+export const AGENT_PROTOCOL_VERSION = 2;
 
 /**
- * Methods a relay may forward to a LAN agent. Deliberately narrow: only what the
- * thermostat routes need. Widening this (lights, switches) is a version bump.
+ * Methods a relay may forward to a LAN agent. Deliberately narrow: one generic
+ * list/read/call trio, gated by the domain registry on both ends.
  */
-export const AGENT_METHODS = [
-  "climate.entities.list",
-  "climate.state.get",
-  "climate.service.call",
-] as const;
+export const AGENT_METHODS = ["entities.list", "entity.get", "service.call"] as const;
 
 export type AgentMethod = (typeof AGENT_METHODS)[number];
 
 export function isAgentMethod(value: unknown): value is AgentMethod {
   return typeof value === "string" && (AGENT_METHODS as readonly string[]).includes(value);
 }
+
+/** What the agent reports about itself: version, HA origin, and domain support. */
+export type AgentCapabilities = {
+  version: string;
+  haBaseUrl: string;
+  /** Domains this agent can serve (from its domain registry). */
+  domains: string[];
+};
 
 /** Agent → relay, the first frame after the socket opens. */
 export type AgentHelloMessage = {
@@ -29,7 +37,7 @@ export type AgentHelloMessage = {
   accountId: string;
   agentId: string;
   token: string;
-  agent: { version: string; haBaseUrl: string };
+  agent: AgentCapabilities;
 };
 
 /** Relay → agent, once the hello is accepted. */
@@ -107,6 +115,9 @@ function normalizeAgentMessage(value: unknown): AgentMessage | null {
         agent: {
           version: typeof agent.version === "string" ? agent.version : "",
           haBaseUrl: typeof agent.haBaseUrl === "string" ? agent.haBaseUrl : "",
+          domains: Array.isArray(agent.domains)
+            ? agent.domains.filter((domain): domain is string => typeof domain === "string")
+            : [],
         },
       };
     }
@@ -157,7 +168,7 @@ function normalizeAgentMessage(value: unknown): AgentMessage | null {
 /**
  * Shape-check a request's params. Run on both the relay (before forwarding) and
  * the agent (before acting), so a malformed or out-of-scope call never reaches
- * Home Assistant. Reuses the same entity-id / service rules as the HTTP routes.
+ * Home Assistant. Reuses the same domain registry as the HTTP routes.
  */
 export function validateAgentRequestParams(
   method: AgentMethod,
@@ -167,24 +178,37 @@ export function validateAgentRequestParams(
   const values = params as Record<string, unknown>;
 
   switch (method) {
-    case "climate.entities.list":
+    case "entities.list": {
+      const domain = values.domain;
+      if (typeof domain !== "string" || !isKnownDomain(domain)) {
+        return { ok: false, error: "Unsupported domain" };
+      }
       return { ok: true };
-    case "climate.state.get": {
+    }
+    case "entity.get": {
       const entityId = values.entityId;
-      if (typeof entityId !== "string" || !isValidClimateEntityId(entityId)) {
+      const domain = typeof entityId === "string" ? entityDomain(entityId) : null;
+      if (!domain || !isKnownDomain(domain) || !isValidEntityId(domain, entityId as string)) {
         return { ok: false, error: "Invalid entity id" };
       }
       return { ok: true };
     }
-    case "climate.service.call": {
+    case "service.call": {
+      const domain = values.domain;
+      if (typeof domain !== "string" || !isKnownDomain(domain)) {
+        return { ok: false, error: "Unsupported domain" };
+      }
       const entityId = values.entityId;
-      if (typeof entityId !== "string" || !isValidClimateEntityId(entityId)) {
+      if (typeof entityId !== "string" || !isValidEntityId(domain, entityId)) {
         return { ok: false, error: "Invalid entity id" };
       }
-      if (typeof values.service !== "string" || !isAllowedClimateService(values.service)) {
+      if (typeof values.service !== "string" || !isAllowedService(domain, values.service)) {
         return { ok: false, error: "Unsupported service" };
       }
       if (values.data !== undefined && (!values.data || typeof values.data !== "object")) {
+        return { ok: false, error: "Invalid service data" };
+      }
+      if (values.returnResponse !== undefined && typeof values.returnResponse !== "boolean") {
         return { ok: false, error: "Invalid service data" };
       }
       return { ok: true };

@@ -7,7 +7,20 @@ import type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "../widgets/
  */
 export const TODO_WRITE_SERVICES = ["add_item", "update_item", "remove_item"] as const;
 
-const TODO_ENTITY_ID = /^todo\.[a-z0-9_]+$/;
+/**
+ * Every `todo` service the proxy will forward, mapped to the data keys it
+ * accepts. `get_items` is a read (used with `return_response` by the items
+ * route); the rest are writes. The domain registry reads this map.
+ */
+export const TODO_SERVICE_KEYS: Record<string, readonly string[]> = {
+  get_items: [],
+  add_item: ["item"],
+  update_item: ["item", "status", "summary"],
+  remove_item: ["item"],
+};
+
+/** Entity-id shape for the `todo` domain; also seeded into the registry. */
+export const TODO_ENTITY_ID = /^todo\.[a-z0-9_]+$/;
 
 export function isValidTodoEntityId(id: string): boolean {
   return TODO_ENTITY_ID.test(id);
@@ -24,7 +37,7 @@ function stringOrNull(value: unknown): string | null {
 }
 
 /**
- * Build the exact payload Home Assistant expects for a todo write service call,
+ * Build the exact payload Home Assistant expects for a todo service call,
  * dropping unknown keys and rejecting missing/invalid required fields.
  */
 export function buildTodoServicePayload(
@@ -32,7 +45,9 @@ export function buildTodoServicePayload(
   entityId: string,
   data: Record<string, unknown>,
 ): Record<string, unknown> | null {
-  if (!isAllowedTodoService(service) || !isValidTodoEntityId(entityId)) return null;
+  if (!isValidTodoEntityId(entityId)) return null;
+  if (service === "get_items") return { entity_id: entityId };
+  if (!isAllowedTodoService(service)) return null;
 
   const item = stringOrNull(data.item);
   if (!item) return null;

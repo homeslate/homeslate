@@ -1,13 +1,10 @@
 import {
-  buildClimateServicePayload,
-  buildTodoServicePayload,
-  isValidClimateEntityId,
-  isValidTodoEntityId,
-  mapClimateEntity,
-  mapTodoItems,
+  buildServicePayload,
+  isKnownDomain,
+  isValidEntityId,
+  mapHomeAssistantState,
   type HomeAssistantEntitySummary,
-  type HomeAssistantTodoItem,
-  type ThermostatState,
+  type HomeAssistantState,
 } from "@homeslate/widgets/server";
 
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -47,45 +44,39 @@ export class HomeAssistantTransportError extends Error {
   }
 }
 
+/** Options for a service call that returns a response body (`return_response`). */
+export type HomeAssistantServiceOptions = {
+  /**
+   * Home Assistant's `?return_response`: the service response body is returned
+   * instead of being discarded. Required by reads implemented as services
+   * (`weather.get_forecasts`, `todo.get_items`, …).
+   */
+  returnResponse?: boolean;
+};
+
 /**
  * Everything the `/api/homeassistant/*` routes need from Home Assistant. The
- * direct LAN client and the hosted relay transport both implement this, so the
- * routes never care which one is wired up.
+ * direct LAN client and the hosted relay transport both implement this one
+ * generic seam — a domain allowlist lives in `@homeslate/widgets/server`, so
+ * adding a widget never means adding a transport method.
  */
 export type HomeAssistantTransport = {
-  /** Sorted climate entities for the widget settings picker. */
-  listClimateEntities(): Promise<HomeAssistantEntitySummary[]>;
-  /** `null` when Home Assistant has no such entity. */
-  getClimateState(entityId: string): Promise<ThermostatState | null>;
-  /** Rejects with a `400` `HomeAssistantError` when the call is invalid. */
-  callClimateService(
+  /** Sorted entity summaries for one allowlisted domain, for settings pickers. */
+  listEntities(domain: string): Promise<HomeAssistantEntitySummary[]>;
+  /** Raw-ish state for one entity, or `null` when Home Assistant has none. */
+  getEntity(entityId: string): Promise<HomeAssistantState | null>;
+  /**
+   * Call a service. Rejects with a `400` `HomeAssistantError` when the domain,
+   * service, entity id, or data are not allowed by the domain registry.
+   */
+  callService(
+    domain: string,
     service: string,
     entityId: string,
     data: Record<string, unknown>,
-  ): Promise<void>;
+    options?: HomeAssistantServiceOptions,
+  ): Promise<unknown>;
 };
-
-/**
- * Optional capability for transports that can read and write Home Assistant
- * `todo` lists. The direct LAN client implements it; the relay transport does
- * not yet, so the routes report an explicit "unsupported" error instead of
- * pretending the calls work.
- */
-export type HomeAssistantTodoTransport = {
-  /** Sorted `todo` entities for the widget settings picker. */
-  listTodoEntities(): Promise<HomeAssistantEntitySummary[]>;
-  /** Items for a `todo` entity, normalized and in Home Assistant order. */
-  getTodoItems(entityId: string): Promise<HomeAssistantTodoItem[]>;
-  /** Rejects with a `400` `HomeAssistantError` when the call is invalid. */
-  callTodoService(service: string, entityId: string, data: Record<string, unknown>): Promise<void>;
-};
-
-/** Narrows a transport to one that supports Home Assistant `todo` lists. */
-export function hasTodoSupport(
-  transport: HomeAssistantTransport,
-): transport is HomeAssistantTransport & HomeAssistantTodoTransport {
-  return typeof (transport as { listTodoEntities?: unknown }).listTodoEntities === "function";
-}
 
 /** @deprecated Use {@link HomeAssistantTransport}. */
 export type HomeAssistantClient = HomeAssistantTransport;
@@ -111,7 +102,7 @@ export function hasStatus(
 
 export function createHomeAssistantClient(
   options: HomeAssistantClientOptions,
-): HomeAssistantTransport & HomeAssistantTodoTransport {
+): HomeAssistantTransport {
   const baseUrl = options.baseUrl.trim().replace(/\/+$/, "");
   const token = options.token.trim();
   const fetchImpl = options.fetchImpl ?? fetch;
@@ -128,94 +119,68 @@ export function createHomeAssistantClient(
     });
   }
 
-  async function listEntities(
-    domain: string,
-    isValidEntityId: (id: string) => boolean,
-  ): Promise<HomeAssistantEntitySummary[]> {
-    const response = await request("/api/states");
-    if (!response.ok) {
-      throw new HomeAssistantError(response.status, "Home Assistant request failed");
-    }
-    const states = await response.json().catch(() => null);
-    if (!Array.isArray(states)) return [];
-    const prefix = `${domain}.`;
-    const entities = states.flatMap((raw): HomeAssistantEntitySummary[] => {
-      if (!raw || typeof raw !== "object") return [];
-      const {
-        entity_id: entityId,
-        state,
-        attributes,
-      } = raw as {
-        entity_id?: unknown;
-        state?: unknown;
-        attributes?: unknown;
-      };
-      if (typeof entityId !== "string" || !entityId.startsWith(prefix)) return [];
-      if (!isValidEntityId(entityId)) return [];
-      const attrs =
-        attributes && typeof attributes === "object" ? (attributes as Record<string, unknown>) : {};
-      const name =
-        typeof attrs.friendly_name === "string" && attrs.friendly_name
-          ? attrs.friendly_name
-          : entityId;
-      return [{ entityId, name, state: typeof state === "string" ? state : "unknown" }];
-    });
-    return entities.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
   return {
-    listClimateEntities: () => listEntities("climate", isValidClimateEntityId),
-    listTodoEntities: () => listEntities("todo", isValidTodoEntityId),
+    async listEntities(domain) {
+      if (!isKnownDomain(domain)) return [];
+      const response = await request("/api/states");
+      if (!response.ok) {
+        throw new HomeAssistantError(response.status, "Home Assistant request failed");
+      }
+      const states = await response.json().catch(() => null);
+      if (!Array.isArray(states)) return [];
+      const prefix = `${domain}.`;
+      const entities = states.flatMap((raw): HomeAssistantEntitySummary[] => {
+        if (!raw || typeof raw !== "object") return [];
+        const {
+          entity_id: entityId,
+          state,
+          attributes,
+        } = raw as {
+          entity_id?: unknown;
+          state?: unknown;
+          attributes?: unknown;
+        };
+        if (typeof entityId !== "string" || !entityId.startsWith(prefix)) return [];
+        if (!isValidEntityId(domain, entityId)) return [];
+        const attrs =
+          attributes && typeof attributes === "object"
+            ? (attributes as Record<string, unknown>)
+            : {};
+        const name =
+          typeof attrs.friendly_name === "string" && attrs.friendly_name
+            ? attrs.friendly_name
+            : entityId;
+        return [{ entityId, name, state: typeof state === "string" ? state : "unknown" }];
+      });
+      return entities.sort((a, b) => a.name.localeCompare(b.name));
+    },
 
-    async getClimateState(entityId) {
-      if (!isValidClimateEntityId(entityId)) return null;
+    async getEntity(entityId) {
+      const domain = entityId.slice(0, entityId.indexOf("."));
+      if (!isKnownDomain(domain) || !isValidEntityId(domain, entityId)) return null;
       const response = await request(`/api/states/${entityId}`);
       if (response.status === 404) return null;
       if (!response.ok) {
         throw new HomeAssistantError(response.status, "Home Assistant request failed");
       }
-      return mapClimateEntity(await response.json().catch(() => null));
+      return mapHomeAssistantState(await response.json().catch(() => null));
     },
 
-    async callClimateService(service, entityId, data) {
-      const payload = buildClimateServicePayload(service, entityId, data);
+    async callService(domain, service, entityId, data, callOptions) {
+      const payload = buildServicePayload(domain, service, entityId, data);
       if (!payload) {
-        throw new HomeAssistantError(400, "Invalid climate service call");
+        throw new HomeAssistantError(400, "Invalid service call");
       }
-      const response = await request(`/api/services/climate/${service}`, {
+      const suffix = callOptions?.returnResponse ? "?return_response" : "";
+      const response = await request(`/api/services/${domain}/${service}${suffix}`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
       if (!response.ok) {
         throw new HomeAssistantError(response.status, "Home Assistant request failed");
       }
-    },
-
-    async getTodoItems(entityId) {
-      if (!isValidTodoEntityId(entityId)) return [];
-      const response = await request("/api/services/todo/get_items?return_response", {
-        method: "POST",
-        body: JSON.stringify({ entity_id: entityId }),
-      });
-      if (response.status === 404) return [];
-      if (!response.ok) {
-        throw new HomeAssistantError(response.status, "Home Assistant request failed");
-      }
-      return mapTodoItems(await response.json().catch(() => null), entityId);
-    },
-
-    async callTodoService(service, entityId, data) {
-      const payload = buildTodoServicePayload(service, entityId, data);
-      if (!payload) {
-        throw new HomeAssistantError(400, "Invalid todo service call");
-      }
-      const response = await request(`/api/services/todo/${service}`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        throw new HomeAssistantError(response.status, "Home Assistant request failed");
-      }
+      if (!callOptions?.returnResponse) return undefined;
+      return response.json().catch(() => null);
     },
   };
 }

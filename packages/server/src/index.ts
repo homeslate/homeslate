@@ -14,12 +14,11 @@ export {
   HomeAssistantTransportError,
   createHomeAssistantClient,
   hasStatus,
-  hasTodoSupport,
   type HomeAssistantClient,
   type HomeAssistantClientOptions,
+  type HomeAssistantServiceOptions,
   type HomeAssistantStatus,
   type HomeAssistantStatusProvider,
-  type HomeAssistantTodoTransport,
   type HomeAssistantTransport,
 } from "./homeAssistant";
 export {

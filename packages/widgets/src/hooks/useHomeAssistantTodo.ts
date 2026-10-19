@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { getNextPollDelay } from "./polling";
-import {
-  HomeAssistantHttpError,
-  callTodoService,
-  fetchTodoEntities,
-  fetchTodoItems,
-} from "../services/homeAssistant";
-import type { HomeAssistantEntitySummary } from "../widgets/homeAssistant";
+import { HomeAssistantHttpError, fetchTodoItems } from "../services/homeAssistant";
 import type { HomeAssistantTodoItem } from "../widgets/homeAssistantTodo";
+import { useEntities, useHomeAssistantService, type UseEntitiesResult } from "./useHomeAssistant";
 
 const TODO_POLL_INTERVAL_MS = 30 * 1000;
 
@@ -37,6 +32,7 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
   const [pending, setPending] = useState(false);
+  const callService = useHomeAssistantService("Failed to update list");
 
   const fetchData = useCallback(async () => {
     if (!entityId) {
@@ -89,7 +85,7 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
       setControlError(null);
       if (optimistic) setItems(optimistic);
       try {
-        await callTodoService(entityId, service, data);
+        await callService("todo", service, entityId, data);
       } catch (err) {
         setControlError(err instanceof Error ? err.message : "Failed to update list");
       } finally {
@@ -97,7 +93,7 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
         setPending(false);
       }
     },
-    [entityId, fetchData],
+    [callService, entityId, fetchData],
   );
 
   const addItem = useCallback((summary: string) => run("add_item", { item: summary }), [run]);
@@ -129,37 +125,8 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
   };
 }
 
-export type UseTodoEntitiesResult = {
-  entities: HomeAssistantEntitySummary[];
-  isLoading: boolean;
-  error: string | null;
-  status: number | null;
-  refresh: () => void;
-};
+export type UseTodoEntitiesResult = UseEntitiesResult;
 
 export function useTodoEntities(): UseTodoEntitiesResult {
-  const [entities, setEntities] = useState<HomeAssistantEntitySummary[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<number | null>(null);
-
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      setEntities(await fetchTodoEntities());
-      setError(null);
-      setStatus(200);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load lists");
-      if (err instanceof HomeAssistantHttpError) setStatus(err.status);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
-
-  return { entities, isLoading, error, status, refresh: fetchData };
+  return useEntities("todo", "Failed to load lists");
 }

@@ -31,7 +31,7 @@ async function readError(response: Response, fallback: string): Promise<string> 
   return fallback;
 }
 
-export async function fetchHomeAssistantEntities(
+export async function fetchEntities(
   domain: string,
   failureCopy: string,
 ): Promise<HomeAssistantEntitySummary[]> {
@@ -44,41 +44,65 @@ export async function fetchHomeAssistantEntities(
   return body.entities as HomeAssistantEntitySummary[];
 }
 
+/** @deprecated Use {@link fetchEntities}. */
+export function fetchHomeAssistantEntities(
+  domain: string,
+  failureCopy: string,
+): Promise<HomeAssistantEntitySummary[]> {
+  return fetchEntities(domain, failureCopy);
+}
+
 export function fetchClimateEntities(domain = "climate"): Promise<HomeAssistantEntitySummary[]> {
-  return fetchHomeAssistantEntities(domain, "Failed to load thermostats");
+  return fetchEntities(domain, "Failed to load thermostats");
 }
 
 export function fetchTodoEntities(): Promise<HomeAssistantEntitySummary[]> {
-  return fetchHomeAssistantEntities("todo", "Failed to load lists");
+  return fetchEntities("todo", "Failed to load lists");
 }
 
-export async function fetchThermostat(entityId: string): Promise<ThermostatState> {
+/** Fetch one entity's mapped state. Works for any allowlisted domain. */
+export async function fetchEntity<T>(entityId: string, failureCopy: string): Promise<T> {
   const response = await fetch(thermostatApiUrl(entityId));
   if (!response.ok) {
-    throw new HomeAssistantHttpError(
-      response.status,
-      await readError(response, "Failed to fetch thermostat"),
-    );
+    throw new HomeAssistantHttpError(response.status, await readError(response, failureCopy));
   }
-  return (await response.json()) as ThermostatState;
+  return (await response.json()) as T;
 }
 
-export async function callThermostatService(
-  entityId: string,
+export function fetchThermostat(entityId: string): Promise<ThermostatState> {
+  return fetchEntity<ThermostatState>(entityId, "Failed to fetch thermostat");
+}
+
+/** Call an allowlisted service on any domain. */
+export async function callHomeAssistantService(
+  domain: string,
   service: string,
+  entityId: string,
   data: Record<string, unknown>,
+  failureCopy: string,
 ): Promise<void> {
-  const response = await fetch(homeAssistantServiceUrl("climate", service), {
+  const response = await fetch(homeAssistantServiceUrl(domain, service), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ entity_id: entityId, ...data }),
   });
   if (!response.ok) {
-    throw new HomeAssistantHttpError(
-      response.status,
-      await readError(response, "Failed to update thermostat"),
-    );
+    throw new HomeAssistantHttpError(response.status, await readError(response, failureCopy));
   }
+}
+
+export function callThermostatService(
+  entityId: string,
+  service: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  return callHomeAssistantService(
+    "climate",
+    service,
+    entityId,
+    data,
+    "Failed to update thermostat",
+  );
 }
 
 export async function fetchTodoItems(entityId: string): Promise<HomeAssistantTodoItem[]> {
@@ -94,20 +118,10 @@ export async function fetchTodoItems(entityId: string): Promise<HomeAssistantTod
   return body.items as HomeAssistantTodoItem[];
 }
 
-export async function callTodoService(
+export function callTodoService(
   entityId: string,
   service: string,
   data: Record<string, unknown>,
 ): Promise<void> {
-  const response = await fetch(homeAssistantServiceUrl("todo", service), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ entity_id: entityId, ...data }),
-  });
-  if (!response.ok) {
-    throw new HomeAssistantHttpError(
-      response.status,
-      await readError(response, "Failed to update list"),
-    );
-  }
+  return callHomeAssistantService("todo", service, entityId, data, "Failed to update list");
 }

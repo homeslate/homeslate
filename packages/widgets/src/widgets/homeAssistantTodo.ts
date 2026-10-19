@@ -12,8 +12,6 @@ export interface HomeAssistantTodoItem {
 export const TODO_EMPTY_COPY = "Pick a Home Assistant list in settings.";
 export const TODO_MISSING_CONFIG_COPY =
   "Set HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server.";
-export const TODO_UNSUPPORTED_COPY =
-  "This Home Assistant connection does not support to-do lists yet.";
 
 export function homeAssistantTodoItemsUrl(entityId: string): string {
   return `/api/homeassistant/todo/${encodeURIComponent(entityId)}/items`;

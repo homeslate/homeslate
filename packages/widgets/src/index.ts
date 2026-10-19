@@ -33,6 +33,13 @@ export type {
   UseHomeAssistantTodoResult,
   UseTodoEntitiesResult,
 } from "./hooks/useHomeAssistantTodo";
+export { useEntities, useEntity, useHomeAssistantService } from "./hooks/useHomeAssistant";
+export type {
+  HomeAssistantServiceCaller,
+  UseEntitiesResult,
+  UseEntityOptions,
+  UseEntityResult,
+} from "./hooks/useHomeAssistant";
 export type { ClockConfig } from "./widgets/ClockWidget";
 export type { TodoItem, TodoConfig, TodoSource } from "./widgets/TodoWidget";
 export type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "./widgets/homeAssistantTodo";

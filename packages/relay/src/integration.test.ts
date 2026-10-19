@@ -16,11 +16,11 @@ const HEARTBEAT = 1_000_000;
 
 const hello: AgentHelloMessage = {
   type: "hello",
-  protocol: 1,
+  protocol: 2,
   accountId: "acct",
   agentId: "a1",
   token: "tok",
-  agent: { version: "0.1.0", haBaseUrl: "http://ha" },
+  agent: { version: "0.1.0", haBaseUrl: "http://ha", domains: ["climate", "todo"] },
 };
 
 function fakeSocket() {
@@ -97,11 +97,13 @@ describe("relay end to end", () => {
     });
     await flush();
     const request = lastRequest(sent);
-    expect(request.method).toBe("climate.service.call");
+    expect(request.method).toBe("service.call");
     expect(request.params).toEqual({
+      domain: "climate",
       entityId: "climate.attic",
       service: "set_temperature",
       data: { entity_id: "climate.attic", temperature: 21 },
+      returnResponse: false,
     });
     await session.handleMessage({
       type: "response",

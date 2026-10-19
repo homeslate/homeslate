@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { HomeAssistantError, type HomeAssistantTransport } from "@homeslate/server";
-import { decodeAgentMessage, type AgentMessage } from "@homeslate/widgets/server";
+import {
+  AGENT_PROTOCOL_VERSION,
+  decodeAgentMessage,
+  knownDomains,
+  type AgentMessage,
+} from "@homeslate/widgets/server";
 import { createHomeslateAgent, type HomeslateAgent } from "./agent";
 
 /** A controllable stand-in for the browser/Node WebSocket the agent dials out. */
@@ -42,13 +47,13 @@ class FakeWebSocket {
 
 function stubClient(overrides: Partial<HomeAssistantTransport> = {}): HomeAssistantTransport {
   return {
-    async listClimateEntities() {
+    async listEntities() {
       return [];
     },
-    async getClimateState() {
+    async getEntity() {
       return null;
     },
-    async callClimateService() {},
+    async callService() {},
     ...overrides,
   };
 }
@@ -84,25 +89,35 @@ describe("homeslate agent", () => {
     ws.open();
     expect(decodeAgentMessage(ws.sent[0] ?? "")).toEqual({
       type: "hello",
-      protocol: 1,
+      protocol: AGENT_PROTOCOL_VERSION,
       accountId: "acct",
       agentId: "agent-1",
       token: "relay-token",
-      agent: { version: "0.1.0", haBaseUrl: "http://homeassistant.local:8123" },
+      agent: {
+        version: "0.1.0",
+        haBaseUrl: "http://homeassistant.local:8123",
+        domains: knownDomains(),
+      },
     });
   });
 
-  it("answers climate.entities.list from the Home Assistant client", async () => {
+  it("answers entities.list from the Home Assistant client", async () => {
     const { agent, ws } = setup(
       stubClient({
-        async listClimateEntities() {
+        async listEntities(domain) {
+          expect(domain).toBe("climate");
           return [{ entityId: "climate.attic", name: "Attic", state: "off" }];
         },
       }),
     );
     ws.open();
-    ws.receive({ type: "welcome", protocol: 1, heartbeatMs: 20_000 });
-    ws.receive({ type: "request", id: "r1", method: "climate.entities.list", params: {} });
+    ws.receive({ type: "welcome", protocol: AGENT_PROTOCOL_VERSION, heartbeatMs: 20_000 });
+    ws.receive({
+      type: "request",
+      id: "r1",
+      method: "entities.list",
+      params: { domain: "climate" },
+    });
     await flush();
     expect(ws.lastSent()).toEqual({
       type: "response",
@@ -113,13 +128,31 @@ describe("homeslate agent", () => {
     await agent.stop();
   });
 
+  it("rejects an unknown domain without calling Home Assistant", async () => {
+    const calls: string[] = [];
+    const { agent, ws } = setup(
+      stubClient({
+        async listEntities() {
+          calls.push("list");
+          return [];
+        },
+      }),
+    );
+    ws.open();
+    ws.receive({ type: "request", id: "r1", method: "entities.list", params: { domain: "light" } });
+    await flush();
+    expect(ws.lastSent()).toMatchObject({ type: "response", id: "r1", ok: false, status: 400 });
+    expect(calls).toEqual([]);
+    await agent.stop();
+  });
+
   it("returns a null result for an unknown entity", async () => {
     const { agent, ws } = setup(stubClient());
     ws.open();
     ws.receive({
       type: "request",
       id: "r1",
-      method: "climate.state.get",
+      method: "entity.get",
       params: { entityId: "climate.attic" },
     });
     await flush();
@@ -127,11 +160,78 @@ describe("homeslate agent", () => {
     await agent.stop();
   });
 
+  it("answers a service call with an ok result", async () => {
+    const calls: Array<{ method: string; returnResponse?: boolean }> = [];
+    const { agent, ws } = setup(
+      stubClient({
+        async callService(domain, service, entityId, data, options) {
+          calls.push({
+            method: `${domain}/${service}/${entityId}`,
+            returnResponse: options?.returnResponse,
+          });
+          return undefined;
+        },
+      }),
+    );
+    ws.open();
+    ws.receive({
+      type: "request",
+      id: "r1",
+      method: "service.call",
+      params: {
+        domain: "climate",
+        service: "set_temperature",
+        entityId: "climate.attic",
+        data: { temperature: 21 },
+      },
+    });
+    await flush();
+    expect(calls).toEqual([
+      { method: "climate/set_temperature/climate.attic", returnResponse: false },
+    ]);
+    expect(ws.lastSent()).toEqual({ type: "response", id: "r1", ok: true, result: { ok: true } });
+    await agent.stop();
+  });
+
+  it("forwards returnResponse and returns the service result", async () => {
+    const calls: Array<boolean | undefined> = [];
+    const { agent, ws } = setup(
+      stubClient({
+        async callService(_domain, _service, _entityId, _data, options) {
+          calls.push(options?.returnResponse);
+          return { "todo.shopping": { items: [] } };
+        },
+      }),
+    );
+    ws.open();
+    ws.receive({
+      type: "request",
+      id: "r1",
+      method: "service.call",
+      params: {
+        domain: "todo",
+        service: "get_items",
+        entityId: "todo.shopping",
+        data: {},
+        returnResponse: true,
+      },
+    });
+    await flush();
+    expect(calls).toEqual([true]);
+    expect(ws.lastSent()).toEqual({
+      type: "response",
+      id: "r1",
+      ok: true,
+      result: { "todo.shopping": { items: [] } },
+    });
+    await agent.stop();
+  });
+
   it("rejects an out-of-scope service without calling Home Assistant", async () => {
     const calls: string[] = [];
     const { agent, ws } = setup(
       stubClient({
-        async callClimateService() {
+        async callService() {
           calls.push("call");
         },
       }),
@@ -140,8 +240,8 @@ describe("homeslate agent", () => {
     ws.receive({
       type: "request",
       id: "r1",
-      method: "climate.service.call",
-      params: { entityId: "climate.attic", service: "reload" },
+      method: "service.call",
+      params: { domain: "climate", entityId: "climate.attic", service: "reload" },
     });
     await flush();
     expect(ws.lastSent()).toMatchObject({ type: "response", id: "r1", ok: false, status: 400 });
@@ -152,7 +252,7 @@ describe("homeslate agent", () => {
   it("maps a Home Assistant failure to its status", async () => {
     const { agent, ws } = setup(
       stubClient({
-        async getClimateState() {
+        async getEntity() {
           throw new HomeAssistantError(502, "boom");
         },
       }),
@@ -161,7 +261,7 @@ describe("homeslate agent", () => {
     ws.receive({
       type: "request",
       id: "r1",
-      method: "climate.state.get",
+      method: "entity.get",
       params: { entityId: "climate.attic" },
     });
     await flush();
@@ -192,7 +292,7 @@ describe("homeslate agent", () => {
       agent.onStateChange((state) => states.push(state));
 
       ws.open();
-      ws.receive({ type: "welcome", protocol: 1, heartbeatMs: 20_000 });
+      ws.receive({ type: "welcome", protocol: AGENT_PROTOCOL_VERSION, heartbeatMs: 20_000 });
       expect(states).toContain("connected");
 
       ws.close();
