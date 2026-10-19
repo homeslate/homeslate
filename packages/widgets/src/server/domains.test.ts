@@ -441,3 +441,74 @@ describe("the phase 3 controller domains", () => {
     ).toMatchObject({ state: "docked", batteryLevel: 72 });
   });
 });
+
+describe("the phase 4 data and niche domains", () => {
+  it("knows the camera, update, and lawn mower domains", () => {
+    for (const domain of ["camera", "update", "lawn_mower"]) {
+      expect(isKnownDomain(domain), domain).toBe(true);
+    }
+  });
+
+  it("allowlists the update and lawn mower services", () => {
+    expect(isAllowedService("camera", "turn_on")).toBe(false);
+    expect(isAllowedService("update", "install")).toBe(true);
+    expect(isAllowedService("update", "skip")).toBe(true);
+    expect(isAllowedService("update", "reload")).toBe(false);
+    expect(isAllowedService("lawn_mower", "start_pause")).toBe(true);
+    expect(isAllowedService("lawn_mower", "dock")).toBe(true);
+    expect(isAllowedService("lawn_mower", "stop")).toBe(true);
+    expect(isAllowedService("lawn_mower", "start")).toBe(false);
+  });
+
+  it("validates the new entity ids", () => {
+    expect(isValidEntityId("camera", "camera.front_door")).toBe(true);
+    expect(isValidEntityId("camera", "camera.Bad")).toBe(false);
+    expect(isValidEntityId("update", "update.hacs")).toBe(true);
+    expect(isValidEntityId("lawn_mower", "lawn_mower.back_yard")).toBe(true);
+    expect(isValidEntityId("lawn_mower", "vacuum.downstairs")).toBe(false);
+  });
+
+  it("builds update and lawn mower payloads", () => {
+    expect(buildServicePayload("update", "install", "update.hacs", {})).toEqual({
+      entity_id: "update.hacs",
+    });
+    expect(buildServicePayload("update", "skip", "update.hacs", {})).toEqual({
+      entity_id: "update.hacs",
+    });
+    expect(buildServicePayload("lawn_mower", "start_pause", "lawn_mower.back_yard", {})).toEqual({
+      entity_id: "lawn_mower.back_yard",
+    });
+    expect(buildServicePayload("lawn_mower", "dock", "lawn_mower.back_yard", {})).toEqual({
+      entity_id: "lawn_mower.back_yard",
+    });
+    expect(buildServicePayload("lawn_mower", "stop", "lawn_mower.back_yard", {})).toEqual({
+      entity_id: "lawn_mower.back_yard",
+    });
+  });
+
+  it("maps the new domains through their mappers", () => {
+    expect(
+      mapEntity("camera", {
+        entity_id: "camera.front_door",
+        state: "idle",
+        attributes: { friendly_name: "Front Door" },
+      }),
+    ).toMatchObject({ entityId: "camera.front_door", name: "Front Door", state: "idle" });
+
+    expect(
+      mapEntity("update", {
+        entity_id: "update.hacs",
+        state: "on",
+        attributes: { installed_version: "1.0", latest_version: "1.1" },
+      }),
+    ).toMatchObject({ state: "on", installedVersion: "1.0", latestVersion: "1.1" });
+
+    expect(
+      mapEntity("lawn_mower", {
+        entity_id: "lawn_mower.back_yard",
+        state: "mowing",
+        attributes: {},
+      }),
+    ).toMatchObject({ state: "mowing", available: true });
+  });
+});

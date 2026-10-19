@@ -661,5 +661,9 @@ describe("/api/homeassistant image proxy", () => {
     const second = await hono.request(`/api/homeassistant/image?path=${path}`);
     expect(second.status).toBe(200);
     expect(calls).toBe(1);
+
+    const busted = await hono.request(`/api/homeassistant/image?path=${path}&t=123`);
+    expect(busted.status).toBe(200);
+    expect(calls).toBe(2);
   });
 });

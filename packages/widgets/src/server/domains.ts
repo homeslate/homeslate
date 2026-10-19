@@ -8,10 +8,13 @@ import { CALENDAR_ENTITY_ID } from "./calendarState";
 import { COVER_ENTITY_ID, mapCoverEntity } from "./coverState";
 import { DEVICE_DOMAIN_ENTITY_IDS, mapDeviceEntity } from "./deviceState";
 import { ALARM_ENTITY_ID, mapAlarmEntity } from "./alarmState";
+import { CAMERA_ENTITY_ID, mapCameraEntity } from "./cameraState";
 import { FAN_ENTITY_ID, mapFanEntity } from "./fanState";
 import { HUMIDIFIER_ENTITY_ID, mapHumidifierEntity } from "./humidifierState";
+import { LAWN_MOWER_ENTITY_ID, mapLawnMowerEntity } from "./lawnMowerState";
 import { LOCK_ENTITY_ID, mapLockEntity } from "./lockState";
 import { MEDIA_PLAYER_ENTITY_ID, mapMediaPlayerEntity } from "./mediaPlayerState";
+import { UPDATE_ENTITY_ID, mapUpdateEntity } from "./updateState";
 import { VACUUM_ENTITY_ID, mapVacuumEntity } from "./vacuumState";
 import { WATER_HEATER_ENTITY_ID, mapWaterHeaterEntity } from "./waterHeaterState";
 import { mapHomeAssistantEntity } from "./homeAssistantEntity";
@@ -325,4 +328,28 @@ registerDomainSpec({
     set_operation_mode: ["operation_mode"],
   },
   map: mapWaterHeaterEntity,
+});
+
+/** Read-only camera state; snapshots ride the host image proxy. */
+registerDomainSpec({
+  domain: "camera",
+  entityId: CAMERA_ENTITY_ID,
+  services: {},
+  map: mapCameraEntity,
+});
+
+/** Software updates (Updates widget). */
+registerDomainSpec({
+  domain: "update",
+  entityId: UPDATE_ENTITY_ID,
+  services: { install: [], skip: [] },
+  map: mapUpdateEntity,
+});
+
+/** Lawn mowers (start/pause, dock, stop). */
+registerDomainSpec({
+  domain: "lawn_mower",
+  entityId: LAWN_MOWER_ENTITY_ID,
+  services: { start_pause: [], dock: [], stop: [] },
+  map: mapLawnMowerEntity,
 });
