@@ -86,8 +86,12 @@ so binding `0.0.0.0` inside the container does not expose the API to the LAN.
 `/api/public/:publicId` (GET/PUT); `/api/display-calendar` (GET);
 `/api/google/connect|callback|session` (GET); `/api/commute` (GET);
 `/api/weather/alerts` (GET);
-`/api/homeassistant/entities|states/:entityId|services/:domain/:service|status`
-(GET/GET/POST/GET); `/` redirects to `publicBaseUrl`.
+`/api/homeassistant/entities?domain=climate|todo` (GET);
+`/api/homeassistant/states/:entityId` (GET, climate);
+`/api/homeassistant/todo/:entityId/items` (GET);
+`/api/homeassistant/services/:domain/:service` (POST);
+`/api/homeassistant/status` (GET);
+`/` redirects to `publicBaseUrl`.
 
 ## Home Assistant transport
 
@@ -98,6 +102,11 @@ directly. Two implementations ship:
 - the **relay** transport from [`@homeslate/relay`](/docs/packages/relay),
   injected as `homeAssistant: { transport }` — for a hosted API that reaches a
   home Home Assistant through a [LAN agent](/docs/packages/agent).
+
+To-do lists are an optional transport capability (`HomeAssistantTodoTransport`).
+The direct client implements it; the relay transport does not yet, so
+`domain=todo` requests against a relay answer `503` with an "unsupported" copy.
+`hasTodoSupport(transport)` narrows a transport to the ones that can serve them.
 
 `GET /api/homeassistant/status` reports `{ configured, transport, connected,
 haReachable }`, so a client can tell "not set up" from "agent disconnected":

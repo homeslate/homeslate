@@ -5,6 +5,10 @@ import {
   type HomeAssistantEntitySummary,
   type ThermostatState,
 } from "../widgets/homeAssistant";
+import {
+  homeAssistantTodoItemsUrl,
+  type HomeAssistantTodoItem,
+} from "../widgets/homeAssistantTodo";
 
 /** Thrown when a Home Assistant route responds with a non-OK status. */
 export class HomeAssistantHttpError extends Error {
@@ -27,19 +31,25 @@ async function readError(response: Response, fallback: string): Promise<string> 
   return fallback;
 }
 
-export async function fetchClimateEntities(
-  domain = "climate",
+export async function fetchHomeAssistantEntities(
+  domain: string,
+  failureCopy: string,
 ): Promise<HomeAssistantEntitySummary[]> {
   const response = await fetch(homeAssistantEntitiesUrl(domain));
   if (!response.ok) {
-    throw new HomeAssistantHttpError(
-      response.status,
-      await readError(response, "Failed to load thermostats"),
-    );
+    throw new HomeAssistantHttpError(response.status, await readError(response, failureCopy));
   }
   const body = (await response.json()) as { entities?: unknown };
   if (!Array.isArray(body.entities)) return [];
   return body.entities as HomeAssistantEntitySummary[];
+}
+
+export function fetchClimateEntities(domain = "climate"): Promise<HomeAssistantEntitySummary[]> {
+  return fetchHomeAssistantEntities(domain, "Failed to load thermostats");
+}
+
+export function fetchTodoEntities(): Promise<HomeAssistantEntitySummary[]> {
+  return fetchHomeAssistantEntities("todo", "Failed to load lists");
 }
 
 export async function fetchThermostat(entityId: string): Promise<ThermostatState> {
@@ -67,6 +77,37 @@ export async function callThermostatService(
     throw new HomeAssistantHttpError(
       response.status,
       await readError(response, "Failed to update thermostat"),
+    );
+  }
+}
+
+export async function fetchTodoItems(entityId: string): Promise<HomeAssistantTodoItem[]> {
+  const response = await fetch(homeAssistantTodoItemsUrl(entityId));
+  if (!response.ok) {
+    throw new HomeAssistantHttpError(
+      response.status,
+      await readError(response, "Failed to load list"),
+    );
+  }
+  const body = (await response.json()) as { items?: unknown };
+  if (!Array.isArray(body.items)) return [];
+  return body.items as HomeAssistantTodoItem[];
+}
+
+export async function callTodoService(
+  entityId: string,
+  service: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  const response = await fetch(homeAssistantServiceUrl("todo", service), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ entity_id: entityId, ...data }),
+  });
+  if (!response.ok) {
+    throw new HomeAssistantHttpError(
+      response.status,
+      await readError(response, "Failed to update list"),
     );
   }
 }

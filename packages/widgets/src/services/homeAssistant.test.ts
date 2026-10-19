@@ -2,8 +2,11 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 import {
   HomeAssistantHttpError,
   callThermostatService,
+  callTodoService,
   fetchClimateEntities,
   fetchThermostat,
+  fetchTodoEntities,
+  fetchTodoItems,
 } from "./homeAssistant";
 
 const originalFetch = globalThis.fetch;
@@ -94,5 +97,72 @@ describe("callThermostatService", () => {
     await expect(
       callThermostatService("climate.den", "set_hvac_mode", { hvac_mode: "cool" }),
     ).rejects.toBeInstanceOf(HomeAssistantHttpError);
+  });
+});
+
+describe("fetchTodoEntities", () => {
+  it("requests the todo domain and returns the list", async () => {
+    let requested = "";
+    globalThis.fetch = async (input) => {
+      requested = String(input);
+      return jsonResponse({ entities: [{ entityId: "todo.den", name: "Den", state: "1" }] });
+    };
+    const entities = await fetchTodoEntities();
+    expect(requested).toBe("/api/homeassistant/entities?domain=todo");
+    expect(entities).toHaveLength(1);
+  });
+
+  it("throws a 501 HttpError with the server copy", async () => {
+    globalThis.fetch = async () =>
+      jsonResponse(
+        { error: "Set HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server." },
+        501,
+      );
+    await expect(fetchTodoEntities()).rejects.toMatchObject({ status: 501 });
+  });
+});
+
+describe("fetchTodoItems", () => {
+  it("requests the encoded items url and returns the list", async () => {
+    let requested = "";
+    globalThis.fetch = async (input) => {
+      requested = String(input);
+      return jsonResponse({ items: [{ uid: "1", summary: "Milk", status: "needs_action" }] });
+    };
+    const items = await fetchTodoItems("todo.den");
+    expect(requested).toBe("/api/homeassistant/todo/todo.den/items");
+    expect(items).toEqual([{ uid: "1", summary: "Milk", status: "needs_action" }]);
+  });
+
+  it("returns an empty list when the body has no items", async () => {
+    globalThis.fetch = async () => jsonResponse({});
+    expect(await fetchTodoItems("todo.den")).toEqual([]);
+  });
+});
+
+describe("callTodoService", () => {
+  it("posts the entity id and data to the todo service url", async () => {
+    const calls: Array<{ url: string; method?: string; body: unknown }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({
+        url: String(input),
+        method: init?.method,
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+      });
+      return jsonResponse({ ok: true });
+    };
+    await callTodoService("todo.den", "add_item", { item: "Milk" });
+    expect(calls[0]).toEqual({
+      url: "/api/homeassistant/services/todo/add_item",
+      method: "POST",
+      body: { entity_id: "todo.den", item: "Milk" },
+    });
+  });
+
+  it("throws on failure", async () => {
+    globalThis.fetch = async () => jsonResponse({ error: "Home Assistant request failed" }, 502);
+    await expect(callTodoService("todo.den", "remove_item", { item: "1" })).rejects.toBeInstanceOf(
+      HomeAssistantHttpError,
+    );
   });
 });

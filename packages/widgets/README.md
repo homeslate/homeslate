@@ -51,12 +51,24 @@ Custom widgets: `registerWidget({ type, name, description, icon, component, defa
 
 ## Subpaths
 
-| Export                       | Role                                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `@homeslate/widgets`         | React registry + providers (registers built-ins)                                            |
-| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                                                 |
-| `@homeslate/widgets/server`  | Commute query parsing, NWS alert mapping, Home Assistant climate mapping, Google error copy |
-| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS                                           |
+| Export                       | Role                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `@homeslate/widgets`         | React registry + providers (registers built-ins)                                                    |
+| `@homeslate/widgets/schemas` | Node-safe Zod config schemas for validation                                                         |
+| `@homeslate/widgets/server`  | Commute query parsing, NWS alert mapping, Home Assistant climate + to-do mapping, Google error copy |
+| `@homeslate/widgets/styles`  | TypeStyles extract entry — import after VarUI CSS                                                   |
+
+## Home Assistant widgets
+
+The **Thermostat** widget and the **To-Do List** widget can talk to a Home
+Assistant instance. Set `homeAssistant: { baseUrl, token }` on
+`@homeslate/server` and the widgets reach it through the `/api/homeassistant/*`
+proxy — the long-lived token never reaches the browser.
+
+The To-Do List widget has a **List source** setting. `Local` keeps items in the
+display document (the default); `Home Assistant` binds the widget to one `todo.*`
+entity and reads/writes it in place, so checking items off on the kiosk updates
+Home Assistant and stays in sync everywhere.
 
 ## Host styles
 

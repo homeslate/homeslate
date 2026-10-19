@@ -45,6 +45,20 @@ export {
   mapClimateEntity,
 } from "./server/climateState";
 export {
+  TODO_EMPTY_COPY,
+  TODO_MISSING_CONFIG_COPY,
+  TODO_UNSUPPORTED_COPY,
+  homeAssistantTodoItemsUrl,
+} from "./widgets/homeAssistantTodo";
+export type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "./widgets/homeAssistantTodo";
+export {
+  TODO_WRITE_SERVICES,
+  buildTodoServicePayload,
+  isAllowedTodoService,
+  isValidTodoEntityId,
+  mapTodoItems,
+} from "./server/todoState";
+export {
   AGENT_METHODS,
   AGENT_PROTOCOL_VERSION,
   decodeAgentMessage,

@@ -120,6 +120,8 @@ export const todoConfigSchema = z.object({
     .optional(),
   hideCompleted: z.boolean().optional(),
   transparentBackground: z.boolean().optional(),
+  source: z.enum(["local", "homeAssistant"]).optional(),
+  entityId: z.string().optional(),
 });
 
 export const sportsConfigSchema = z.object({

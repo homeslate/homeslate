@@ -22,8 +22,12 @@ import {
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
   THERMOSTAT_MISSING_CONFIG_COPY,
+  TODO_MISSING_CONFIG_COPY,
+  TODO_UNSUPPORTED_COPY,
   isAllowedClimateService,
+  isAllowedTodoService,
   isValidClimateEntityId,
+  isValidTodoEntityId,
   parseCommuteQuery,
   type CommuteEstimate,
   type WeatherAlertsResponse,
@@ -36,7 +40,9 @@ import {
   HomeAssistantTransportError,
   createHomeAssistantClient,
   hasStatus,
+  hasTodoSupport,
   type HomeAssistantStatus,
+  type HomeAssistantTodoTransport,
   type HomeAssistantTransport,
 } from "./homeAssistant";
 import { fetchWeatherAlerts, parseWeatherAlertPoint } from "./weatherAlerts";
@@ -165,13 +171,43 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   });
 
   app.get("/api/homeassistant/entities", async (c) => {
-    if ((c.req.query("domain") ?? "climate") !== "climate") {
-      return c.json({ error: "Only the climate domain is supported" }, 400);
+    const domain = c.req.query("domain") ?? "climate";
+    if (domain !== "climate" && domain !== "todo") {
+      return c.json({ error: "Only the climate and todo domains are supported" }, 400);
     }
-    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+    if (!homeAssistant) {
+      return c.json(
+        { error: domain === "todo" ? TODO_MISSING_CONFIG_COPY : THERMOSTAT_MISSING_CONFIG_COPY },
+        501,
+      );
+    }
 
     try {
+      if (domain === "todo") {
+        if (!hasTodoSupport(homeAssistant)) {
+          return c.json({ error: TODO_UNSUPPORTED_COPY }, 503);
+        }
+        return c.json({ entities: await homeAssistant.listTodoEntities() });
+      }
       return c.json({ entities: await homeAssistant.listClimateEntities() });
+    } catch (error) {
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
+    }
+  });
+
+  app.get("/api/homeassistant/todo/:entityId/items", async (c) => {
+    const entityId = c.req.param("entityId");
+    if (!isValidTodoEntityId(entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: TODO_MISSING_CONFIG_COPY }, 501);
+    if (!hasTodoSupport(homeAssistant)) {
+      return c.json({ error: TODO_UNSUPPORTED_COPY }, 503);
+    }
+
+    try {
+      return c.json({ items: await homeAssistant.getTodoItems(entityId) });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);
@@ -197,11 +233,22 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   app.post("/api/homeassistant/services/:domain/:service", async (c) => {
     const domain = c.req.param("domain");
     const service = c.req.param("service");
-    if (domain !== "climate") return c.json({ error: "Only the climate domain is supported" }, 400);
-    if (!isAllowedClimateService(service)) {
+    if (domain !== "climate" && domain !== "todo") {
+      return c.json({ error: "Only the climate and todo domains are supported" }, 400);
+    }
+
+    const isClimate = domain === "climate";
+    if (isClimate ? !isAllowedClimateService(service) : !isAllowedTodoService(service)) {
       return c.json({ error: "Unsupported service" }, 400);
     }
-    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+    const missingConfigCopy = isClimate ? THERMOSTAT_MISSING_CONFIG_COPY : TODO_MISSING_CONFIG_COPY;
+    if (!homeAssistant) return c.json({ error: missingConfigCopy }, 501);
+
+    const todoTransport: HomeAssistantTodoTransport | null =
+      !isClimate && hasTodoSupport(homeAssistant) ? homeAssistant : null;
+    if (!isClimate && !todoTransport) {
+      return c.json({ error: TODO_UNSUPPORTED_COPY }, 503);
+    }
 
     let body: Record<string, unknown>;
     try {
@@ -210,12 +257,17 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       return c.json({ error: "Invalid JSON" }, 400);
     }
     const entityId = typeof body.entity_id === "string" ? body.entity_id : "";
-    if (!isValidClimateEntityId(entityId)) {
+    const isValidEntityId = isClimate ? isValidClimateEntityId : isValidTodoEntityId;
+    if (!isValidEntityId(entityId)) {
       return c.json({ error: "Invalid entity id" }, 400);
     }
 
     try {
-      await homeAssistant.callClimateService(service, entityId, body);
+      if (isClimate) {
+        await homeAssistant.callClimateService(service, entityId, body);
+      } else if (todoTransport) {
+        await todoTransport.callTodoService(service, entityId, body);
+      }
       return c.json({ ok: true });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
