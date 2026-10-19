@@ -231,13 +231,16 @@ docker compose down -v
 - **Commute widget.** Add `OPENROUTESERVICE_API_KEY` to `.env` and
   rebuild. The free tier at openrouteservice.org is enough for a
   homelab.
-- **Home Assistant thermostat.** Add `HOMEASSISTANT_BASE_URL` and
+- **Home Assistant widgets.** Add `HOMEASSISTANT_BASE_URL` and
   `HOMEASSISTANT_TOKEN` to `.env` and rebuild. The token comes from your
   Home Assistant profile (Security → Long-lived access tokens). The URL
   must be reachable from _inside the container_: `homeassistant.local`
   (mDNS) usually isn't, so use the host's LAN IP and port, e.g.
   `http://192.168.1.20:8123`. The token stays in the API process — the
-  browser only ever talks to `/api/homeassistant/*`.
+  browser only ever talks to `/api/homeassistant/*`. This enables the whole
+  widget family (climate, sensors, devices, covers, security, media, camera,
+  energy, updates, and more). Image artwork and History need the direct
+  connection; relay mode serves placeholders / `501` for them for now.
 - **Home Assistant from a remote API.** If the API runs somewhere other
   than the home network but Home Assistant stays home, run
   `@homeslate/agent` on the LAN instead of using `HOMEASSISTANT_BASE_URL`.

@@ -2,14 +2,27 @@
 
 Connects a home network's Home Assistant to a hosted homeslate API over an
 **outbound** WebSocket. The hosted API can't reach `homeassistant.local`, so a
-small process on the LAN dials out and answers the few Home Assistant calls the
-thermostat widget needs.
+small process on the LAN dials out and answers the generic Home Assistant entity
+and service calls used by every Home Assistant widget.
 
 - Nothing listens on the LAN — the agent opens the socket to the relay.
 - The Home Assistant long-lived token stays on the agent and is never sent to the
   relay or the cloud.
 - Self-hosted installs that run the API on the same LAN don't need this; they use
   `@homeslate/server`'s direct transport.
+
+## Protocol v2
+
+The agent speaks one generic trio: `entities.list`, `entity.get`, and
+`service.call`. It advertises the domains it can serve in its `hello` (sourced
+from `knownDomains()`) and validates every request against the
+`@homeslate/widgets/server` registry before touching Home Assistant. The relay
+validates the same request again before forwarding it, so an unknown domain,
+entity id, service, or data key never reaches the LAN.
+
+The optional `fetchImage` and `history` transport methods are direct-mode only
+today; they are not in the agent protocol yet. Relay mode uses placeholder
+artwork and returns `501` for the History widget.
 
 ## Usage
 

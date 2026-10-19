@@ -89,6 +89,10 @@ so binding `0.0.0.0` inside the container does not expose the API to the LAN.
 `/api/homeassistant/entities?domain=…` (GET);
 `/api/homeassistant/states/:entityId` (GET);
 `/api/homeassistant/todo/:entityId/items` (GET);
+`/api/homeassistant/weather/:entityId/forecast` (GET);
+`/api/homeassistant/calendar/:entityId/events` (GET);
+`/api/homeassistant/history/:entityId?hours=…` (GET);
+`/api/homeassistant/image?path=…` (GET);
 `/api/homeassistant/services/:domain/:service` (POST);
 `/api/homeassistant/status` (GET);
 `/` redirects to `publicBaseUrl`.
@@ -96,10 +100,10 @@ so binding `0.0.0.0` inside the container does not expose the API to the LAN.
 ## Home Assistant transport
 
 `/api/homeassistant/*` depends on a `HomeAssistantTransport`, not on `fetch`
-directly. It is a generic three-method seam — `listEntities(domain)`,
-`getEntity(entityId)`, `callService(domain, service, entityId, data, options?)`
-— gated by the domain registry in `@homeslate/widgets/server`. Two
-implementations ship:
+directly. The core seam is generic — `listEntities(domain)`,
+`getEntity(entityId)`, and `callService(domain, service, entityId, data,
+options?)` — with optional `fetchImage(path)` and `history(entityId, hours)`
+methods. Two implementations ship:
 
 - the built-in **direct** client, configured with `homeAssistant: { baseUrl, token }`;
 - the **relay** transport from [`@homeslate/relay`](/docs/packages/relay),
@@ -107,10 +111,41 @@ implementations ship:
   home Home Assistant through a [LAN agent](/docs/packages/agent).
 
 Because the transport is domain-agnostic, adding a widget means adding a
-registry entry (entity-id shape, allowed services, allowed data keys, optional
-mapper) — the same entry drives the routes, the relay, and the agent. Validation
-runs on all three, so an unknown domain, service, or data key never reaches Home
+registry entry, not a transport method. Validation runs on all three (routes,
+relay, agent), so an unknown domain, service, or data key never reaches Home
 Assistant.
+
+### Domain registry
+
+The allowlist lives in `@homeslate/widgets/server`. A `DomainSpec` declares the
+domain, its entity-id regex, allowed services and data keys, an optional payload
+builder, and an optional mapper. The same registry drives the routes, the widget
+settings pickers, the relay, and the agent.
+
+```ts
+import { registerDomainSpec } from "@homeslate/widgets/server";
+
+registerDomainSpec({
+  domain: "example",
+  entityId: /^example\.[a-z0-9_]+$/,
+  services: { turn_on: [], set_value: ["value"] },
+});
+```
+
+Exported helpers: `registerDomainSpec`, `getDomainSpec`, `knownDomains`,
+`isKnownDomain`, `entityDomain`, `isValidEntityId`, `isAllowedService`,
+`buildServicePayload`, and `mapEntity`.
+
+### Images and history
+
+- `GET /api/homeassistant/image?path=…` accepts only
+  `/api/media_player_proxy/…` and `/api/camera_proxy/…`, rejects URL tricks,
+  injects the Home Assistant token, caps images at 5 MB, and caches for 60s.
+  A camera cache-busting `t` parameter bypasses the proxy cache for fresh frames.
+- `GET /api/homeassistant/history/:entityId?hours=…` accepts a 1–168 hour
+  window, maps numeric points, and downsamples to 240 points. It calls the
+  optional transport `history` method, so it needs the **direct** client today;
+  relay transports answer `501` until they add image/history support.
 
 `GET /api/homeassistant/status` reports `{ configured, transport, connected,
 haReachable }`, so a client can tell "not set up" from "agent disconnected":

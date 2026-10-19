@@ -6,8 +6,8 @@ description: Runtime-agnostic relay that forwards homeslate API Home Assistant c
 # @homeslate/relay
 
 The cloud side of the [agent](/docs/packages/agent) bridge. It tracks one live
-agent per account and forwards the `/api/homeassistant/*` calls down that agent's
-socket.
+agent per account and forwards the generic `/api/homeassistant/*` entity and
+service calls down that agent's socket.
 
 The package is **runtime-agnostic**: it never touches a WebSocket library. You
 bind it to your runtime (Node, a Durable Object, anything) and hand its transport
@@ -46,6 +46,19 @@ socket is closed.
 `@homeslate/server`) with a `status()` that reports `connected`. When no agent is
 connected, requests reject with a `503` "agent offline" error, which the routes
 surface as `503`; a timeout becomes `504`.
+
+## Protocol v2
+
+The relay forwards only `entities.list`, `entity.get`, and `service.call`. It
+re-validates every domain, entity id, service, and data key against the
+`@homeslate/widgets/server` registry before touching the socket; the agent
+validates again before calling Home Assistant. The agent's `hello` advertises the
+domains it serves, and a protocol mismatch or an out-of-scope request is rejected
+without a round trip.
+
+The optional `fetchImage` and `history` transport methods are direct-mode only
+today. Relay mode therefore serves media-artwork placeholders and returns `501`
+for the History widget until image/history methods are added to the protocol.
 
 ## Runtime-agnostic core
 
