@@ -512,3 +512,60 @@ describe("the phase 4 data and niche domains", () => {
     ).toMatchObject({ state: "mowing", available: true });
   });
 });
+describe("the phase 5 notify and TTS domains", () => {
+  it("knows the notification and TTS targets", () => {
+    expect(isKnownDomain("notify")).toBe(true);
+    expect(isKnownDomain("tts")).toBe(true);
+  });
+
+  it("allowlists their services", () => {
+    expect(isAllowedService("notify", "send_message")).toBe(true);
+    expect(isAllowedService("notify", "reload")).toBe(false);
+    expect(isAllowedService("tts", "speak")).toBe(true);
+    expect(isAllowedService("tts", "stop")).toBe(false);
+  });
+
+  it("validates their entity ids", () => {
+    expect(isValidEntityId("notify", "notify.kitchen")).toBe(true);
+    expect(isValidEntityId("notify", "tts.home")).toBe(false);
+    expect(isValidEntityId("tts", "tts.home")).toBe(true);
+    expect(isValidEntityId("tts", "notify.kitchen")).toBe(false);
+  });
+
+  it("builds their service payloads", () => {
+    expect(
+      buildServicePayload("notify", "send_message", "notify.kitchen", {
+        message: "Dinner",
+        title: "Kitchen",
+        junk: true,
+      }),
+    ).toEqual({ entity_id: "notify.kitchen", message: "Dinner", title: "Kitchen" });
+    expect(
+      buildServicePayload("tts", "speak", "tts.home", {
+        message: "Welcome home",
+        media_player_entity_id: "media_player.kitchen",
+      }),
+    ).toEqual({
+      entity_id: "tts.home",
+      message: "Welcome home",
+      media_player_entity_id: "media_player.kitchen",
+    });
+  });
+
+  it("maps them through the generic entity shape", () => {
+    expect(
+      mapEntity("notify", {
+        entity_id: "notify.kitchen",
+        state: "ok",
+        attributes: { friendly_name: "Kitchen Notifications" },
+      }),
+    ).toMatchObject({ entityId: "notify.kitchen", name: "Kitchen Notifications", state: "ok" });
+    expect(
+      mapEntity("tts", {
+        entity_id: "tts.home",
+        state: "idle",
+        attributes: {},
+      }),
+    ).toMatchObject({ entityId: "tts.home", state: "idle" });
+  });
+});

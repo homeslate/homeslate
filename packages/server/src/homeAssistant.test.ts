@@ -47,6 +47,7 @@ describe("/api/homeassistant", () => {
     const hono = await app();
     expect((await hono.request("/api/homeassistant/entities?domain=climate")).status).toBe(501);
     expect((await hono.request("/api/homeassistant/states/climate.living_room")).status).toBe(501);
+    expect((await hono.request("/api/homeassistant/history/sensor.outdoor")).status).toBe(501);
     expect(
       (
         await hono.request("/api/homeassistant/services/climate/set_temperature", {
@@ -427,6 +428,21 @@ describe("/api/homeassistant", () => {
       connected: false,
       haReachable: false,
     });
+  });
+
+  it("returns 501 for history when the transport cannot provide it", async () => {
+    const hono = await app({
+      transport: {
+        async listEntities() {
+          return [];
+        },
+        async getEntity() {
+          return null;
+        },
+        async callService() {},
+      },
+    });
+    expect((await hono.request("/api/homeassistant/history/sensor.outdoor")).status).toBe(501);
   });
 });
 

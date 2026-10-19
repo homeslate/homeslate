@@ -2,8 +2,10 @@ import {
   buildServicePayload,
   isKnownDomain,
   isValidEntityId,
+  mapHistoryPoints,
   mapHomeAssistantState,
   type HomeAssistantEntitySummary,
+  type HomeAssistantHistoryPoint,
   type HomeAssistantState,
 } from "@homeslate/widgets/server";
 import {
@@ -87,6 +89,11 @@ export type HomeAssistantTransport = {
    * may add it later.
    */
   fetchImage?(path: string): Promise<HomeAssistantImage>;
+  /**
+   * Fetch numeric history for one entity over the last `hours`. Direct LAN
+   * transports implement this; relay transports may add it later.
+   */
+  history?(entityId: string, hours: number): Promise<HomeAssistantHistoryPoint[]>;
 };
 
 /** @deprecated Use {@link HomeAssistantTransport}. */
@@ -212,6 +219,19 @@ export function createHomeAssistantClient(
         contentType: response.headers.get("content-type") ?? "application/octet-stream",
         body: await response.arrayBuffer(),
       };
+    },
+
+    async history(entityId, hours) {
+      const start = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+      const response = await request(
+        `/api/history/period/${encodeURIComponent(start)}?filter_entity_id=${encodeURIComponent(
+          entityId,
+        )}&minimal_response&no_attributes`,
+      );
+      if (!response.ok) {
+        throw new HomeAssistantError(response.status, "Home Assistant history request failed");
+      }
+      return mapHistoryPoints(await response.json().catch(() => null), entityId);
     },
   };
 }

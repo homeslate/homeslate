@@ -8,6 +8,8 @@ import {
   type ThermostatState,
 } from "../widgets/homeAssistant";
 import type { HomeAssistantCalendarEvent } from "../widgets/homeAssistantCalendar";
+import type { HomeAssistantHistoryPoint } from "../widgets/homeAssistantHistory";
+import { historyApiUrl } from "../widgets/homeAssistantHistory";
 import type { HomeAssistantWeatherForecast } from "../widgets/homeAssistantWeather";
 import {
   homeAssistantTodoItemsUrl,
@@ -156,4 +158,18 @@ export async function fetchHomeAssistantCalendarEvents(
   }
   const body = (await response.json()) as { events?: unknown };
   return Array.isArray(body.events) ? (body.events as HomeAssistantCalendarEvent[]) : [];
+}
+
+/** Fetch numeric history for one entity over the last `hours`. */
+export async function fetchHomeAssistantHistory(
+  entityId: string,
+  hours: number,
+  failureCopy: string,
+): Promise<HomeAssistantHistoryPoint[]> {
+  const response = await fetch(historyApiUrl(entityId, hours));
+  if (!response.ok) {
+    throw new HomeAssistantHttpError(response.status, await readError(response, failureCopy));
+  }
+  const body = (await response.json()) as { points?: unknown };
+  return Array.isArray(body.points) ? (body.points as HomeAssistantHistoryPoint[]) : [];
 }

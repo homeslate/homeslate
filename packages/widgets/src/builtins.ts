@@ -41,6 +41,10 @@ import type { EnergyConfig } from "./widgets/EnergyWidget";
 import type { CameraConfig } from "./widgets/CameraWidget";
 import type { UpdatesConfig } from "./widgets/UpdatesWidget";
 import type { LawnMowerConfig } from "./widgets/LawnMowerWidget";
+import type { EntityTileConfig } from "./widgets/EntityTileWidget";
+import type { RoomConfig } from "./widgets/RoomWidget";
+import type { NotifyConfig } from "./widgets/NotifyWidget";
+import type { HistoryConfig } from "./widgets/HistoryWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -77,6 +81,10 @@ import {
   cameraConfigSchema,
   updatesConfigSchema,
   lawnMowerConfigSchema,
+  entityTileConfigSchema,
+  roomConfigSchema,
+  notifyConfigSchema,
+  historyConfigSchema,
   sportsConfigSchema,
   stocksConfigSchema,
   timersConfigSchema,
@@ -125,6 +133,7 @@ import {
   IconCamera,
   IconDownload,
   IconLawnMower,
+  IconBell,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -419,6 +428,34 @@ const LawnMowerWidget = lazy(() =>
 );
 const LawnMowerWidgetSettings = lazy(() =>
   import("./widgets/LawnMowerWidget").then((m) => ({ default: m.LawnMowerWidgetSettings })),
+);
+
+const EntityTileWidget = lazy(() =>
+  import("./widgets/EntityTileWidget").then((m) => ({ default: m.EntityTileWidget })),
+);
+const EntityTileWidgetSettings = lazy(() =>
+  import("./widgets/EntityTileWidget").then((m) => ({ default: m.EntityTileWidgetSettings })),
+);
+
+const RoomWidget = lazy(() =>
+  import("./widgets/RoomWidget").then((m) => ({ default: m.RoomWidget })),
+);
+const RoomWidgetSettings = lazy(() =>
+  import("./widgets/RoomWidget").then((m) => ({ default: m.RoomWidgetSettings })),
+);
+
+const NotifyWidget = lazy(() =>
+  import("./widgets/NotifyWidget").then((m) => ({ default: m.NotifyWidget })),
+);
+const NotifyWidgetSettings = lazy(() =>
+  import("./widgets/NotifyWidget").then((m) => ({ default: m.NotifyWidgetSettings })),
+);
+
+const HistoryWidget = lazy(() =>
+  import("./widgets/HistoryWidget").then((m) => ({ default: m.HistoryWidget })),
+);
+const HistoryWidgetSettings = lazy(() =>
+  import("./widgets/HistoryWidget").then((m) => ({ default: m.HistoryWidgetSettings })),
 );
 
 // Clock Widget
@@ -1241,3 +1278,76 @@ const lawnMowerEntry: WidgetRegistryEntry<LawnMowerConfig> = {
   defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
 };
 registerWidget(lawnMowerEntry);
+
+const entityTileEntry: WidgetRegistryEntry<EntityTileConfig> = {
+  type: "entity-tile",
+  name: "Entity Tile",
+  description: "Bind any Home Assistant entity with its primary control",
+  configSchema: entityTileConfigSchema,
+  icon: IconLayoutGrid,
+  component: EntityTileWidget,
+  settingsComponent: EntityTileWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    label: "",
+    showControls: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(entityTileEntry);
+
+const roomEntry: WidgetRegistryEntry<RoomConfig> = {
+  type: "room",
+  name: "Room",
+  description: "Group a room's lights, switches, and covers",
+  configSchema: roomConfigSchema,
+  icon: IconHome,
+  component: RoomWidget,
+  settingsComponent: RoomWidgetSettings,
+  defaultConfig: {
+    name: "",
+    entityIds: [],
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(roomEntry);
+
+const notifyEntry: WidgetRegistryEntry<NotifyConfig> = {
+  type: "notify",
+  name: "Notify",
+  description: "Send a notification or spoken announcement through Home Assistant",
+  configSchema: notifyConfigSchema,
+  icon: IconBell,
+  component: NotifyWidget,
+  settingsComponent: NotifyWidgetSettings,
+  defaultConfig: {
+    mode: "notify",
+    notifyEntityId: "",
+    ttsEntityId: "",
+    mediaPlayerEntityId: "",
+    title: "",
+    defaultMessage: "",
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(notifyEntry);
+
+const historyEntry: WidgetRegistryEntry<HistoryConfig> = {
+  type: "history",
+  name: "History",
+  description: "A numeric sensor reading with a recent-history sparkline",
+  configSchema: historyConfigSchema,
+  icon: IconChartLine,
+  component: HistoryWidget,
+  settingsComponent: HistoryWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    hours: 24,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(historyEntry);

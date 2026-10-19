@@ -353,3 +353,16 @@ registerDomainSpec({
   services: { start_pause: [], dock: [], stop: [] },
   map: mapLawnMowerEntity,
 });
+
+/** Notification and TTS targets use the generic mapped entity shape. */
+registerDomainSpec({
+  domain: "notify",
+  entityId: /^notify\.[a-z0-9_]+$/,
+  services: { send_message: ["message", "title"] },
+});
+
+registerDomainSpec({
+  domain: "tts",
+  entityId: /^tts\.[a-z0-9_]+$/,
+  services: { speak: ["media_player_entity_id", "message"] },
+});

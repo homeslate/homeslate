@@ -337,6 +337,35 @@ export const lawnMowerConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+export const entityTileConfigSchema = z.object({
+  entityId: z.string().optional(),
+  label: z.string().optional(),
+  showControls: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const roomConfigSchema = z.object({
+  name: z.string().optional(),
+  entityIds: z.array(z.string()).optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const notifyConfigSchema = z.object({
+  mode: z.enum(["notify", "tts"]).optional(),
+  notifyEntityId: z.string().optional(),
+  ttsEntityId: z.string().optional(),
+  mediaPlayerEntityId: z.string().optional(),
+  title: z.string().optional(),
+  defaultMessage: z.string().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const historyConfigSchema = z.object({
+  entityId: z.string().optional(),
+  hours: z.number().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const countdownConfigSchema = z.object({
   target: z.string().optional(),
   allDay: z.boolean().optional(),
@@ -436,6 +465,10 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   camera: cameraConfigSchema,
   updates: updatesConfigSchema,
   "lawn-mower": lawnMowerConfigSchema,
+  "entity-tile": entityTileConfigSchema,
+  room: roomConfigSchema,
+  notify: notifyConfigSchema,
+  history: historyConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

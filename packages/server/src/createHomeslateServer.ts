@@ -22,8 +22,11 @@ import {
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
   HA_MISSING_CONFIG_COPY,
+  HISTORY_HOURS_DEFAULT,
+  HISTORY_UNAVAILABLE_COPY,
   THERMOSTAT_MISSING_CONFIG_COPY,
   TODO_MISSING_CONFIG_COPY,
+  clampHistoryHours,
   entityDomain,
   isAllowedService,
   isKnownDomain,
@@ -296,6 +299,27 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
         { returnResponse: true },
       );
       return c.json({ events: mapCalendarEvents(result, entityId) });
+    } catch (error) {
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
+    }
+  });
+
+  app.get("/api/homeassistant/history/:entityId", async (c) => {
+    const entityId = c.req.param("entityId");
+    const domain = entityDomain(entityId);
+    if (!domain || !isKnownDomain(domain) || !isValidEntityId(domain, entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: HA_MISSING_CONFIG_COPY }, 501);
+    if (!homeAssistant.history) {
+      return c.json({ error: HISTORY_UNAVAILABLE_COPY }, 501);
+    }
+
+    const requested = Number(c.req.query("hours") ?? String(HISTORY_HOURS_DEFAULT));
+    const hours = clampHistoryHours(requested);
+    try {
+      return c.json({ points: await homeAssistant.history(entityId, hours) });
     } catch (error) {
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);
