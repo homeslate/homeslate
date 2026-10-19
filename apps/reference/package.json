@@ -6,6 +6,8 @@
     "dev": "node --import tsx src/server/dev.ts",
     "dev:api": "node --import tsx --watch --watch-path ../../packages src/server/dev-api.ts",
     "dev:web": "vp dev",
+    "dev:mock": "node --import tsx src/server/dev-mock.ts",
+    "dev:mock-ha": "node --import tsx src/server/mock-home-assistant.ts",
     "build:web": "vp build",
     "start": "node --import tsx src/server/listen.ts"
   },
