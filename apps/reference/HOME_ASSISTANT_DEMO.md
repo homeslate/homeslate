@@ -71,6 +71,20 @@ docker compose logs -f home-assistant
 Wait until the log says Home Assistant is running, then open
 <http://127.0.0.1:8123>.
 
+### macOS notes
+
+- Start **Docker Desktop** before running either command.
+- The official `stable` image is multi-arch; Apple Silicon Macs use the arm64
+  image automatically. No `--platform` flag is usually needed.
+- If Docker Desktop asks for file sharing, allow the folder containing
+  `ha-demo-config/` (the repo folder is fine).
+- First boot can take 1–2 minutes on a laptop. Watch progress with
+  `docker compose logs -f home-assistant` or `docker logs -f homeslate-ha-demo`.
+- From the Mac host, use `http://127.0.0.1:8123` for homeslate. From a
+  containerized homeslate, use `http://host.docker.internal:8123`.
+- Port `8123` must be free. If another HA instance already uses it, change the
+  host side of the mapping to `8124:8123` and use port `8124` in the URLs.
+
 ## 3. Complete onboarding and create a token
 
 1. On first launch, create the owner account in the Home Assistant onboarding
