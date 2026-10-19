@@ -139,7 +139,7 @@ describe("homeslate agent", () => {
       }),
     );
     ws.open();
-    ws.receive({ type: "request", id: "r1", method: "entities.list", params: { domain: "light" } });
+    ws.receive({ type: "request", id: "r1", method: "entities.list", params: { domain: "weird" } });
     await flush();
     expect(ws.lastSent()).toMatchObject({ type: "response", id: "r1", ok: false, status: 400 });
     expect(calls).toEqual([]);

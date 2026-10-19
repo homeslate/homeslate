@@ -26,13 +26,13 @@ describe("entityDomain", () => {
   });
 });
 
-describe("the climate + todo registry", () => {
-  it("knows only the seeded domains", () => {
+describe("the seeded domain registry", () => {
+  it("knows the seeded domains", () => {
     expect(isKnownDomain("climate")).toBe(true);
     expect(isKnownDomain("todo")).toBe(true);
-    expect(isKnownDomain("light")).toBe(false);
+    expect(isKnownDomain("light")).toBe(true);
     expect(isKnownDomain("weird")).toBe(false);
-    expect(knownDomains()).toEqual(expect.arrayContaining(["climate", "todo"]));
+    expect(knownDomains()).toEqual(expect.arrayContaining(["climate", "todo", "light"]));
   });
 
   it("validates entity ids per domain", () => {
@@ -42,7 +42,8 @@ describe("the climate + todo registry", () => {
     expect(isValidEntityId("climate", "climate../x")).toBe(false);
     expect(isValidEntityId("todo", "todo.shopping_list")).toBe(true);
     expect(isValidEntityId("todo", "climate.living_room")).toBe(false);
-    expect(isValidEntityId("light", "light.kitchen")).toBe(false);
+    expect(isValidEntityId("light", "light.kitchen")).toBe(true);
+    expect(isValidEntityId("light", "switch.kitchen")).toBe(false);
   });
 
   it("allowlists services per domain", () => {
@@ -51,7 +52,8 @@ describe("the climate + todo registry", () => {
     expect(isAllowedService("todo", "add_item")).toBe(true);
     expect(isAllowedService("todo", "remove_item")).toBe(true);
     expect(isAllowedService("todo", "reload")).toBe(false);
-    expect(isAllowedService("light", "turn_on")).toBe(false);
+    expect(isAllowedService("light", "turn_on")).toBe(true);
+    expect(isAllowedService("light", "reload")).toBe(false);
   });
 
   it("delegates payload building to the domain and drops unknown keys", () => {
@@ -198,6 +200,104 @@ describe("the phase 1 widget domains", () => {
       entity_id: "calendar.home",
       start_date_time: "2026-10-19T00:00:00Z",
       end_date_time: "2026-10-26T00:00:00Z",
+    });
+  });
+});
+
+describe("the phase 2 device and cover domains", () => {
+  it("knows the on/off device family and covers", () => {
+    for (const domain of ["light", "switch", "input_boolean", "fan", "cover"]) {
+      expect(isKnownDomain(domain), domain).toBe(true);
+    }
+  });
+
+  it("allowlists device and cover services", () => {
+    expect(isAllowedService("light", "turn_on")).toBe(true);
+    expect(isAllowedService("light", "turn_off")).toBe(true);
+    expect(isAllowedService("switch", "toggle")).toBe(true);
+    expect(isAllowedService("fan", "turn_on")).toBe(true);
+    expect(isAllowedService("cover", "open_cover")).toBe(true);
+    expect(isAllowedService("cover", "close_cover")).toBe(true);
+    expect(isAllowedService("cover", "stop_cover")).toBe(true);
+    expect(isAllowedService("cover", "set_cover_position")).toBe(true);
+    expect(isAllowedService("cover", "set_position")).toBe(false);
+    expect(isAllowedService("light", "reload")).toBe(false);
+  });
+
+  it("validates device and cover entity ids", () => {
+    expect(isValidEntityId("light", "light.kitchen")).toBe(true);
+    expect(isValidEntityId("light", "switch.kitchen")).toBe(false);
+    expect(isValidEntityId("input_boolean", "input_boolean.guest_mode")).toBe(true);
+    expect(isValidEntityId("cover", "cover.garage_door")).toBe(true);
+    expect(isValidEntityId("cover", "light.kitchen")).toBe(false);
+  });
+
+  it("builds device payloads and drops keys the domain does not accept", () => {
+    expect(
+      buildServicePayload("light", "turn_on", "light.kitchen", {
+        brightness_pct: 40,
+        transition: 2,
+        junk: true,
+      }),
+    ).toEqual({ entity_id: "light.kitchen", brightness_pct: 40, transition: 2 });
+    expect(buildServicePayload("light", "turn_off", "light.kitchen", {})).toEqual({
+      entity_id: "light.kitchen",
+    });
+    expect(
+      buildServicePayload("switch", "turn_on", "switch.kettle", { brightness_pct: 40 }),
+    ).toEqual({ entity_id: "switch.kettle" });
+    expect(buildServicePayload("fan", "toggle", "fan.bedroom", {})).toEqual({
+      entity_id: "fan.bedroom",
+    });
+  });
+
+  it("builds cover payloads, including a clamped pass-through position", () => {
+    expect(buildServicePayload("cover", "open_cover", "cover.garage", {})).toEqual({
+      entity_id: "cover.garage",
+    });
+    expect(
+      buildServicePayload("cover", "set_cover_position", "cover.blind", {
+        position: 30,
+        junk: true,
+      }),
+    ).toEqual({ entity_id: "cover.blind", position: 30 });
+    expect(buildServicePayload("cover", "set_cover_position", "cover.blind", {})).toEqual({
+      entity_id: "cover.blind",
+    });
+  });
+
+  it("maps devices and covers through their mappers", () => {
+    expect(
+      mapEntity("light", {
+        entity_id: "light.kitchen",
+        state: "on",
+        attributes: { friendly_name: "Kitchen", brightness: 128, supported_features: 41 },
+      }),
+    ).toMatchObject({
+      entityId: "light.kitchen",
+      domain: "light",
+      isOn: true,
+      brightnessPct: 50,
+      control: "brightness",
+    });
+
+    expect(
+      mapEntity("cover", {
+        entity_id: "cover.garage",
+        state: "open",
+        attributes: {
+          friendly_name: "Garage",
+          device_class: "garage",
+          current_position: 62,
+          supported_features: 15,
+        },
+      }),
+    ).toMatchObject({
+      entityId: "cover.garage",
+      state: "open",
+      position: 62,
+      isGarage: true,
+      available: true,
     });
   });
 });

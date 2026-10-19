@@ -254,6 +254,21 @@ export const presenceConfigSchema = z.object({
   transparentBackground: z.boolean().optional(),
 });
 
+export const devicesConfigSchema = z.object({
+  domains: z.array(z.enum(["light", "switch", "input_boolean", "fan"])).optional(),
+  entityIds: z.array(z.string()).optional(),
+  showBrightness: z.boolean().optional(),
+  columns: z.number().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
+export const coversConfigSchema = z.object({
+  entityIds: z.array(z.string()).optional(),
+  showPositionSlider: z.boolean().optional(),
+  confirmGarage: z.boolean().optional(),
+  transparentBackground: z.boolean().optional(),
+});
+
 export const countdownConfigSchema = z.object({
   target: z.string().optional(),
   allDay: z.boolean().optional(),
@@ -340,6 +355,8 @@ export const BUILTIN_WIDGET_CONFIG_SCHEMAS: Record<string, z.ZodType> = {
   sensors: sensorsConfigSchema,
   scenes: scenesConfigSchema,
   presence: presenceConfigSchema,
+  devices: devicesConfigSchema,
+  covers: coversConfigSchema,
 };
 
 export function registerBuiltInWidgetConfigSchemas(): void {

@@ -57,10 +57,10 @@ describe("/api/homeassistant", () => {
     ).toBe(501);
   });
 
-  it("rejects non-climate domains and bad entity ids before fetching", async () => {
+  it("rejects unknown domains and bad entity ids before fetching", async () => {
     const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
-    expect((await hono.request("/api/homeassistant/entities?domain=light")).status).toBe(400);
-    expect((await hono.request("/api/homeassistant/states/light.kitchen")).status).toBe(400);
+    expect((await hono.request("/api/homeassistant/entities?domain=weird")).status).toBe(400);
+    expect((await hono.request("/api/homeassistant/states/weird.thing")).status).toBe(400);
     expect((await hono.request("/api/homeassistant/states/climate.LivingRoom")).status).toBe(400);
   });
 

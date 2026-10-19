@@ -15,7 +15,7 @@ export type UseEntitiesResult = {
   isLoading: boolean;
   error: string | null;
   status: number | null;
-  refresh: () => void;
+  refresh: () => Promise<void>;
 };
 
 /**
@@ -106,7 +106,7 @@ export type UseEntityListResult<T> = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
-  refresh: () => void;
+  refresh: () => Promise<void>;
 };
 
 /**
@@ -207,7 +207,7 @@ export type UseEntityResult<T> = {
   status: number | null;
   lastUpdated: number | null;
   pending: boolean;
-  refresh: () => void;
+  refresh: () => Promise<void>;
   /** Call a service on this entity, with an optional optimistic merge + refresh. */
   call: (
     service: string,
