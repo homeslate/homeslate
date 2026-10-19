@@ -30,6 +30,12 @@ import type { ScenesConfig } from "./widgets/ScenesWidget";
 import type { PresenceConfig } from "./widgets/PresenceWidget";
 import type { DevicesConfig } from "./widgets/DevicesWidget";
 import type { CoversConfig } from "./widgets/CoversWidget";
+import type { SecurityConfig } from "./widgets/SecurityWidget";
+import type { MediaPlayerConfig } from "./widgets/MediaPlayerWidget";
+import type { FanConfig } from "./widgets/FanWidget";
+import type { VacuumConfig } from "./widgets/VacuumWidget";
+import type { HumidifierConfig } from "./widgets/HumidifierWidget";
+import type { WaterHeaterConfig } from "./widgets/WaterHeaterWidget";
 import { DEFAULT_ROUTINE_STEPS } from "./widgets/dailyRoutine";
 import {
   alarmsConfigSchema,
@@ -55,6 +61,12 @@ import {
   sensorsConfigSchema,
   devicesConfigSchema,
   coversConfigSchema,
+  securityConfigSchema,
+  mediaPlayerConfigSchema,
+  fanConfigSchema,
+  vacuumConfigSchema,
+  humidifierConfigSchema,
+  waterHeaterConfigSchema,
   sportsConfigSchema,
   stocksConfigSchema,
   timersConfigSchema,
@@ -92,6 +104,12 @@ import {
   IconUsers,
   IconBulb,
   IconCarGarage,
+  IconShieldLock,
+  IconDeviceTv,
+  IconWind,
+  IconRobot,
+  IconDroplet,
+  IconFlame,
 } from "@tabler/icons-react";
 
 // Lazy-load widget components so each widget's bundle is only fetched when
@@ -311,6 +329,46 @@ const CoversWidget = lazy(() =>
 );
 const CoversWidgetSettings = lazy(() =>
   import("./widgets/CoversWidget").then((m) => ({ default: m.CoversWidgetSettings })),
+);
+
+const SecurityWidget = lazy(() =>
+  import("./widgets/SecurityWidget").then((m) => ({ default: m.SecurityWidget })),
+);
+const SecurityWidgetSettings = lazy(() =>
+  import("./widgets/SecurityWidget").then((m) => ({ default: m.SecurityWidgetSettings })),
+);
+
+const MediaPlayerWidget = lazy(() =>
+  import("./widgets/MediaPlayerWidget").then((m) => ({ default: m.MediaPlayerWidget })),
+);
+const MediaPlayerWidgetSettings = lazy(() =>
+  import("./widgets/MediaPlayerWidget").then((m) => ({ default: m.MediaPlayerWidgetSettings })),
+);
+
+const FanWidget = lazy(() => import("./widgets/FanWidget").then((m) => ({ default: m.FanWidget })));
+const FanWidgetSettings = lazy(() =>
+  import("./widgets/FanWidget").then((m) => ({ default: m.FanWidgetSettings })),
+);
+
+const VacuumWidget = lazy(() =>
+  import("./widgets/VacuumWidget").then((m) => ({ default: m.VacuumWidget })),
+);
+const VacuumWidgetSettings = lazy(() =>
+  import("./widgets/VacuumWidget").then((m) => ({ default: m.VacuumWidgetSettings })),
+);
+
+const HumidifierWidget = lazy(() =>
+  import("./widgets/HumidifierWidget").then((m) => ({ default: m.HumidifierWidget })),
+);
+const HumidifierWidgetSettings = lazy(() =>
+  import("./widgets/HumidifierWidget").then((m) => ({ default: m.HumidifierWidgetSettings })),
+);
+
+const WaterHeaterWidget = lazy(() =>
+  import("./widgets/WaterHeaterWidget").then((m) => ({ default: m.WaterHeaterWidget })),
+);
+const WaterHeaterWidgetSettings = lazy(() =>
+  import("./widgets/WaterHeaterWidget").then((m) => ({ default: m.WaterHeaterWidgetSettings })),
 );
 
 // Clock Widget
@@ -944,3 +1002,106 @@ const coversEntry: WidgetRegistryEntry<CoversConfig> = {
   defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
 };
 registerWidget(coversEntry);
+
+const securityEntry: WidgetRegistryEntry<SecurityConfig> = {
+  type: "security",
+  name: "Security",
+  description: "Control Home Assistant locks and alarm panels",
+  configSchema: securityConfigSchema,
+  icon: IconShieldLock,
+  component: SecurityWidget,
+  settingsComponent: SecurityWidgetSettings,
+  defaultConfig: {
+    entityIds: [],
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(securityEntry);
+
+const mediaPlayerEntry: WidgetRegistryEntry<MediaPlayerConfig> = {
+  type: "media-player",
+  name: "Media Player",
+  description: "Now playing, playback, volume, and source for Home Assistant",
+  configSchema: mediaPlayerConfigSchema,
+  icon: IconDeviceTv,
+  component: MediaPlayerWidget,
+  settingsComponent: MediaPlayerWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    showVolume: true,
+    showSource: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 4, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(mediaPlayerEntry);
+
+const fanEntry: WidgetRegistryEntry<FanConfig> = {
+  type: "fan",
+  name: "Fan",
+  description: "Control a Home Assistant fan or air purifier",
+  configSchema: fanConfigSchema,
+  icon: IconWind,
+  component: FanWidget,
+  settingsComponent: FanWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    showPreset: true,
+    showOscillate: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(fanEntry);
+
+const vacuumEntry: WidgetRegistryEntry<VacuumConfig> = {
+  type: "vacuum",
+  name: "Vacuum",
+  description: "Start, pause, dock, and monitor a Home Assistant vacuum",
+  configSchema: vacuumConfigSchema,
+  icon: IconRobot,
+  component: VacuumWidget,
+  settingsComponent: VacuumWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    showFanSpeed: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(vacuumEntry);
+
+const humidifierEntry: WidgetRegistryEntry<HumidifierConfig> = {
+  type: "humidifier",
+  name: "Humidifier",
+  description: "View and control a Home Assistant humidifier",
+  configSchema: humidifierConfigSchema,
+  icon: IconDroplet,
+  component: HumidifierWidget,
+  settingsComponent: HumidifierWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    showMode: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(humidifierEntry);
+
+const waterHeaterEntry: WidgetRegistryEntry<WaterHeaterConfig> = {
+  type: "water-heater",
+  name: "Water Heater",
+  description: "View and control a Home Assistant water heater",
+  configSchema: waterHeaterConfigSchema,
+  icon: IconFlame,
+  component: WaterHeaterWidget,
+  settingsComponent: WaterHeaterWidgetSettings,
+  defaultConfig: {
+    entityId: "",
+    showMode: true,
+    transparentBackground: false,
+  },
+  defaultLayout: { w: 3, h: 3, minW: 2, minH: 2 },
+};
+registerWidget(waterHeaterEntry);

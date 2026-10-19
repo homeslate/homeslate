@@ -61,6 +61,12 @@ import {
 import { homeslateDatabasePath, homeslateTokensPath } from "./paths";
 import { hashPasscode, isValidPin, verifyPasscode } from "./passcode";
 import { createTtlCache } from "./ttlCache";
+import {
+  HomeAssistantImageError,
+  loadHomeAssistantImage,
+  normalizeHomeAssistantImagePath,
+  type HomeAssistantImage,
+} from "./homeAssistantImage";
 import type { HomeslateServerOptions } from "./types";
 
 /** Single-tenant account id. One display owner per host. */
@@ -95,6 +101,7 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   const app = new Hono();
   const commuteCache = createTtlCache<CommuteEstimate>();
   const weatherAlertsCache = createTtlCache<WeatherAlertsResponse>();
+  const homeAssistantImageCache = createTtlCache<HomeAssistantImage>();
 
   const homeAssistantBaseUrl = opts.homeAssistant?.baseUrl?.trim() ?? "";
   const homeAssistantToken = opts.homeAssistant?.token?.trim() ?? "";
@@ -171,6 +178,36 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       }
     }
     return c.json(base);
+  });
+
+  // Re-serve Home Assistant artwork / camera snapshots so the HA token and
+  // origin never reach the browser. Only the two proxy path families pass.
+  app.get("/api/homeassistant/image", async (c) => {
+    const path = normalizeHomeAssistantImagePath(c.req.query("path") ?? "");
+    if (!path) return c.json({ error: "Invalid image path" }, 400);
+    if (!homeAssistant || !homeAssistant.fetchImage) {
+      return c.json({ error: HA_MISSING_CONFIG_COPY }, 501);
+    }
+
+    const fetchImage = homeAssistant.fetchImage.bind(homeAssistant);
+    try {
+      const image = await loadHomeAssistantImage({
+        path,
+        cache: homeAssistantImageCache,
+        now: Date.now(),
+        fetchImage,
+      });
+      return c.body(image.body, 200, {
+        "Content-Type": image.contentType,
+        "Cache-Control": "public, max-age=60",
+      });
+    } catch (error) {
+      if (error instanceof HomeAssistantImageError) {
+        return c.json({ error: error.message }, error.status);
+      }
+      const { status, error: message } = homeAssistantRouteError(error);
+      return c.json({ error: message }, status);
+    }
   });
 
   app.get("/api/homeassistant/entities", async (c) => {
