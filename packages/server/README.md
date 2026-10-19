@@ -40,6 +40,21 @@ app so you can add routes, test it, or run it on another runtime.
 `hashPasscode`, `verifyPasscode`, and `isValidPin` are exported for hosts that
 manage passcodes themselves.
 
+## Home Assistant proxy
+
+Set `homeAssistant: { baseUrl, token }` to enable the Home Assistant widgets.
+The browser never sees the long-lived token; the server forwards an allowlisted
+subset:
+
+- `GET /api/homeassistant/entities?domain=climate|todo` — entity pickers.
+- `GET /api/homeassistant/states/:entityId` — climate state.
+- `GET /api/homeassistant/todo/:entityId/items` — normalized `todo` items.
+- `POST /api/homeassistant/services/:domain/:service` — allowlisted service
+  calls (`climate` and `todo` write services).
+
+Without `homeAssistant`, these routes answer `501` and the widgets stay
+designable with a "set the env vars" notice.
+
 In a container, bind all interfaces so Docker's published port can reach the
 API — Docker forwards to the container's bridge address, not its loopback:
 

@@ -165,4 +165,130 @@ describe("/api/homeassistant", () => {
     ).toBe(400);
     expect(fetchCount).toBe(0);
   });
+
+  it("returns 501 for todo routes when Home Assistant is unconfigured", async () => {
+    const hono = await app();
+    expect((await hono.request("/api/homeassistant/entities?domain=todo")).status).toBe(501);
+    expect((await hono.request("/api/homeassistant/todo/todo.shopping/items")).status).toBe(501);
+    expect(
+      (
+        await hono.request("/api/homeassistant/services/todo/add_item", {
+          method: "POST",
+          body: JSON.stringify({ entity_id: "todo.shopping", item: "Milk" }),
+        })
+      ).status,
+    ).toBe(501);
+  });
+
+  it("lists only todo entities sorted by name", async () => {
+    globalThis.fetch = async () =>
+      jsonOk([
+        { entity_id: "todo.zebra", state: "1", attributes: { friendly_name: "Zebra" } },
+        { entity_id: "sensor.light", state: "on", attributes: {} },
+        { entity_id: "todo.attic", state: "0", attributes: { friendly_name: "Attic" } },
+      ]);
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    const response = await hono.request("/api/homeassistant/entities?domain=todo");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      entities: [
+        { entityId: "todo.attic", name: "Attic", state: "0" },
+        { entityId: "todo.zebra", name: "Zebra", state: "1" },
+      ],
+    });
+  });
+
+  it("maps todo items through the return_response service call", async () => {
+    const calls: Array<{ url: string; body: unknown; authorization: string | null }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({
+        url: String(input),
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        authorization: new Headers(init?.headers).get("Authorization"),
+      });
+      return jsonOk({
+        "todo.shopping": {
+          items: [
+            { uid: "1", summary: "Milk", status: "needs_action" },
+            { uid: "2", summary: "Bread", status: "completed" },
+            { summary: "Eggs" },
+          ],
+        },
+      });
+    };
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    const response = await hono.request("/api/homeassistant/todo/todo.shopping/items");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      items: [
+        { uid: "1", summary: "Milk", status: "needs_action" },
+        { uid: "2", summary: "Bread", status: "completed" },
+        { uid: "Eggs", summary: "Eggs", status: "needs_action" },
+      ],
+    });
+    expect(calls[0]?.url).toBe("http://ha.test:8123/api/services/todo/get_items?return_response");
+    expect(calls[0]?.authorization).toBe("Bearer test-token");
+    expect(calls[0]?.body).toEqual({ entity_id: "todo.shopping" });
+  });
+
+  it("forwards an allowlisted todo service call with the exact payload", async () => {
+    const calls: Array<{ url: string; body: unknown }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({
+        url: String(input),
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+      });
+      return jsonOk([]);
+    };
+
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+    const response = await hono.request("/api/homeassistant/services/todo/add_item", {
+      method: "POST",
+      body: JSON.stringify({ entity_id: "todo.shopping", item: "Milk", junk: true }),
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(calls[0]?.url).toBe("http://ha.test:8123/api/services/todo/add_item");
+    expect(calls[0]?.body).toEqual({ entity_id: "todo.shopping", item: "Milk" });
+  });
+
+  it("rejects non-todo entities, unknown services, and invalid todo data without fetching", async () => {
+    let fetchCount = 0;
+    globalThis.fetch = async () => {
+      fetchCount += 1;
+      return jsonOk([]);
+    };
+    const hono = await app({ baseUrl: "http://ha.test:8123", token: "test-token" });
+
+    expect((await hono.request("/api/homeassistant/todo/climate.living_room/items")).status).toBe(
+      400,
+    );
+    expect(
+      (
+        await hono.request("/api/homeassistant/services/todo/reload", {
+          method: "POST",
+          body: JSON.stringify({ entity_id: "todo.shopping" }),
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await hono.request("/api/homeassistant/services/todo/add_item", {
+          method: "POST",
+          body: JSON.stringify({ entity_id: "todo.shopping" }),
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await hono.request("/api/homeassistant/services/todo/add_item", {
+          method: "POST",
+          body: JSON.stringify({ entity_id: "light.kitchen", item: "Milk" }),
+        })
+      ).status,
+    ).toBe(400);
+    expect(fetchCount).toBe(0);
+  });
 });

@@ -86,8 +86,11 @@ so binding `0.0.0.0` inside the container does not expose the API to the LAN.
 `/api/public/:publicId` (GET/PUT); `/api/display-calendar` (GET);
 `/api/google/connect|callback|session` (GET); `/api/commute` (GET);
 `/api/weather/alerts` (GET);
-`/api/homeassistant/entities|states/:entityId|services/:domain/:service`
-(GET/GET/POST); `/` redirects to `publicBaseUrl`.
+`/api/homeassistant/entities?domain=climate|todo` (GET);
+`/api/homeassistant/states/:entityId` (GET, climate);
+`/api/homeassistant/todo/:entityId/items` (GET);
+`/api/homeassistant/services/:domain/:service` (POST);
+`/` redirects to `publicBaseUrl`.
 
 ## See also
 

@@ -28,8 +28,14 @@ export type { EmbedConfig } from "./widgets/EmbedWidget";
 export type { ThermostatConfig } from "./widgets/ThermostatWidget";
 export { useThermostat, useClimateEntities } from "./hooks/useThermostat";
 export type { UseThermostatResult, UseClimateEntitiesResult } from "./hooks/useThermostat";
+export { useHomeAssistantTodo, useTodoEntities } from "./hooks/useHomeAssistantTodo";
+export type {
+  UseHomeAssistantTodoResult,
+  UseTodoEntitiesResult,
+} from "./hooks/useHomeAssistantTodo";
 export type { ClockConfig } from "./widgets/ClockWidget";
-export type { TodoItem, TodoConfig } from "./widgets/TodoWidget";
+export type { TodoItem, TodoConfig, TodoSource } from "./widgets/TodoWidget";
+export type { HomeAssistantTodoItem, HomeAssistantTodoStatus } from "./widgets/homeAssistantTodo";
 export type { Photo, UrlPhoto, StoredPhoto, PhotoConfig } from "./widgets/PhotoWidget";
 export { loadStoredImage } from "./services/googlePhotos";
 export { useGooglePhotos } from "./hooks/useGooglePhotos";

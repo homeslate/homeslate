@@ -20,8 +20,35 @@ export const transparent = styles.class("todowidget-transparent", {
 export const empty = styles.class("todowidget-empty", {
   flex: "1",
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
+  gap: "var(--var-ui-space-2)",
+  textAlign: "center",
+});
+
+export const emptyIcon = styles.class("todowidget-emptyIcon", {
+  color: "var(--var-ui-color-text-secondary)",
+});
+
+export const error = styles.class("todowidget-error", {
+  flex: "1",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "var(--var-ui-space-2)",
+  textAlign: "center",
+});
+
+export const notice = styles.class("todowidget-notice", {
+  background: "var(--var-ui-color-background-subtle)",
+  color: "var(--var-ui-color-text-secondary)",
+});
+
+export const fieldGrow = styles.class("todowidget-fieldGrow", {
+  flex: "1",
+  minWidth: "0",
 });
 
 export const list = styles.class("todowidget-list", {

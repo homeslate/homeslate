@@ -555,6 +555,8 @@ const todoEntry: WidgetRegistryEntry<TodoConfig> = {
     items: [],
     hideCompleted: false,
     transparentBackground: false,
+    source: "local",
+    entityId: "",
   },
   defaultLayout: {
     w: 3,

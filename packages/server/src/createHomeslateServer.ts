@@ -22,8 +22,11 @@ import {
   DISPLAY_GOOGLE_RECONNECT_MESSAGE,
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
   THERMOSTAT_MISSING_CONFIG_COPY,
+  TODO_MISSING_CONFIG_COPY,
   isAllowedClimateService,
+  isAllowedTodoService,
   isValidClimateEntityId,
+  isValidTodoEntityId,
   parseCommuteQuery,
   type CommuteEstimate,
   type WeatherAlertsResponse,
@@ -134,13 +137,37 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   });
 
   app.get("/api/homeassistant/entities", async (c) => {
-    if ((c.req.query("domain") ?? "climate") !== "climate") {
-      return c.json({ error: "Only the climate domain is supported" }, 400);
+    const domain = c.req.query("domain") ?? "climate";
+    if (domain !== "climate" && domain !== "todo") {
+      return c.json({ error: "Only the climate and todo domains are supported" }, 400);
     }
-    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+    if (!homeAssistant) {
+      return c.json(
+        { error: domain === "todo" ? TODO_MISSING_CONFIG_COPY : THERMOSTAT_MISSING_CONFIG_COPY },
+        501,
+      );
+    }
 
     try {
-      return c.json({ entities: await homeAssistant.listClimateEntities() });
+      const entities =
+        domain === "todo"
+          ? await homeAssistant.listTodoEntities()
+          : await homeAssistant.listClimateEntities();
+      return c.json({ entities });
+    } catch {
+      return c.json({ error: "Home Assistant request failed" }, 502);
+    }
+  });
+
+  app.get("/api/homeassistant/todo/:entityId/items", async (c) => {
+    const entityId = c.req.param("entityId");
+    if (!isValidTodoEntityId(entityId)) {
+      return c.json({ error: "Invalid entity id" }, 400);
+    }
+    if (!homeAssistant) return c.json({ error: TODO_MISSING_CONFIG_COPY }, 501);
+
+    try {
+      return c.json({ items: await homeAssistant.getTodoItems(entityId) });
     } catch {
       return c.json({ error: "Home Assistant request failed" }, 502);
     }
@@ -164,11 +191,16 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
   app.post("/api/homeassistant/services/:domain/:service", async (c) => {
     const domain = c.req.param("domain");
     const service = c.req.param("service");
-    if (domain !== "climate") return c.json({ error: "Only the climate domain is supported" }, 400);
-    if (!isAllowedClimateService(service)) {
+    if (domain !== "climate" && domain !== "todo") {
+      return c.json({ error: "Only the climate and todo domains are supported" }, 400);
+    }
+
+    const isClimate = domain === "climate";
+    if (isClimate ? !isAllowedClimateService(service) : !isAllowedTodoService(service)) {
       return c.json({ error: "Unsupported service" }, 400);
     }
-    if (!homeAssistant) return c.json({ error: THERMOSTAT_MISSING_CONFIG_COPY }, 501);
+    const missingConfigCopy = isClimate ? THERMOSTAT_MISSING_CONFIG_COPY : TODO_MISSING_CONFIG_COPY;
+    if (!homeAssistant) return c.json({ error: missingConfigCopy }, 501);
 
     let body: Record<string, unknown>;
     try {
@@ -177,12 +209,17 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       return c.json({ error: "Invalid JSON" }, 400);
     }
     const entityId = typeof body.entity_id === "string" ? body.entity_id : "";
-    if (!isValidClimateEntityId(entityId)) {
+    const isValidEntityId = isClimate ? isValidClimateEntityId : isValidTodoEntityId;
+    if (!isValidEntityId(entityId)) {
       return c.json({ error: "Invalid entity id" }, 400);
     }
 
     try {
-      await homeAssistant.callClimateService(service, entityId, body);
+      if (isClimate) {
+        await homeAssistant.callClimateService(service, entityId, body);
+      } else {
+        await homeAssistant.callTodoService(service, entityId, body);
+      }
       return c.json({ ok: true });
     } catch (error) {
       if (error instanceof HomeAssistantError && error.status === 400) {
