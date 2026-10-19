@@ -204,6 +204,61 @@ mutates state on service calls, and is deterministic. See
 Use the Docker demo when you specifically want to validate against real Home
 Assistant behavior.
 
+## Diagnosing a `502` from the API
+
+A `502` means homeslate reached its Home Assistant transport but the upstream
+call failed. The two usual causes are a bad/stale token or the API process using
+the wrong environment.
+
+### 1. Check which transport the API is using
+
+```bash
+curl -s http://127.0.0.1:8787/api/homeassistant/status
+```
+
+Expect:
+
+```json
+{ "configured": true, "transport": "direct", "connected": true }
+```
+
+If `transport` is `"relay"`, `HOMESLATE_RELAY_TOKEN` is set in
+`apps/reference/.env`. Relay mode ignores `HOMEASSISTANT_BASE_URL` and
+`HOMEASSISTANT_TOKEN`; comment the relay token out and restart the API.
+
+### 2. Test the token directly against Home Assistant
+
+```bash
+TOKEN=$(sed -n 's/^HOMEASSISTANT_TOKEN=//p' apps/reference/.env \
+  | tr -d '"' | tr -d "'" | xargs)
+curl -i -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8123/api/
+```
+
+A healthy instance returns `200` and `API running.`.
+
+- `401` means the token is wrong, stale, quoted, prefixed with `Bearer `, or
+  belongs to a different Home Assistant config/volume. Create a new long-lived
+  token and update `apps/reference/.env`.
+- A connection error means the URL is wrong or the container is not publishing
+  port `8123`.
+
+### 3. Confirm the URL and container mapping
+
+```bash
+grep -E '^HOMEASSISTANT_(BASE_URL|TOKEN)=' apps/reference/.env
+docker ps --filter name=homeslate-ha-demo \
+  --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
+```
+
+- Use `http://127.0.0.1:8123`, not `http://localhost:8123`. On some macOS
+  setups `localhost` resolves to IPv6 while Docker only publishes IPv4.
+- The port mapping should include `8123->8123/tcp`.
+- The file must be `apps/reference/.env`, not the repository root.
+- Restart `pnpm dev:reference` after editing `.env`; the API watcher does not
+  watch `.env`.
+- If you recreated `ha-demo-config/` or attached a different `/config` volume,
+  the old token is invalid. Create a new one.
+
 ## Troubleshooting
 
 | Symptom                                | Likely cause                                                                                                                                                                 |
@@ -211,7 +266,7 @@ Assistant behavior.
 | `curl` gets connection refused         | The container is still starting, or port `8123` is taken. Check `docker compose logs`.                                                                                       |
 | `curl` gets `401`                      | Missing/wrong token, or the token was created before the config was reset.                                                                                                   |
 | homeslate widgets show `501`           | `HOMEASSISTANT_BASE_URL` / `HOMEASSISTANT_TOKEN` are not set on the API process.                                                                                             |
-| homeslate widgets show `502`           | The API process cannot reach the URL. Use the host/container table above.                                                                                                    |
+| homeslate widgets show `502`           | The API cannot reach HA, or HA rejected the token (401 is surfaced as 502). See “Diagnosing a 502” above.                                                                    |
 | Widget settings list is empty          | The token is valid but the demo entities have not finished loading. Refresh the picker.                                                                                      |
 | Media artwork or camera snapshot fails | Not every demo entity exposes an image. Try another media player/camera entity.                                                                                              |
 | `demo:` config error                   | Confirm `configuration.yaml` is in the mounted `/config` directory and restart the container.                                                                                |
