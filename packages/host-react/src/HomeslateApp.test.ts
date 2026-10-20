@@ -26,9 +26,14 @@ describe("HomeslateApp", () => {
   it("routes the display list, management, view editor, and kiosk", () => {
     const source = read("./HomeslateApp.tsx");
     expect(source).toMatch(/path="\/"\s+element=\{<DisplayListPage/);
-    expect(source).toMatch(/path="\/edit\/:id"\s+element=\{<EditorPage/);
-    expect(source).toMatch(/path="\/edit\/:id\/views\/:viewId"\s+element=\{<ViewEditorPage/);
-    expect(source).toMatch(/path="\/d\/:publicId"\s+element=\{<KioskPage/);
+    expect(source).toMatch(/path="\/edit\/:id"[\s\S]*?<EditorPage/);
+    expect(source).toMatch(/path="\/edit\/:id\/views\/:viewId"[\s\S]*?<ViewEditorPage/);
+    expect(source).toMatch(/path="\/d\/:publicId"[\s\S]*?<KioskPage/);
+    expect(source).toMatch(/RouteErrorBoundary/);
+
+    const kiosk = read("./pages.tsx");
+    expect(kiosk).toMatch(/recovery="retry"/);
+    expect(kiosk).toMatch(/<Display/);
   });
 
   it("manages multiple views through the display document helpers", () => {
@@ -40,6 +45,7 @@ describe("HomeslateApp", () => {
     expect(source).toMatch(/\bpatchView\b/);
     expect(source).toMatch(/\baddPresetViews\b/);
     expect(source).toMatch(/\bmissingPresetViews\b/);
+    expect(source).toMatch(/\bduplicateView\b/);
   });
 
   it("renames the display from the management header", () => {

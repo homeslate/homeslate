@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   AppShell,
   Badge,
@@ -23,11 +23,16 @@ import type { DisplayDocument, ThemeDocument } from "@homeslate/schema";
 import { Editor, ThemeEditor } from "@homeslate/editor";
 import { Display } from "@homeslate/display";
 import {
+  duplicateDocument,
+  exportDocument,
+  parseImportedDocument,
+} from "@homeslate/display/canvas";
+import {
+  createDisplay,
   errorMessage,
   getJson,
   getPublicDocument,
   joinUrl,
-  postJson,
   publicDocumentUrl,
   putJson,
   setDisplayPasscode,
@@ -36,11 +41,38 @@ import {
 } from "./api";
 import { DisplaySettingsPanel } from "./DisplaySettingsPanel";
 import { HomeslateGoogleRuntime } from "./HomeslateGoogleRuntime";
+import { RouteErrorBoundary } from "./RouteErrorBoundary";
+import { TemplatePicker } from "./TemplatePicker";
 import { useDisplayDocument } from "./useDisplayDocument";
 import { ViewsPanel } from "./ViewsPanel";
 import { useHomeslateHost } from "./hostContext";
 
 const KIOSK_POLL_MS = 10_000;
+
+function exportFilename(name: string): string {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `${slug || "display"}.json`;
+}
+
+function exportDisplayJson(document: DisplayDocument) {
+  const blob = new Blob([exportDocument(document)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = window.document.createElement("a");
+  anchor.href = url;
+  anchor.download = exportFilename(document.name);
+  window.document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importError(errors: Array<{ path: string; message: string }>): string {
+  return errors.map((issue) => [issue.path, issue.message].filter(Boolean).join(": ")).join("; ");
+}
 
 const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
   position: "fixed",
@@ -51,15 +83,23 @@ const KIOSK_SAVE_ERROR_STYLE: CSSProperties = {
   background: "rgba(0, 0, 0, 0.75)",
 };
 
+type ListedDisplay = DisplaySummary & {
+  publicId?: string;
+  passcodeEnabled?: boolean;
+  document?: DisplayDocument;
+};
+
 /** Lists displays and offers a "New display" button. */
 export function DisplayListPage() {
   const navigate = useNavigate();
   const { apiBaseUrl, productName } = useHomeslateHost();
-  const [displays, setDisplays] = useState<
-    Array<DisplaySummary & { publicId?: string; passcodeEnabled?: boolean }>
-  >([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [displays, setDisplays] = useState<ListedDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerError, setPickerError] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,6 +116,7 @@ export function DisplayListPage() {
               ...item,
               publicId: record.publicId,
               passcodeEnabled: record.passcodeEnabled ?? false,
+              document: record.document,
             };
           }),
         );
@@ -91,15 +132,46 @@ export function DisplayListPage() {
     };
   }, [apiBaseUrl]);
 
-  const createDisplay = async () => {
+  const createFromDocument = async (document: DisplayDocument) => {
     setCreating(true);
+    setPickerError(null);
     setError(null);
     try {
-      const record = await postJson<DisplayRecord>(joinUrl(apiBaseUrl, "/api/displays"));
+      const record = await createDisplay(apiBaseUrl, document);
+      navigate(`/edit/${record.id}`);
+    } catch (cause) {
+      setPickerError(errorMessage(cause));
+      setCreating(false);
+    }
+  };
+
+  const importDisplay = async (file: File) => {
+    setError(null);
+    try {
+      const parsed = parseImportedDocument(await file.text());
+      if (!parsed.ok) {
+        setError(importError(parsed.errors));
+        return;
+      }
+      setCreating(true);
+      const record = await createDisplay(apiBaseUrl, parsed.document);
       navigate(`/edit/${record.id}`);
     } catch (cause) {
       setError(errorMessage(cause));
       setCreating(false);
+    }
+  };
+
+  const duplicateDisplay = async (display: ListedDisplay) => {
+    if (!display.document) return;
+    setDuplicatingId(display.id);
+    setError(null);
+    try {
+      const record = await createDisplay(apiBaseUrl, duplicateDocument(display.document));
+      navigate(`/edit/${record.id}`);
+    } catch (cause) {
+      setError(errorMessage(cause));
+      setDuplicatingId(null);
     }
   };
 
@@ -110,9 +182,33 @@ export function DisplayListPage() {
         <TopNav
           heading={<TopNav.Heading heading={productName} />}
           endContent={
-            <Button intent="primary" onPress={() => void createDisplay()} isPending={creating}>
-              New display
-            </Button>
+            <HStack gap="sm">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                hidden
+                aria-label="Import display JSON"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file) void importDisplay(file);
+                }}
+              />
+              <Button size="sm" onPress={() => fileInputRef.current?.click()} isDisabled={creating}>
+                Import
+              </Button>
+              <Button
+                intent="primary"
+                onPress={() => {
+                  setPickerError(null);
+                  setPickerOpen(true);
+                }}
+                isPending={creating}
+              >
+                New display
+              </Button>
+            </HStack>
           }
         />
       }
@@ -128,12 +224,27 @@ export function DisplayListPage() {
             <Text>{display.name}</Text>
             <HStack gap="md">
               {display.passcodeEnabled && <Badge tone="neutral">PIN</Badge>}
+              <Button
+                appearance="ghost"
+                size="sm"
+                isDisabled={!display.document || duplicatingId === display.id}
+                onPress={() => void duplicateDisplay(display)}
+              >
+                Duplicate
+              </Button>
               <Link href={`/edit/${display.id}`}>Manage</Link>
               {display.publicId && <Link href={`/d/${display.publicId}`}>Kiosk</Link>}
             </HStack>
           </HStack>
         ))}
       </Stack>
+      <TemplatePicker
+        isOpen={pickerOpen}
+        isPending={creating}
+        error={pickerError}
+        onOpenChange={setPickerOpen}
+        onCreate={(document) => void createFromDocument(document)}
+      />
     </AppShell>
   );
 }
@@ -293,6 +404,9 @@ export function EditorPage() {
                     Not saved: {saveError}
                   </Text>
                 )}
+                <Button size="sm" onPress={() => exportDisplayJson(document)}>
+                  Export JSON
+                </Button>
                 <Link href={`/d/${record.publicId}`}>Open kiosk</Link>
               </HStack>
             }
@@ -351,6 +465,9 @@ export function ViewEditorPage() {
                     Not saved: {saveError}
                   </Text>
                 )}
+                <Button size="sm" onPress={() => exportDisplayJson(document)}>
+                  Export JSON
+                </Button>
                 <Link href={`/d/${record.publicId}`}>Open kiosk</Link>
               </HStack>
             }
@@ -373,7 +490,7 @@ export function ViewEditorPage() {
 /** Kiosk route. Polls the public document, gated by the viewer passcode. */
 export function KioskPage() {
   const { publicId } = useParams<{ publicId: string }>();
-  const { apiBaseUrl, widgetRegistry } = useHomeslateHost();
+  const { apiBaseUrl, productName, widgetRegistry } = useHomeslateHost();
   const [document, setDocument] = useState<DisplayDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -475,7 +592,9 @@ export function KioskPage() {
           Not saved: {saveError}
         </Text>
       )}
-      <Display document={document} widgetRegistry={widgetRegistry} onChange={onChange} />
+      <RouteErrorBoundary productName={productName} recovery="retry">
+        <Display document={document} widgetRegistry={widgetRegistry} onChange={onChange} />
+      </RouteErrorBoundary>
     </HomeslateGoogleRuntime>
   );
 }

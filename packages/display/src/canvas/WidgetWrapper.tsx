@@ -28,6 +28,7 @@ import {
   type WidgetDefinition,
   type WidgetHealthStatus,
 } from "@homeslate/widgets";
+import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 import * as classes from "./WidgetWrapper.styles";
 
 export type WidgetRegistryApi = {
@@ -175,11 +176,19 @@ export function WidgetWrapper({
         )}
         <div className={classes.content}>
           <Suspense fallback={<WidgetLoader />}>
-            <WidgetComponent
-              widget={widgetDef}
+            <WidgetErrorBoundary
+              widgetId={widget.id}
+              name={widgetEntry.name}
+              icon={widgetEntry.icon}
               isEditing={isEditing}
-              onConfigChange={onConfigChange}
-            />
+              onRemove={onRemove}
+            >
+              <WidgetComponent
+                widget={widgetDef}
+                isEditing={isEditing}
+                onConfigChange={onConfigChange}
+              />
+            </WidgetErrorBoundary>
           </Suspense>
         </div>
       </Surface>
@@ -228,11 +237,19 @@ export function WidgetWrapper({
                     <Divider />
                   </HStack>
                   <Suspense fallback={<WidgetLoader />}>
-                    <SettingsComponent
-                      widget={widgetDef}
-                      isEditing={true}
-                      onConfigChange={onConfigChange}
-                    />
+                    <WidgetErrorBoundary
+                      widgetId={widget.id}
+                      name={widgetEntry.name}
+                      icon={widgetEntry.icon}
+                      isEditing={isEditing}
+                      onRemove={onRemove}
+                    >
+                      <SettingsComponent
+                        widget={widgetDef}
+                        isEditing={true}
+                        onConfigChange={onConfigChange}
+                      />
+                    </WidgetErrorBoundary>
                   </Suspense>
                   <Button onPress={() => setSettingsOpen(false)}>Done</Button>
                 </Stack>

@@ -3,6 +3,8 @@ export const HOST_REACT_PACKAGE_NAME = "@homeslate/host-react";
 export { HomeslateApp } from "./HomeslateApp";
 export type { HomeslateAppProps } from "./HomeslateApp";
 export { DisplayListPage, EditorPage, KioskPage, ViewEditorPage } from "./pages";
+export { RouteErrorBoundary, RouteErrorFallback } from "./RouteErrorBoundary";
+export { TemplatePicker } from "./TemplatePicker";
 export { HomeslateGoogleRuntime } from "./HomeslateGoogleRuntime";
 export type { HomeslateGoogleRuntimeProps } from "./HomeslateGoogleRuntime";
 export { DEFAULT_HOMESLATE_HOST, HomeslateHostProvider, useHomeslateHost } from "./hostContext";
@@ -17,6 +19,7 @@ export {
   getPublicDocument,
   joinUrl,
   patchJson,
+  createDisplay,
   postJson,
   publicDocumentUrl,
   putJson,

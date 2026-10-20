@@ -54,12 +54,24 @@ export async function getPublicDocument(
   return { status: "ok", document: body.document };
 }
 
-export async function postJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { method: "POST" });
+export async function postJson<T>(url: string, body?: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   if (!response.ok) {
     throw new Error(await readError(response));
   }
   return response.json() as Promise<T>;
+}
+
+/** Creates a display. Pass a document to import, duplicate, or start from a template. */
+export function createDisplay(baseUrl: string, document?: DisplayDocument): Promise<DisplayRecord> {
+  return postJson<DisplayRecord>(
+    joinUrl(baseUrl, "/api/displays"),
+    document ? { document } : undefined,
+  );
 }
 
 export async function putJson(

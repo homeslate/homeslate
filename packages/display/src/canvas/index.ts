@@ -44,6 +44,21 @@ export {
   missingPresetViews,
 } from "./presetViews";
 export type { PresetViewName } from "./presetViews";
+export {
+  duplicateDocument,
+  duplicateView,
+  exportDocument,
+  parseImportedDocument,
+} from "./documentTools";
+export {
+  DOCUMENT_TEMPLATES,
+  createBlankDocument,
+  createTemplateDocument,
+  documentForNewDisplay,
+} from "./templates";
+export type { DocumentTemplate, DocumentTemplateId, NewDisplayChoice } from "./templates";
+export { WidgetErrorBoundary, widgetHealthChangeDetail } from "./WidgetErrorBoundary";
+export type { WidgetHealthChangeDetail } from "./WidgetErrorBoundary";
 export { DocumentCanvas } from "./DocumentCanvas";
 export type { WidgetRegistryApi } from "./WidgetWrapper";
 export { WidgetWrapper } from "./WidgetWrapper";
