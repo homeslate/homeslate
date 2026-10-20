@@ -16,6 +16,7 @@ import {
   IconArrowDown,
   IconArrowUp,
   IconCheck,
+  IconCopy,
   IconEdit,
   IconEye,
   IconEyeOff,
@@ -28,6 +29,7 @@ import type { DisplayDocument, View } from "@homeslate/schema";
 import {
   addPresetViews,
   addView,
+  duplicateView,
   missingPresetViews,
   moveView,
   patchView,
@@ -234,6 +236,16 @@ export function ViewsPanel(props: {
                       onPress={() =>
                         onChange(patchView(document, view.id, { hidden: !view.hidden }))
                       }
+                    />
+                  </SimpleTooltip>
+                  <SimpleTooltip content="Duplicate view">
+                    <IconButton
+                      name="copy"
+                      icon={<IconCopy size={14} />}
+                      appearance="ghost"
+                      size="sm"
+                      aria-label={`Duplicate ${view.name}`}
+                      onPress={() => onChange(duplicateView(document, view.id))}
                     />
                   </SimpleTooltip>
                   <SimpleTooltip content="Rename view">

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { getPublicDocument, publicDocumentUrl, setDisplayPasscode } from "./api";
+import { createDisplay, getPublicDocument, publicDocumentUrl, setDisplayPasscode } from "./api";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -38,6 +38,19 @@ describe("host api", () => {
       document,
     });
     expect(fetchMock).toHaveBeenCalledWith("/api/public/abc?passcode=1234");
+  });
+
+  it("posts an imported document when creating a display", async () => {
+    const document = { schemaVersion: 1, name: "Kitchen" };
+    const fetchMock = vi.fn(async () => jsonResponse({ id: "d1", publicId: "pub" }, 201));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await createDisplay("http://host/", document as never);
+    expect(fetchMock).toHaveBeenCalledWith("http://host/api/displays", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ document }),
+    });
   });
 
   it("patches the viewer passcode on the display record", async () => {

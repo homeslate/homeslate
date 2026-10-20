@@ -2,7 +2,8 @@ import type { WidgetRegistryApi } from "@homeslate/display/canvas";
 import { Navigate, Route, BrowserRouter, Routes, useHref, useNavigate } from "react-router-dom";
 import { RouterProvider } from "react-aria-components";
 import { DisplayListPage, EditorPage, KioskPage, ViewEditorPage } from "./pages";
-import { HomeslateHostProvider, type HomeslateHostConfig } from "./hostContext";
+import { RouteErrorBoundary } from "./RouteErrorBoundary";
+import { HomeslateHostProvider, useHomeslateHost, type HomeslateHostConfig } from "./hostContext";
 
 export type HomeslateAppProps = {
   /** Shown in the display-list nav. Defaults to `"Homeslate"`. */
@@ -36,13 +37,35 @@ export function HomeslateApp({ productName, apiBaseUrl, widgetRegistry }: Homesl
 
 function HomeslateRoutes() {
   const navigate = useNavigate();
+  const { productName } = useHomeslateHost();
   return (
     <RouterProvider navigate={navigate} useHref={useHref}>
       <Routes>
         <Route path="/" element={<DisplayListPage />} />
-        <Route path="/edit/:id" element={<EditorPage />} />
-        <Route path="/edit/:id/views/:viewId" element={<ViewEditorPage />} />
-        <Route path="/d/:publicId" element={<KioskPage />} />
+        <Route
+          path="/edit/:id"
+          element={
+            <RouteErrorBoundary productName={productName}>
+              <EditorPage />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/edit/:id/views/:viewId"
+          element={
+            <RouteErrorBoundary productName={productName}>
+              <ViewEditorPage />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/d/:publicId"
+          element={
+            <RouteErrorBoundary productName={productName}>
+              <KioskPage />
+            </RouteErrorBoundary>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </RouterProvider>

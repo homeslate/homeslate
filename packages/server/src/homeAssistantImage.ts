@@ -22,12 +22,18 @@ export class HomeAssistantImageError extends Error {
 }
 
 const IMAGE_ORIGIN = "http://homeassistant.invalid";
-const IMAGE_PATH_PREFIXES = ["/api/media_player_proxy/", "/api/camera_proxy/"] as const;
+const IMAGE_PATH_PREFIXES = [
+  "/api/media_player_proxy/",
+  "/api/camera_proxy/",
+  "/api/image/",
+  "/local/",
+] as const;
 
 /**
  * Normalize a host-relative Home Assistant image path, or return `null` when it
- * is not one of the two proxy paths homeslate re-serves. Accepts the signed
- * query string Home Assistant appends to `entity_picture`.
+ * is not an allowed image path. Homeslate re-serves media-player and camera
+ * proxies, person/entity images (`/api/image/…`), and `www` assets (`/local/…`).
+ * Accepts the signed query string Home Assistant appends to `entity_picture`.
  */
 export function normalizeHomeAssistantImagePath(raw: string): string | null {
   if (!raw.startsWith("/") || raw.startsWith("//")) return null;

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button, HStack, Stack, Switch, Text } from "@var-ui/react";
 import { IconRefresh, IconUsers } from "@tabler/icons-react";
 import type { WidgetConfig, WidgetProps } from "../types";
@@ -10,6 +11,7 @@ import {
   presenceLabel,
   type HomeAssistantPresence,
 } from "./homeAssistantPresence";
+import { presenceAvatarPresentation } from "./presenceImage";
 import * as classes from "./PresenceWidget.styles";
 
 export interface PresenceConfig extends WidgetConfig {
@@ -27,6 +29,17 @@ function initials(name: string): string {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
+}
+
+function PresenceAvatar({ name, picture }: { name: string; picture: string | null }) {
+  const [failed, setFailed] = useState(false);
+  const presentation = presenceAvatarPresentation(picture, failed);
+  if (presentation.kind === "initials") {
+    return <div className={classes.avatarFallback}>{initials(name)}</div>;
+  }
+  return (
+    <img className={classes.avatar} src={presentation.src} alt="" onError={() => setFailed(true)} />
+  );
 }
 
 export function PresenceWidget({ widget, isEditing }: WidgetProps<PresenceConfig>) {
@@ -81,11 +94,11 @@ export function PresenceWidget({ widget, isEditing }: WidgetProps<PresenceConfig
           const name = presence?.name ?? entityId;
           return (
             <div key={entityId} className={classes.row}>
-              {presence?.entityPicture ? (
-                <img className={classes.avatar} src={presence.entityPicture} alt="" />
-              ) : (
-                <div className={classes.avatarFallback}>{initials(name)}</div>
-              )}
+              <PresenceAvatar
+                key={`${entityId}:${presence?.entityPicture ?? ""}`}
+                name={name}
+                picture={presence?.entityPicture ?? null}
+              />
               <div className={classes.details}>
                 <Text className={classes.name}>{name}</Text>
                 <span className={classes.state}>

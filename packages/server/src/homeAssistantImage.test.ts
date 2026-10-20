@@ -11,12 +11,18 @@ import {
 import { createTtlCache } from "./ttlCache";
 
 describe("normalizeHomeAssistantImagePath", () => {
-  it("accepts the two Home Assistant proxy path families", () => {
+  it("accepts media, camera, person image, and local www paths", () => {
     expect(
       normalizeHomeAssistantImagePath("/api/media_player_proxy/media_player.kitchen?token=abc"),
     ).toBe("/api/media_player_proxy/media_player.kitchen?token=abc");
     expect(normalizeHomeAssistantImagePath("/api/camera_proxy/camera.front")).toBe(
       "/api/camera_proxy/camera.front",
+    );
+    expect(normalizeHomeAssistantImagePath("/api/image/person.dan?token=abc")).toBe(
+      "/api/image/person.dan?token=abc",
+    );
+    expect(normalizeHomeAssistantImagePath("/local/avatars/dan.jpg")).toBe(
+      "/local/avatars/dan.jpg",
     );
   });
 
@@ -31,6 +37,11 @@ describe("normalizeHomeAssistantImagePath", () => {
     expect(normalizeHomeAssistantImagePath("/api/media_player_proxy/%2e%2e/states")).toBeNull();
     expect(normalizeHomeAssistantImagePath("/api/media_player_proxy/x\\y")).toBeNull();
     expect(normalizeHomeAssistantImagePath("api/media_player_proxy/x")).toBeNull();
+    expect(normalizeHomeAssistantImagePath("/api/image/../states")).toBeNull();
+    expect(normalizeHomeAssistantImagePath("/api/image/%2e%2e/states")).toBeNull();
+    expect(normalizeHomeAssistantImagePath("/local/../secrets")).toBeNull();
+    expect(normalizeHomeAssistantImagePath("/local/%2e%2e/secrets")).toBeNull();
+    expect(normalizeHomeAssistantImagePath("/api/image")).toBeNull();
   });
 });
 

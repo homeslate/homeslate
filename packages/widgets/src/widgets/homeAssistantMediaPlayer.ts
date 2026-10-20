@@ -115,7 +115,10 @@ export function getMediaPlayerSizeTier(width: number, height: number): MediaPlay
   return "medium";
 }
 
-/** Same-origin proxy URL for a host-relative Home Assistant image path. */
+/**
+ * Same-origin proxy URL for a host-relative Home Assistant image path.
+ * Shared by media artwork, camera snapshots, and presence avatars.
+ */
 export function homeAssistantImageProxyUrl(path: string | null): string | null {
   return path ? `/api/homeassistant/image?path=${encodeURIComponent(path)}` : null;
 }
