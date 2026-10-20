@@ -324,21 +324,21 @@ const SensorsWidget = lazy(() =>
   import("./widgets/SensorsWidget").then((m) => ({ default: m.SensorsWidget })),
 );
 const SensorsWidgetSettings = lazy(() =>
-  import("./widgets/SensorsWidget").then((m) => ({ default: m.SensorsWidgetSettings })),
+  import("./widgets/SensorsWidget").then((m) => ({ default: m.SensorsSettings })),
 );
 
 const ScenesWidget = lazy(() =>
   import("./widgets/ScenesWidget").then((m) => ({ default: m.ScenesWidget })),
 );
 const ScenesWidgetSettings = lazy(() =>
-  import("./widgets/ScenesWidget").then((m) => ({ default: m.ScenesWidgetSettings })),
+  import("./widgets/ScenesWidget").then((m) => ({ default: m.ScenesSettings })),
 );
 
 const PresenceWidget = lazy(() =>
   import("./widgets/PresenceWidget").then((m) => ({ default: m.PresenceWidget })),
 );
 const PresenceWidgetSettings = lazy(() =>
-  import("./widgets/PresenceWidget").then((m) => ({ default: m.PresenceWidgetSettings })),
+  import("./widgets/PresenceWidget").then((m) => ({ default: m.PresenceSettings })),
 );
 
 const DevicesWidget = lazy(() =>
