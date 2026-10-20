@@ -15,6 +15,7 @@ await startHomeslateServer({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   },
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  finnhubApiKey: process.env.FINNHUB_API_KEY,
   seedEmptyDisplay: true,
   onListen: ({ port }) => console.log(`homeslate API on http://127.0.0.1:${port}`),
 });

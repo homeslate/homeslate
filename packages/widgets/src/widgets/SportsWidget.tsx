@@ -181,6 +181,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
     isLoadingMore,
     error,
     lastUpdated,
+    isStale,
     refresh,
     loadMore,
   } = useScores({
@@ -278,6 +279,7 @@ export function SportsWidget({ widget }: WidgetProps<SportsConfig>) {
       <WidgetDataStatus
         widgetId={widget.id}
         lastUpdated={lastUpdated}
+        isStale={isStale}
         error={error}
         isLoading={isLoading}
       />

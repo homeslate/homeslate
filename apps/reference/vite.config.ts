@@ -2,6 +2,8 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
 import typestyles from "@typestyles/vite";
+import { VitePWA } from "vite-plugin-pwa";
+import { referencePwaOptions } from "./src/pwa";
 
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
@@ -12,6 +14,7 @@ export default defineConfig({
         modules: ["typestyles-entry.ts"],
       },
     }),
+    VitePWA(referencePwaOptions),
   ]),
   resolve: {
     alias: {

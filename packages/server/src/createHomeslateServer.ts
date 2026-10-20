@@ -42,6 +42,8 @@ import {
 } from "@homeslate/widgets/server";
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { freshCacheControl } from "./cacheControl";
+import { registerDataRoutes } from "./dataRoutes";
 import { estimateCommute } from "./commute";
 import {
   HomeAssistantError,
@@ -142,6 +144,7 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
         cache: commuteCache,
         now: Date.now(),
       });
+      c.header("Cache-Control", freshCacheControl(5 * 60, 60 * 60));
       return c.json(estimate);
     } catch {
       return c.json({ error: "Commute provider failed" }, 502);
@@ -159,11 +162,14 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
         cache: weatherAlertsCache,
         now: Date.now(),
       });
+      c.header("Cache-Control", freshCacheControl(5 * 60, 6 * 60 * 60));
       return c.json(payload);
     } catch {
       return c.json({ error: "Weather alerts provider failed" }, 502);
     }
   });
+
+  registerDataRoutes(app, opts.finnhubApiKey);
 
   app.get("/api/homeassistant/status", async (c) => {
     const configured = homeAssistant !== null;

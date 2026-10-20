@@ -44,7 +44,7 @@ export function DevicesWidget({ widget, isEditing }: WidgetProps<DevicesConfig>)
     transparentBackground = false,
   } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantDevice>(ids, { fetchFailureCopy: DEVICES_MISSING_CONFIG_COPY });
   const callService = useHomeAssistantService(DEVICES_MISSING_CONFIG_COPY);
   const [overrides, setOverrides] = useState<DeviceOverrideMap>({});
@@ -164,6 +164,7 @@ export function DevicesWidget({ widget, isEditing }: WidgetProps<DevicesConfig>)
             <WidgetDataStatus
               widgetId={widget.id}
               lastUpdated={lastUpdated}
+              isStale={isStale}
               error={error}
               isLoading={isLoading}
             />
@@ -252,6 +253,7 @@ export function DevicesWidget({ widget, isEditing }: WidgetProps<DevicesConfig>)
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

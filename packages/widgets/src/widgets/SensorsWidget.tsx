@@ -55,7 +55,7 @@ export function SensorsWidget({ widget, isEditing }: WidgetProps<SensorsConfig>)
     transparentBackground = false,
   } = widget.config;
   const entityIds = items.map((item) => item.entityId).filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantSensor>(entityIds, {
       fetchFailureCopy: SENSORS_MISSING_CONFIG_COPY,
     });
@@ -155,6 +155,7 @@ export function SensorsWidget({ widget, isEditing }: WidgetProps<SensorsConfig>)
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

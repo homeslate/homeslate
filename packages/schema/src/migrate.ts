@@ -46,7 +46,8 @@ function migrateLayout(raw: unknown): WidgetLayout {
 
 function migrateWidget(raw: unknown): WidgetInstance {
   const o = isPlainObject(raw) ? raw : {};
-  const config = isPlainObject(o.config) ? o.config : {};
+  const config = { ...(isPlainObject(o.config) ? o.config : {}) };
+  if (asString(o.type) === "stocks") delete config.apiKey;
   return {
     id: asString(o.id) ?? "",
     type: asString(o.type) ?? "unknown",
@@ -192,6 +193,9 @@ export function migrateDisplayDocument(raw: unknown): DisplayDocument {
         ...(asBoolean(settings.holidayEffectsEnabled) !== undefined
           ? { holidayEffectsEnabled: settings.holidayEffectsEnabled as boolean }
           : {}),
+        ...(asBoolean(settings.wakeLockEnabled) !== undefined
+          ? { wakeLockEnabled: settings.wakeLockEnabled as boolean }
+          : {}),
         ...(v1Holiday ? { holidayPreviewId: v1Holiday } : {}),
       },
       ...(v1Alarms ? { alarms: v1Alarms } : {}),
@@ -213,6 +217,9 @@ export function migrateDisplayDocument(raw: unknown): DisplayDocument {
       : {}),
     ...(asBoolean(raw.holidayEffectsEnabled) !== undefined
       ? { holidayEffectsEnabled: raw.holidayEffectsEnabled as boolean }
+      : {}),
+    ...(asBoolean(raw.wakeLockEnabled) !== undefined
+      ? { wakeLockEnabled: raw.wakeLockEnabled as boolean }
       : {}),
     ...(holidayPreviewId ? { holidayPreviewId } : {}),
   };

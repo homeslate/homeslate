@@ -157,6 +157,7 @@ export function GoogleCalendarDayWidget({ widget }: WidgetProps<GoogleCalendarDa
     calendars,
     events,
     lastUpdated,
+    isStale,
     refresh,
     addEvent,
     editEvent,
@@ -362,6 +363,7 @@ export function GoogleCalendarDayWidget({ widget }: WidgetProps<GoogleCalendarDa
       <WidgetDataStatus
         widgetId={widget.id}
         lastUpdated={lastUpdated}
+        isStale={isStale}
         error={error}
         isLoading={isLoading}
       />

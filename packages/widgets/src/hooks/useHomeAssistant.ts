@@ -7,6 +7,10 @@ import {
 } from "../services/homeAssistant";
 import type { HomeAssistantEntitySummary } from "../widgets/homeAssistant";
 import { getNextPollDelay } from "./polling";
+import { CACHE_POLICIES, haEntityKey, haEntityListKey } from "../services/cachePolicies";
+import { packEntityList, unpackEntityList, type EntityCacheRecord } from "../services/haCache";
+import { useHaResource } from "./useHaResource";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
 
 const ENTITY_POLL_INTERVAL_MS = 30 * 1000;
 
@@ -106,6 +110,7 @@ export type UseEntityListResult<T> = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   refresh: () => Promise<void>;
 };
 
@@ -119,53 +124,62 @@ export function useEntityList<T>(
   options: UseEntityListOptions,
 ): UseEntityListResult<T> {
   const { fetchFailureCopy, pollIntervalMs = ENTITY_POLL_INTERVAL_MS } = options;
-  const key = entityIds.join("|");
-  const [entities, setEntities] = useState<T[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const ids = entityIds.filter(Boolean);
+  const cacheKey = ids.length === 0 ? null : haEntityListKey(ids);
+  const requestKey = ids.join("|");
+  const { data, isLoading, isStale, error, lastUpdated, beginLoad, commit, setError } =
+    useHaResource<EntityCacheRecord<T>[]>(
+      cacheKey,
+      CACHE_POLICIES.haEntity,
+      WIDGET_CACHE_LARGE_MAX_BYTES,
+    );
   const [status, setStatus] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
+  const entities = unpackEntityList(ids, data ?? []);
 
   const fetchData = useCallback(async () => {
-    const ids = key.split("|").filter(Boolean);
-    if (ids.length === 0) {
-      setEntities([]);
-      setError(null);
+    const currentIds = requestKey.split("|").filter(Boolean);
+    if (currentIds.length === 0 || !cacheKey) {
+      commit({ type: "clear" });
       setStatus(null);
-      setLastUpdated(null);
       setConsecutiveFailures(0);
       return;
     }
 
-    setIsLoading(true);
+    beginLoad();
     try {
-      const next = await Promise.all(ids.map((id) => fetchEntity<T>(id, fetchFailureCopy)));
-      setEntities(next);
+      const next = await Promise.all(currentIds.map((id) => fetchEntity<T>(id, fetchFailureCopy)));
+      commit({ type: "success", data: packEntityList(currentIds, next), now: Date.now() });
       setError(null);
       setStatus(200);
-      setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : fetchFailureCopy);
+      commit({ type: "failure" });
       if (err instanceof HomeAssistantHttpError) setStatus(err.status);
       setConsecutiveFailures((value) => value + 1);
-    } finally {
-      setIsLoading(false);
     }
-  }, [key, fetchFailureCopy]);
+  }, [beginLoad, cacheKey, commit, fetchFailureCopy, requestKey, setError]);
 
   useEffect(() => {
     void fetchData();
   }, [fetchData]);
 
   useEffect(() => {
-    if (!key) return;
+    if (!cacheKey) return;
     const timeout = setTimeout(fetchData, getNextPollDelay(pollIntervalMs, consecutiveFailures));
     return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, key, pollIntervalMs]);
+  }, [consecutiveFailures, fetchData, cacheKey, pollIntervalMs]);
 
-  return { entities, isLoading, error, status, lastUpdated, refresh: fetchData };
+  return {
+    entities,
+    isLoading,
+    error,
+    isStale,
+    status,
+    lastUpdated,
+    refresh: fetchData,
+  };
 }
 
 /** A stable caller for allowlisted Home Assistant services. */
@@ -206,6 +220,7 @@ export type UseEntityResult<T> = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   pending: boolean;
   refresh: () => Promise<void>;
   /** Call a service on this entity, with an optional optimistic merge + refresh. */
@@ -228,42 +243,46 @@ export function useEntity<T>(entityId: string, options: UseEntityOptions): UseEn
     callFailureCopy,
     pollIntervalMs = ENTITY_POLL_INTERVAL_MS,
   } = options;
-  const [entity, setEntity] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const cacheKey = entityId ? haEntityKey(entityId) : null;
+  const {
+    data: entity,
+    setData,
+    isLoading,
+    isStale,
+    error,
+    setError,
+    lastUpdated,
+    beginLoad,
+    commit,
+  } = useHaResource<T>(cacheKey);
   const [controlError, setControlError] = useState<string | null>(null);
   const [status, setStatus] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
   const [pending, setPending] = useState(false);
   const callService = useHomeAssistantService(callFailureCopy);
 
   const fetchData = useCallback(async () => {
-    if (!entityId) {
-      setEntity(null);
-      setError(null);
+    if (!entityId || !cacheKey) {
+      commit({ type: "clear" });
       setStatus(null);
-      setLastUpdated(null);
       setConsecutiveFailures(0);
       return;
     }
 
-    setIsLoading(true);
+    beginLoad();
     try {
       const next = await fetchEntity<T>(entityId, fetchFailureCopy);
-      setEntity(next);
+      commit({ type: "success", data: next, now: Date.now() });
       setError(null);
       setStatus(200);
-      setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : fetchFailureCopy);
+      commit({ type: "failure" });
       if (err instanceof HomeAssistantHttpError) setStatus(err.status);
       setConsecutiveFailures((value) => value + 1);
-    } finally {
-      setIsLoading(false);
     }
-  }, [entityId, fetchFailureCopy]);
+  }, [beginLoad, cacheKey, commit, entityId, fetchFailureCopy, setError]);
 
   useEffect(() => {
     void fetchData();
@@ -280,7 +299,9 @@ export function useEntity<T>(entityId: string, options: UseEntityOptions): UseEn
       if (!entityId) return;
       setPending(true);
       setControlError(null);
-      if (optimistic) setEntity((current) => (current ? optimistic(current) : current));
+      if (optimistic) {
+        setData((current) => (current ? optimistic(current) : current));
+      }
       try {
         await callService(domain, service, entityId, data);
       } catch (err) {
@@ -290,13 +311,14 @@ export function useEntity<T>(entityId: string, options: UseEntityOptions): UseEn
         setPending(false);
       }
     },
-    [callService, callFailureCopy, domain, entityId, fetchData],
+    [callFailureCopy, callService, domain, entityId, fetchData, setData],
   );
 
   return {
     entity,
     isLoading,
     error,
+    isStale,
     controlError,
     status,
     lastUpdated,

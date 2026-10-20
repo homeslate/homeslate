@@ -72,6 +72,16 @@ OPENROUTESERVICE_API_KEY=...
 
 Without it, the commute route returns 501 and the widget stays designable.
 
+## Optional stocks
+
+Set `FINNHUB_API_KEY` on the API process. The key is not stored in the display.
+
+```bash
+FINNHUB_API_KEY=...
+```
+
+Without it, stock quotes return 501.
+
 ## Optional Home Assistant
 
 Set these on the API process to enable the Home Assistant widgets:

@@ -1,6 +1,4 @@
-// Stock Market Service using Finnhub
-// Free tier: 60 calls/minute - requires API key
-// Get your free API key at: https://finnhub.io/
+// Stock quotes are fetched by the Homeslate server. Set FINNHUB_API_KEY there.
 
 export interface StockQuote {
   symbol: string;
@@ -48,26 +46,17 @@ export const popularIndices: StockSymbol[] = [
   { symbol: "VTI", name: "Total Stock Market ETF" },
 ];
 
-const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
+export const STOCKS_MISSING_KEY_COPY = "Set FINNHUB_API_KEY on the server.";
 
 /**
- * Fetch a stock quote from Finnhub
+ * Fetch a stock quote. The Finnhub token stays on the Homeslate server.
  */
-export async function fetchStockQuote(symbol: string, apiKey: string): Promise<StockQuote> {
-  if (!apiKey) {
-    throw new Error("API key required. Get a free key at finnhub.io");
-  }
+export async function fetchStockQuote(symbol: string): Promise<StockQuote> {
+  const params = new URLSearchParams({ symbol: symbol.toUpperCase() });
+  const response = await fetch(`/api/stocks/quote?${params}`);
 
-  const url = new URL(`${FINNHUB_BASE_URL}/quote`);
-  url.searchParams.set("symbol", symbol.toUpperCase());
-  url.searchParams.set("token", apiKey);
-
-  const response = await fetch(url.toString());
-
+  if (response.status === 501) throw new Error(STOCKS_MISSING_KEY_COPY);
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error("Invalid API key");
-    }
     if (response.status === 429) {
       throw new Error("Rate limit exceeded. Please wait a moment.");
     }
@@ -99,15 +88,12 @@ export async function fetchStockQuote(symbol: string, apiKey: string): Promise<S
  */
 export async function fetchMultipleQuotes(
   symbols: string[],
-  apiKey: string,
 ): Promise<Map<string, StockQuote | Error>> {
   const results = new Map<string, StockQuote | Error>();
 
-  // Fetch sequentially to respect rate limits
   for (const symbol of symbols) {
     try {
-      const quote = await fetchStockQuote(symbol, apiKey);
-      // Find the name from our lists
+      const quote = await fetchStockQuote(symbol);
       const stockInfo = [...popularStocks, ...popularIndices].find(
         (s) => s.symbol === symbol.toUpperCase(),
       );
@@ -118,9 +104,6 @@ export async function fetchMultipleQuotes(
     } catch (err) {
       results.set(symbol.toUpperCase(), err instanceof Error ? err : new Error("Unknown error"));
     }
-
-    // Small delay between requests to avoid rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   return results;
@@ -129,18 +112,16 @@ export async function fetchMultipleQuotes(
 /**
  * Search for stock symbols
  */
-export async function searchSymbols(query: string, apiKey: string): Promise<StockSymbol[]> {
-  if (!apiKey || !query || query.length < 1) {
+export async function searchSymbols(query: string): Promise<StockSymbol[]> {
+  if (!query || query.length < 1) {
     return [];
   }
 
-  const url = new URL(`${FINNHUB_BASE_URL}/search`);
-  url.searchParams.set("q", query);
-  url.searchParams.set("token", apiKey);
-
-  const response = await fetch(url.toString());
+  const params = new URLSearchParams({ q: query });
+  const response = await fetch(`/api/stocks/search?${params}`);
 
   if (!response.ok) {
+    if (response.status === 501) throw new Error(STOCKS_MISSING_KEY_COPY);
     return [];
   }
 
@@ -155,20 +136,6 @@ export async function searchSymbols(query: string, apiKey: string): Promise<Stoc
     }));
 }
 
-// Cache for stock data
-const stockCache = new Map<string, { data: StockQuote; timestamp: number }>();
-const CACHE_DURATION = 60 * 1000; // 1 minute (stocks change frequently)
-
-export async function fetchStockQuoteCached(symbol: string, apiKey: string): Promise<StockQuote> {
-  const cacheKey = symbol.toUpperCase();
-  const cached = stockCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  const data = await fetchStockQuote(symbol, apiKey);
-  stockCache.set(cacheKey, { data, timestamp: Date.now() });
-
-  return data;
+export async function fetchStockQuoteCached(symbol: string): Promise<StockQuote> {
+  return fetchStockQuote(symbol);
 }

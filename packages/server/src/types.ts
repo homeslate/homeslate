@@ -36,6 +36,8 @@ export type HomeslateServerOptions = {
   homeAssistant?: HomeslateHomeAssistantCredentials;
   /** openrouteservice.org API key. Omit to disable the commute route. */
   openRouteServiceApiKey?: string;
+  /** Finnhub API key. Omit to disable stock quotes and symbol search. */
+  finnhubApiKey?: string;
   /** Account that owns the single-user display. Defaults to `"local"`. */
   accountId?: string;
   /**

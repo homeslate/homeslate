@@ -72,7 +72,7 @@ function RowIcon({ row }: { row: HomeStatusRow }) {
 export function HomeStatusWidget({ widget, isEditing }: WidgetProps<HomeStatusConfig>) {
   const { entityIds = [], transparentBackground = false } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeStatusEntity>(ids, {
       fetchFailureCopy: HOME_STATUS_MISSING_CONFIG_COPY,
     });
@@ -141,6 +141,7 @@ export function HomeStatusWidget({ widget, isEditing }: WidgetProps<HomeStatusCo
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

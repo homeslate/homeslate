@@ -33,7 +33,7 @@ export function EnergyWidget({ widget, isEditing }: WidgetProps<EnergyConfig>) {
     transparentBackground = false,
   } = widget.config;
   const ids = [powerEntityId, energyEntityId].filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantSensor>(ids, {
       fetchFailureCopy: ENERGY_MISSING_CONFIG_COPY,
     });
@@ -128,6 +128,7 @@ export function EnergyWidget({ widget, isEditing }: WidgetProps<EnergyConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

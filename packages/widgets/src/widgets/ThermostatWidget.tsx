@@ -91,6 +91,7 @@ export function ThermostatWidget({ widget }: WidgetProps<ThermostatConfig>) {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     setTarget,
@@ -369,6 +370,7 @@ export function ThermostatWidget({ widget }: WidgetProps<ThermostatConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

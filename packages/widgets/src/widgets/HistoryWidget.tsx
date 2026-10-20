@@ -37,6 +37,7 @@ export function HistoryWidget({ widget, isEditing }: WidgetProps<HistoryConfig>)
     error,
     status,
     lastUpdated,
+    isStale,
     refresh,
   } = useEntity<HomeAssistantSensor>(entityId, {
     domain,
@@ -155,6 +156,7 @@ export function HistoryWidget({ widget, isEditing }: WidgetProps<HistoryConfig>)
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={history.lastUpdated ?? lastUpdated}
+          isStale={history.isStale || isStale}
           error={history.error ?? error}
           isLoading={isLoading || history.isLoading}
         />

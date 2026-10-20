@@ -37,6 +37,7 @@ export function CameraWidget({ widget, isEditing }: WidgetProps<CameraConfig>) {
     controlError,
     status,
     lastUpdated,
+    isStale,
     refresh,
   } = useEntity<HomeAssistantCamera>(entityId, {
     domain: "camera",
@@ -191,6 +192,7 @@ export function CameraWidget({ widget, isEditing }: WidgetProps<CameraConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

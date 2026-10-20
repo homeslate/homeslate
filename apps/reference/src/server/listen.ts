@@ -67,6 +67,7 @@ const server = await startHomeslateServer({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   },
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  finnhubApiKey: process.env.FINNHUB_API_KEY,
   homeAssistant: relay
     ? { transport: relay.transport(relayAccountId) }
     : {

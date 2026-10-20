@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { HomeAssistantHttpError, fetchHomeAssistantHistory } from "../services/homeAssistant";
 import type { HomeAssistantHistoryPoint } from "../widgets/homeAssistantHistory";
+import { CACHE_POLICIES, haHistoryKey } from "../services/cachePolicies";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useHaResource } from "./useHaResource";
 
 const HISTORY_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -10,6 +13,7 @@ export interface UseHomeAssistantHistoryResult {
   error: string | null;
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -19,33 +23,33 @@ export function useHomeAssistantHistory(
   hours: number,
   failureCopy: string,
 ): UseHomeAssistantHistoryResult {
-  const [points, setPoints] = useState<HomeAssistantHistoryPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const cacheKey = entityId ? haHistoryKey(entityId, hours) : null;
+  const { data, isLoading, isStale, error, setError, lastUpdated, beginLoad, commit } =
+    useHaResource<HomeAssistantHistoryPoint[]>(
+      cacheKey,
+      CACHE_POLICIES.haHistory,
+      WIDGET_CACHE_LARGE_MAX_BYTES,
+    );
   const [status, setStatus] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!entityId) {
-      setPoints([]);
-      setError(null);
+    if (!entityId || !cacheKey) {
+      commit({ type: "clear" });
       setStatus(null);
-      setLastUpdated(null);
       return;
     }
-    setIsLoading(true);
+    beginLoad();
     try {
-      setPoints(await fetchHomeAssistantHistory(entityId, hours, failureCopy));
+      const points = await fetchHomeAssistantHistory(entityId, hours, failureCopy);
+      commit({ type: "success", data: points, now: Date.now() });
       setError(null);
       setStatus(200);
-      setLastUpdated(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : failureCopy);
+      commit({ type: "failure" });
       if (err instanceof HomeAssistantHttpError) setStatus(err.status);
-    } finally {
-      setIsLoading(false);
     }
-  }, [entityId, failureCopy, hours]);
+  }, [beginLoad, cacheKey, commit, entityId, failureCopy, hours, setError]);
 
   useEffect(() => {
     void fetchData();
@@ -57,5 +61,5 @@ export function useHomeAssistantHistory(
     return () => clearInterval(timer);
   }, [entityId, fetchData]);
 
-  return { points, isLoading, error, status, lastUpdated, refresh: fetchData };
+  return { points: data ?? [], isLoading, error, isStale, status, lastUpdated, refresh: fetchData };
 }

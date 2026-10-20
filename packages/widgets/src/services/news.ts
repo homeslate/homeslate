@@ -1,6 +1,4 @@
-// RSS Feed News Service
-// Free, no API key required - works with any RSS feed
-// Uses a CORS proxy for browser compatibility
+// RSS feeds are fetched by the Homeslate server so the browser stays same-origin.
 
 export interface NewsItem {
   title: string;
@@ -36,17 +34,8 @@ export const popularFeeds: RSSFeed[] = [
   { name: "ESPN - MLB", url: "https://www.espn.com/espn/rss/mlb/news" },
 ];
 
-// CORS proxy for fetching RSS feeds from browser
-// For production, you'd want to run your own proxy or backend
-const CORS_PROXY = "https://api.allorigins.win/raw?url=";
-
-/**
- * Fetch and parse an RSS feed
- */
 export async function fetchRSSFeed(feedUrl: string, feedName: string): Promise<NewsItem[]> {
-  const proxyUrl = `${CORS_PROXY}${encodeURIComponent(feedUrl)}`;
-
-  const response = await fetch(proxyUrl);
+  const response = await fetch(`/api/news?url=${encodeURIComponent(feedUrl)}`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch feed: ${response.statusText}`);
@@ -129,23 +118,6 @@ function stripHtml(html: string): string {
   return tmp.textContent || tmp.innerText || "";
 }
 
-// Cache for news data
-const newsCache = new Map<string, { data: NewsItem[]; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 export async function fetchNewsCached(feeds: RSSFeed[]): Promise<NewsItem[]> {
-  const cacheKey = feeds
-    .map((f) => f.url)
-    .sort()
-    .join("|");
-  const cached = newsCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  const data = await fetchMultipleFeeds(feeds);
-  newsCache.set(cacheKey, { data, timestamp: Date.now() });
-
-  return data;
+  return fetchMultipleFeeds(feeds);
 }

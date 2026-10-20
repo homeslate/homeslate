@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { CACHE_POLICIES, commuteKey } from "../services/cachePolicies";
+import { readWidgetCache, WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useCachedResource } from "./useCachedResource";
 import {
   COMMUTE_MISSING_KEY_COPY,
   CommuteHttpError,
@@ -6,9 +8,11 @@ import {
   type CommuteEstimate,
   type CommuteUnits,
 } from "../widgets/commute";
-import { getNextPollDelay } from "./polling";
 
-const COMMUTE_POLL_INTERVAL_MS = 5 * 60 * 1000;
+interface CachedCommuteEntry {
+  id: string;
+  result: CommuteResult;
+}
 
 export type CommuteRouteQuery = {
   id: string;
@@ -25,6 +29,7 @@ export type CommuteResult = {
 export type UseCommuteResult = {
   results: Map<string, CommuteResult>;
   isLoading: boolean;
+  isStale: boolean;
   lastUpdated: number | null;
   refresh: () => void;
 };
@@ -58,71 +63,44 @@ function toResult(error: unknown): CommuteResult {
 }
 
 export function useCommute(routes: CommuteRouteQuery[], units: CommuteUnits): UseCommuteResult {
-  const [results, setResults] = useState<Map<string, CommuteResult>>(new Map());
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
-  const routesRef = useRef(routes);
-  routesRef.current = routes;
-  const routeKey = routes
-    .map((route) => `${route.id}\0${route.origin}\0${route.destination}`)
-    .join("\n");
-
-  const fetchData = useCallback(async () => {
-    const currentRoutes = routesRef.current;
-    if (currentRoutes.length === 0) {
-      setResults(new Map());
-      setLastUpdated(null);
-      setConsecutiveFailures(0);
-      return;
-    }
-
-    setIsLoading(true);
-    const settled = await Promise.all(
-      currentRoutes.map(async (route) => {
-        try {
-          return [route.id, { estimate: await fetchEstimate(route, units) }] as const;
-        } catch (error) {
-          return [route.id, toResult(error)] as const;
-        }
-      }),
-    );
-
-    const successful = settled.filter(([, result]) => result.estimate).length;
-    setResults((previous) => {
-      const next = new Map<string, CommuteResult>();
-      for (const [id, result] of settled) {
-        if (result.estimate) {
-          next.set(id, result);
-          continue;
-        }
-        const previousEstimate = previous.get(id)?.estimate;
-        next.set(id, previousEstimate ? { ...result, estimate: previousEstimate } : result);
+  const cacheKey = routes.length === 0 ? null : commuteKey(routes, units);
+  const resource = useCachedResource<CachedCommuteEntry[]>({
+    key: cacheKey,
+    freshMs: CACHE_POLICIES.commute.freshMs,
+    maxStaleMs: CACHE_POLICIES.commute.maxStaleMs,
+    pollMs: CACHE_POLICIES.commute.freshMs,
+    maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+    fetcher: async () => {
+      const existing = cacheKey
+        ? readWidgetCache<CachedCommuteEntry[]>(cacheKey, CACHE_POLICIES.commute)
+        : null;
+      const previous = new Map(existing?.data.map((entry) => [entry.id, entry.result]) ?? []);
+      const settled = await Promise.all(
+        routes.map(async (route) => {
+          try {
+            return { id: route.id, result: { estimate: await fetchEstimate(route, units) } };
+          } catch (error) {
+            const failed = toResult(error);
+            const previousEstimate = previous.get(route.id)?.estimate;
+            return {
+              id: route.id,
+              result: previousEstimate ? { ...failed, estimate: previousEstimate } : failed,
+            };
+          }
+        }),
+      );
+      if (!settled.some((entry) => entry.result.estimate)) {
+        throw new Error(settled[0]?.result.error ?? "Failed to fetch commute");
       }
-      return next;
-    });
+      return settled;
+    },
+  });
 
-    if (successful > 0) {
-      setLastUpdated(Date.now());
-      setConsecutiveFailures(0);
-    } else {
-      setConsecutiveFailures((value) => value + 1);
-    }
-    setIsLoading(false);
-  }, [units]);
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData, routeKey]);
-
-  useEffect(() => {
-    if (routes.length === 0) return;
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(COMMUTE_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, routes.length]);
-
-  return { results, isLoading, lastUpdated, refresh: fetchData };
+  return {
+    results: new Map(resource.data?.map((entry) => [entry.id, entry.result]) ?? []),
+    isLoading: resource.isLoading,
+    isStale: resource.isStale,
+    lastUpdated: resource.lastUpdated,
+    refresh: resource.refresh,
+  };
 }

@@ -41,6 +41,7 @@ export function LawnMowerWidget({ widget, isEditing }: WidgetProps<LawnMowerConf
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -174,6 +175,7 @@ export function LawnMowerWidget({ widget, isEditing }: WidgetProps<LawnMowerConf
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

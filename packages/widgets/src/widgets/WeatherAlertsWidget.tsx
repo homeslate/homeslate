@@ -60,7 +60,7 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
     maxAlerts,
     transparentBackground,
   } = widget.config;
-  const { alerts, coverage, isLoading, error, lastUpdated, refresh } = useWeatherAlerts({
+  const { alerts, coverage, isLoading, error, isStale, lastUpdated, refresh } = useWeatherAlerts({
     latitude,
     longitude,
   });
@@ -163,6 +163,7 @@ export function WeatherAlertsWidget({ widget }: WidgetProps<WeatherAlertsConfig>
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

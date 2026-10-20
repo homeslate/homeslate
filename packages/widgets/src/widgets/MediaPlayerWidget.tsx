@@ -54,6 +54,7 @@ export function MediaPlayerWidget({ widget, isEditing }: WidgetProps<MediaPlayer
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -332,6 +333,7 @@ export function MediaPlayerWidget({ widget, isEditing }: WidgetProps<MediaPlayer
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

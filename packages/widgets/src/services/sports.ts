@@ -3,24 +3,17 @@
 // Endpoint pattern:
 //   https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/scoreboard
 
-export interface League {
-  id: string; // key used in the URL, e.g. "nhl"
-  sport: string; // e.g. "hockey"
-  name: string; // display name
-}
+import { CACHE_POLICIES, sportsKey, sportsTeamsKey } from "./cachePolicies";
+import { LEAGUES } from "./leagues";
+import {
+  clearWidgetCacheWhere,
+  readWidgetCache,
+  WIDGET_CACHE_LARGE_MAX_BYTES,
+  writeWidgetCache,
+} from "./widgetCache";
 
-export const LEAGUES: League[] = [
-  { id: "nhl", sport: "hockey", name: "NHL" },
-  { id: "nfl", sport: "football", name: "NFL" },
-  { id: "nba", sport: "basketball", name: "NBA" },
-  { id: "wnba", sport: "basketball", name: "WNBA" },
-  { id: "mlb", sport: "baseball", name: "MLB" },
-  { id: "mls", sport: "soccer", name: "MLS" },
-  { id: "f1", sport: "racing", name: "Formula 1" },
-  { id: "mens-college-basketball", sport: "basketball", name: "NCAA Basketball (M)" },
-  { id: "womens-college-basketball", sport: "basketball", name: "NCAA Basketball (W)" },
-  { id: "college-football", sport: "football", name: "NCAA Football" },
-];
+export { LEAGUES };
+export type { League } from "./leagues";
 
 export interface SportsTeam {
   id: string;
@@ -66,15 +59,6 @@ export interface SportGame {
 // API fetch
 // ---------------------------------------------------------------------------
 
-const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports";
-
-// Simple in-memory cache keyed by leagueId or leagueId:dates
-const scoreboardCache = new Map<
-  string,
-  { data: SportGame[]; timestamp: number; teams: SportsTeam[]; leagueLogo?: string; date?: string }
->();
-const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
-
 interface EspnLogo {
   href?: string;
   rel?: string[];
@@ -117,9 +101,10 @@ interface EspnEvent {
   circuit?: { fullName?: string; address?: { city?: string } };
 }
 
-function buildScoreboardUrl(leagueId: string, sport: string, dates?: string): string {
-  const base = `${ESPN_BASE}/${sport}/${leagueId}/scoreboard`;
-  return dates ? `${base}?dates=${dates}` : base;
+function buildScoreboardUrl(leagueId: string, _sport: string, dates?: string): string {
+  const params = new URLSearchParams({ league: leagueId });
+  if (dates) params.set("dates", dates);
+  return `/api/sports/scoreboard?${params}`;
 }
 
 function parseCompetitor(c: EspnCompetitor): SportsCompetitor {
@@ -253,18 +238,6 @@ export async function fetchScoreboard(
   if (!league) throw new Error(`Unknown league: ${leagueId}`);
 
   const { dates } = options ?? {};
-  const cacheKey = dates ? `${leagueId}:${dates}` : leagueId;
-
-  const cached = scoreboardCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return {
-      games: cached.data,
-      teams: cached.teams,
-      leagueLogo: cached.leagueLogo,
-      date: cached.date,
-    };
-  }
-
   const url = buildScoreboardUrl(leagueId, league.sport, dates);
   const response = await fetch(url);
   if (!response.ok) throw new Error(`ESPN fetch failed: ${response.statusText}`);
@@ -302,14 +275,6 @@ export async function fetchScoreboard(
     a.displayName.localeCompare(b.displayName),
   );
 
-  const cacheEntry = {
-    data: games,
-    timestamp: Date.now(),
-    teams,
-    leagueLogo,
-    date: dateStr,
-  };
-  scoreboardCache.set(cacheKey, cacheEntry);
   return {
     games,
     teams,
@@ -322,24 +287,19 @@ export async function fetchScoreboard(
 // Fetch all teams for a league (for settings UI)
 // ---------------------------------------------------------------------------
 
-const teamsCache = new Map<string, { teams: SportsTeam[]; timestamp: number }>();
-const TEAMS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour — teams list rarely changes
-
 export async function fetchLeagueTeams(leagueId: string): Promise<SportsTeam[]> {
-  const cached = teamsCache.get(leagueId);
-  if (cached && Date.now() - cached.timestamp < TEAMS_CACHE_DURATION) {
-    return cached.teams;
-  }
+  const key = sportsTeamsKey(leagueId);
+  const cached = readWidgetCache<SportsTeam[]>(key, CACHE_POLICIES.sportsTeams);
+  if (cached?.isFresh) return cached.data;
 
-  const league = LEAGUES.find((l) => l.id === leagueId);
-  if (!league) return [];
+  const league = LEAGUES.find((entry) => entry.id === leagueId);
+  if (!league) return cached?.data ?? [];
 
-  const ESPN_TEAMS_BASE = "https://site.api.espn.com/apis/site/v2/sports";
-  const url = `${ESPN_TEAMS_BASE}/${league.sport}/${leagueId}/teams?limit=200`;
+  const url = `/api/sports/teams?league=${encodeURIComponent(leagueId)}`;
 
   try {
     const response = await fetch(url);
-    if (!response.ok) return [];
+    if (!response.ok) return cached?.data ?? [];
     const data = await response.json();
 
     const teams: SportsTeam[] = (data.sports?.[0]?.leagues?.[0]?.teams ?? [])
@@ -362,24 +322,25 @@ export async function fetchLeagueTeams(leagueId: string): Promise<SportsTeam[]> 
           color: entry.team?.color ? `#${entry.team.color}` : undefined,
         }),
       )
-      .filter((t: SportsTeam) => t.id);
+      .filter((team: SportsTeam) => team.id);
 
-    teams.sort((a, b) => a.displayName.localeCompare(b.displayName));
-    teamsCache.set(leagueId, { teams, timestamp: Date.now() });
-    return teams;
+    teams.sort((left, right) => left.displayName.localeCompare(right.displayName));
+    if (teams.length > 0) {
+      writeWidgetCache(key, teams, { maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES });
+    }
+    return teams.length > 0 ? teams : (cached?.data ?? []);
   } catch {
-    return [];
+    return cached?.data ?? [];
   }
 }
 
 export function invalidateCache(leagueId?: string): void {
-  if (leagueId) {
-    for (const key of scoreboardCache.keys()) {
-      if (key === leagueId || key.startsWith(`${leagueId}:`)) {
-        scoreboardCache.delete(key);
-      }
-    }
-  } else {
-    scoreboardCache.clear();
-  }
+  clearWidgetCacheWhere((key) => {
+    if (!leagueId) return key.startsWith("sports:") || key.startsWith("sports-teams:");
+    return (
+      key === sportsKey(leagueId) ||
+      key.startsWith(`sports:${leagueId}:`) ||
+      key === sportsTeamsKey(leagueId)
+    );
+  });
 }

@@ -96,12 +96,22 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
     transparentBackground = false,
   } = widget.config;
   const domain = entityId.includes(".") ? entityId.slice(0, entityId.indexOf(".")) : "";
-  const { entity, isLoading, error, controlError, status, lastUpdated, pending, refresh, call } =
-    useEntity<Record<string, unknown>>(entityId, {
-      domain,
-      fetchFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
-      callFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
-    });
+  const {
+    entity,
+    isLoading,
+    error,
+    controlError,
+    status,
+    lastUpdated,
+    isStale,
+    pending,
+    refresh,
+    call,
+  } = useEntity<Record<string, unknown>>(entityId, {
+    domain,
+    fetchFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
+    callFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
+  });
   const [brightnessDraft, setBrightnessDraft] = useState<number | null>(null);
   const [positionDraft, setPositionDraft] = useState<number | null>(null);
   const containerClass = `${classes.container} ${transparentBackground ? classes.transparent : ""}`;
@@ -381,6 +391,7 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

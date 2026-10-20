@@ -11,6 +11,9 @@ import {
   type HomeAssistantWeatherForecast,
 } from "../widgets/homeAssistantWeather";
 import { getNextPollDelay } from "./polling";
+import { CACHE_POLICIES, haWeatherKey } from "../services/cachePolicies";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useHaResource } from "./useHaResource";
 
 const WEATHER_POLL_INTERVAL_MS = 10 * 60 * 1000;
 const HOURLY_FORECAST_COUNT = 24;
@@ -22,6 +25,7 @@ export type UseHomeAssistantWeatherResult = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   refresh: () => void;
 };
 
@@ -76,43 +80,42 @@ export function useHomeAssistantWeather(
   entityId: string,
   fetchFailureCopy: string,
 ): UseHomeAssistantWeatherResult {
-  const [data, setData] = useState<WeatherData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const cacheKey = entityId ? haWeatherKey(entityId) : null;
+  const { data, isLoading, isStale, error, setError, lastUpdated, beginLoad, commit } =
+    useHaResource<WeatherData>(cacheKey, CACHE_POLICIES.haWeather, WIDGET_CACHE_LARGE_MAX_BYTES);
   const [status, setStatus] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
 
   const fetchData = useCallback(async () => {
-    if (!entityId) {
-      setData(null);
-      setError(null);
+    if (!entityId || !cacheKey) {
+      commit({ type: "clear" });
       setStatus(null);
-      setLastUpdated(null);
       setConsecutiveFailures(0);
       return;
     }
 
-    setIsLoading(true);
+    beginLoad();
     try {
       const [entity, daily, hourly] = await Promise.all([
         fetchEntity<HomeAssistantWeatherEntity>(entityId, fetchFailureCopy),
         fetchHomeAssistantWeatherForecast(entityId, "daily", fetchFailureCopy).catch(() => []),
         fetchHomeAssistantWeatherForecast(entityId, "hourly", fetchFailureCopy).catch(() => []),
       ]);
-      setData(toWeatherData(entity, daily, hourly, new Date()));
+      commit({
+        type: "success",
+        data: toWeatherData(entity, daily, hourly, new Date()),
+        now: Date.now(),
+      });
       setError(null);
       setStatus(200);
-      setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : fetchFailureCopy);
+      commit({ type: "failure" });
       if (err instanceof HomeAssistantHttpError) setStatus(err.status);
       setConsecutiveFailures((value) => value + 1);
-    } finally {
-      setIsLoading(false);
     }
-  }, [entityId, fetchFailureCopy]);
+  }, [beginLoad, cacheKey, commit, entityId, fetchFailureCopy, setError]);
 
   useEffect(() => {
     void fetchData();
@@ -127,5 +130,5 @@ export function useHomeAssistantWeather(
     return () => clearTimeout(timeout);
   }, [consecutiveFailures, entityId, fetchData]);
 
-  return { data, isLoading, error, status, lastUpdated, refresh: fetchData };
+  return { data, isLoading, error, isStale, status, lastUpdated, refresh: fetchData };
 }

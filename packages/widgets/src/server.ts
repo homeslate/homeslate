@@ -4,6 +4,8 @@ export {
 } from "./widgets/googleCalendarError";
 export { parseCommuteQuery, parseLatLon, type CommuteUnits } from "./server/commuteQuery";
 export { COMMUTE_MISSING_KEY_COPY } from "./widgets/commute";
+export { STOCKS_MISSING_KEY_COPY } from "./services/stocks";
+export { LEAGUES } from "./services/leagues";
 export type { CommuteEstimate } from "./widgets/commute";
 export { mapNwsAlerts, sortWeatherAlerts, NWS_USER_AGENT } from "./widgets/weatherAlerts";
 export type {

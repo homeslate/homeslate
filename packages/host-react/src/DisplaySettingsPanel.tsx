@@ -105,6 +105,22 @@ export function DisplaySettingsPanel(props: {
         )}
       </Section>
 
+      <Section title="Kiosk">
+        <HStack justify="between" align="center" gap="md">
+          <Stack gap="xs">
+            <Text size="sm">Keep the screen awake</Text>
+            <Text size="xs" tone="secondary">
+              Stops the kiosk display from sleeping while this board is open. On by default.
+            </Text>
+          </Stack>
+          <Switch
+            isSelected={document.settings.wakeLockEnabled !== false}
+            aria-label="Keep the screen awake"
+            onChange={(enabled) => patchSettings({ wakeLockEnabled: enabled })}
+          />
+        </HStack>
+      </Section>
+
       <Section title="Sticky Notes">
         <HStack justify="between" align="center" gap="md">
           <Stack gap="xs">

@@ -32,6 +32,7 @@ export function HumidifierWidget({ widget, isEditing }: WidgetProps<HumidifierCo
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -212,6 +213,7 @@ export function HumidifierWidget({ widget, isEditing }: WidgetProps<HumidifierCo
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

@@ -697,7 +697,6 @@ const stocksEntry: WidgetRegistryEntry<StocksConfig> = {
   settingsComponent: StocksWidgetSettings,
   defaultConfig: {
     symbols: [],
-    apiKey: "",
     showChange: true,
     showDayRange: false,
     transparentBackground: false,

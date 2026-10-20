@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { CACHE_POLICIES, icalKey } from "../services/cachePolicies";
 import { fetchCalendarEventsCached, type CalendarEvent } from "../services/calendar";
-import { getNextPollDelay } from "./polling";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useCachedResource } from "./useCachedResource";
 
 interface UseCalendarOptions {
   icalUrl: string;
@@ -11,63 +12,41 @@ interface UseCalendarOptions {
 interface UseCalendarResult {
   events: CalendarEvent[];
   isLoading: boolean;
+  isStale: boolean;
   error: string | null;
   lastUpdated: number | null;
   refresh: () => void;
 }
 
+function reviveEvents(events: CalendarEvent[]): CalendarEvent[] {
+  return events.map((event) => ({
+    ...event,
+    start: new Date(event.start),
+    end: new Date(event.end),
+  }));
+}
+
 export function useCalendar({
   icalUrl,
   daysAhead = 30,
-  refreshInterval = 5 * 60 * 1000, // 5 minutes
+  refreshInterval = CACHE_POLICIES.ical.freshMs,
 }: UseCalendarOptions): UseCalendarResult {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
-
-  const fetchData = useCallback(async () => {
-    if (!icalUrl) {
-      setEvents([]);
-      setError(null);
-      setLastUpdated(null);
-      setConsecutiveFailures(0);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const calendarEvents = await fetchCalendarEventsCached(icalUrl, daysAhead);
-      setEvents(calendarEvents);
-      setLastUpdated(Date.now());
-      setConsecutiveFailures(0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch calendar");
-      setConsecutiveFailures((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [icalUrl, daysAhead]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (!icalUrl) return;
-
-    const timeout = setTimeout(fetchData, getNextPollDelay(refreshInterval, consecutiveFailures));
-    return () => clearTimeout(timeout);
-  }, [fetchData, refreshInterval, icalUrl, consecutiveFailures]);
+  const cacheKey = icalUrl ? icalKey(icalUrl, daysAhead) : null;
+  const resource = useCachedResource<CalendarEvent[]>({
+    key: cacheKey,
+    freshMs: CACHE_POLICIES.ical.freshMs,
+    maxStaleMs: CACHE_POLICIES.ical.maxStaleMs,
+    pollMs: refreshInterval,
+    maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+    fetcher: () => fetchCalendarEventsCached(icalUrl, daysAhead),
+  });
 
   return {
-    events,
-    isLoading,
-    error,
-    lastUpdated,
-    refresh: fetchData,
+    events: reviveEvents(resource.data ?? []),
+    isLoading: resource.isLoading,
+    isStale: resource.isStale,
+    error: resource.error,
+    lastUpdated: resource.lastUpdated,
+    refresh: resource.refresh,
   };
 }

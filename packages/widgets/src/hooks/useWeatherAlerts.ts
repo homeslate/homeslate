@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { CACHE_POLICIES, weatherAlertsKey } from "../services/cachePolicies";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
 import type { WeatherAlert, WeatherAlertsResponse } from "../widgets/weatherAlerts";
-import { getNextPollDelay } from "./polling";
+import { useCachedResource } from "./useCachedResource";
 
-const WEATHER_ALERTS_POLL_INTERVAL_MS = 5 * 60 * 1000;
+const WEATHER_ALERTS_POLL_INTERVAL_MS = CACHE_POLICIES.weatherAlerts.freshMs;
 
 export type UseWeatherAlertsOptions = {
   latitude: number | null;
@@ -13,6 +14,7 @@ export type UseWeatherAlertsResult = {
   alerts: WeatherAlert[];
   coverage: WeatherAlertsResponse["coverage"] | null;
   isLoading: boolean;
+  isStale: boolean;
   error: string | null;
   lastUpdated: number | null;
   refresh: () => void;
@@ -41,27 +43,16 @@ export function useWeatherAlerts({
   latitude,
   longitude,
 }: UseWeatherAlertsOptions): UseWeatherAlertsResult {
-  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
-  const [coverage, setCoverage] = useState<WeatherAlertsResponse["coverage"] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
-
-  const fetchData = useCallback(async () => {
-    if (latitude === null || longitude === null) {
-      setAlerts([]);
-      setCoverage(null);
-      setError(null);
-      setLastUpdated(null);
-      setConsecutiveFailures(0);
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(weatherAlertsUrl(latitude, longitude));
+  const cacheKey =
+    latitude === null || longitude === null ? null : weatherAlertsKey(latitude, longitude);
+  const resource = useCachedResource<WeatherAlertsResponse>({
+    key: cacheKey,
+    freshMs: CACHE_POLICIES.weatherAlerts.freshMs,
+    maxStaleMs: CACHE_POLICIES.weatherAlerts.maxStaleMs,
+    pollMs: WEATHER_ALERTS_POLL_INTERVAL_MS,
+    maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+    fetcher: async () => {
+      const response = await fetch(weatherAlertsUrl(latitude as number, longitude as number));
       if (!response.ok) {
         let message = "Failed to fetch weather alerts";
         try {
@@ -72,33 +63,17 @@ export function useWeatherAlerts({
         }
         throw new Error(message);
       }
-      const data = parseWeatherAlertsResponse(await response.json());
-      setAlerts(data.alerts);
-      setCoverage(data.coverage);
-      setError(null);
-      setLastUpdated(Date.now());
-      setConsecutiveFailures(0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch weather alerts");
-      setConsecutiveFailures((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [latitude, longitude]);
+      return parseWeatherAlertsResponse(await response.json());
+    },
+  });
 
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (latitude === null || longitude === null) return;
-
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(WEATHER_ALERTS_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, latitude, longitude]);
-
-  return { alerts, coverage, isLoading, error, lastUpdated, refresh: fetchData };
+  return {
+    alerts: resource.data?.alerts ?? [],
+    coverage: resource.data?.coverage ?? null,
+    isLoading: resource.isLoading,
+    isStale: resource.isStale,
+    error: resource.error,
+    lastUpdated: resource.lastUpdated,
+    refresh: resource.refresh,
+  };
 }

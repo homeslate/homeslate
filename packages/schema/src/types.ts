@@ -88,6 +88,8 @@ export type DisplayDocument = {
     voiceEnabled?: boolean;
     holidayEffectsEnabled?: boolean;
     holidayPreviewId?: HolidayId;
+    /** Keep the kiosk screen awake. Omitted means enabled. */
+    wakeLockEnabled?: boolean;
   };
   alarms?: AlarmDefinition[];
   household?: {

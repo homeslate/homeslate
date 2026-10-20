@@ -38,7 +38,7 @@ function updateTone(update: HomeAssistantUpdate): string {
 export function UpdatesWidget({ widget, isEditing }: WidgetProps<UpdatesConfig>) {
   const { entityIds = [], showUpToDate = true, transparentBackground = false } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantUpdate>(ids, {
       fetchFailureCopy: UPDATES_MISSING_CONFIG_COPY,
     });
@@ -193,6 +193,7 @@ export function UpdatesWidget({ widget, isEditing }: WidgetProps<UpdatesConfig>)
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

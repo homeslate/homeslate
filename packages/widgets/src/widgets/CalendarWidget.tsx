@@ -95,6 +95,7 @@ export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
   const error = useHa ? remote.error : local.error;
   const refresh = useHa ? remote.refresh : local.refresh;
   const lastUpdated = useHa ? remote.lastUpdated : local.lastUpdated;
+  const isStale = useHa ? remote.isStale : local.isStale;
   const status = useHa ? remote.status : null;
 
   const upcomingEvents = events.slice(0, maxEvents);
@@ -181,6 +182,7 @@ export function CalendarWidget({ widget }: WidgetProps<CalendarConfig>) {
           <WidgetDataStatus
             widgetId={widget.id}
             lastUpdated={lastUpdated}
+            isStale={isStale}
             error={error}
             isLoading={isLoading}
           />

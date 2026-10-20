@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { newsKey, CACHE_POLICIES } from "../services/cachePolicies";
 import { fetchNewsCached, type NewsItem, type RSSFeed } from "../services/news";
-import { getNextPollDelay } from "./polling";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useCachedResource } from "./useCachedResource";
 
 interface UseNewsOptions {
   feeds: RSSFeed[];
@@ -11,6 +12,7 @@ interface UseNewsOptions {
 interface UseNewsResult {
   items: NewsItem[];
   isLoading: boolean;
+  isStale: boolean;
   error: string | null;
   lastUpdated: number | null;
   refresh: () => void;
@@ -19,55 +21,25 @@ interface UseNewsResult {
 export function useNews({
   feeds,
   maxItems = 10,
-  refreshInterval = 5 * 60 * 1000, // 5 minutes
+  refreshInterval = CACHE_POLICIES.news.freshMs,
 }: UseNewsOptions): UseNewsResult {
-  const [items, setItems] = useState<NewsItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
-
-  const fetchData = useCallback(async () => {
-    if (feeds.length === 0) {
-      setItems([]);
-      setError(null);
-      setLastUpdated(null);
-      setConsecutiveFailures(0);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const newsItems = await fetchNewsCached(feeds);
-      setItems(newsItems.slice(0, maxItems));
-      setLastUpdated(Date.now());
-      setConsecutiveFailures(0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch news");
-      setConsecutiveFailures((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [feeds, maxItems]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (feeds.length === 0) return;
-
-    const timeout = setTimeout(fetchData, getNextPollDelay(refreshInterval, consecutiveFailures));
-    return () => clearTimeout(timeout);
-  }, [fetchData, refreshInterval, feeds.length, consecutiveFailures]);
+  const feedUrls = feeds.map((feed) => feed.url);
+  const cacheKey = feedUrls.length === 0 ? null : newsKey(feedUrls);
+  const resource = useCachedResource<NewsItem[]>({
+    key: cacheKey,
+    freshMs: CACHE_POLICIES.news.freshMs,
+    maxStaleMs: CACHE_POLICIES.news.maxStaleMs,
+    pollMs: refreshInterval,
+    maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+    fetcher: async () => (await fetchNewsCached(feeds)).slice(0, maxItems),
+  });
 
   return {
-    items,
-    isLoading,
-    error,
-    lastUpdated,
-    refresh: fetchData,
+    items: resource.data ?? [],
+    isLoading: resource.isLoading,
+    isStale: resource.isStale,
+    error: resource.error,
+    lastUpdated: resource.lastUpdated,
+    refresh: resource.refresh,
   };
 }

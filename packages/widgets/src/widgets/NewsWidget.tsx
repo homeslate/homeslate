@@ -33,7 +33,7 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
       .filter((f): f is RSSFeed => f !== undefined);
   }, [feedUrls]);
 
-  const { items, isLoading, error, refresh, lastUpdated } = useNews({
+  const { items, isLoading, error, isStale, refresh, lastUpdated } = useNews({
     feeds,
     maxItems,
   });
@@ -106,6 +106,7 @@ export function NewsWidget({ widget }: WidgetProps<NewsConfig>) {
       <WidgetDataStatus
         widgetId={widget.id}
         lastUpdated={lastUpdated}
+        isStale={isStale}
         error={error}
         isLoading={isLoading}
       />

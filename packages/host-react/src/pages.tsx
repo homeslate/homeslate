@@ -19,6 +19,10 @@ import {
 } from "@var-ui/react";
 import { IconCheck, IconEdit, IconX } from "@tabler/icons-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { OfflineBanner } from "./OfflineBanner";
+import { loadLastDocument, saveLastDocument } from "./lastDocument";
+import { useOnlineStatus } from "./useOnlineStatus";
+import { useKioskWatchdog } from "./useKioskWatchdog";
 import type { DisplayDocument, ThemeDocument } from "@homeslate/schema";
 import { Editor, ThemeEditor } from "@homeslate/editor";
 import { Display } from "@homeslate/display";
@@ -491,13 +495,25 @@ export function ViewEditorPage() {
 export function KioskPage() {
   const { publicId } = useParams<{ publicId: string }>();
   const { apiBaseUrl, productName, widgetRegistry } = useHomeslateHost();
-  const [document, setDocument] = useState<DisplayDocument | null>(null);
+  const online = useOnlineStatus();
+  const [document, setDocument] = useState<DisplayDocument | null>(() =>
+    publicId ? (loadLastDocument(publicId)?.document ?? null) : null,
+  );
+  const [showingSaved, setShowingSaved] = useState(() =>
+    Boolean(publicId && loadLastDocument(publicId)),
+  );
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [failedHeartbeats, setFailedHeartbeats] = useState(0);
+  const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [passcode, setPasscode] = useState<string | null>(null);
   const [passcodeRequired, setPasscodeRequired] = useState(false);
   const [pinValue, setPinValue] = useState("");
   const [pinError, setPinError] = useState(false);
+  const documentRef = useRef(document);
+  documentRef.current = document;
+  useKioskWatchdog({ online, failedHeartbeats, lastLoadedAt });
 
   const load = useCallback(
     async (candidate: string | null) => {
@@ -515,9 +531,21 @@ export function KioskPage() {
         setPasscodeRequired(false);
         setPinError(false);
         setDocument(result.document);
+        saveLastDocument(publicId, result.document);
+        setShowingSaved(false);
+        setLoadFailed(false);
+        setFailedHeartbeats(0);
+        setLastLoadedAt(Date.now());
         setError(null);
       } catch (cause) {
-        setError(errorMessage(cause));
+        setFailedHeartbeats((count) => count + 1);
+        setLoadFailed(true);
+        if (documentRef.current) {
+          setShowingSaved(true);
+          setError(null);
+        } else {
+          setError(errorMessage(cause));
+        }
       }
     },
     [apiBaseUrl, publicId],
@@ -527,6 +555,12 @@ export function KioskPage() {
     void load(passcode);
     const interval = setInterval(() => void load(passcode), KIOSK_POLL_MS);
     return () => clearInterval(interval);
+  }, [load, passcode]);
+
+  useEffect(() => {
+    const onOnline = () => void load(passcode);
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
   }, [load, passcode]);
 
   const onChange = useCallback(
@@ -541,7 +575,7 @@ export function KioskPage() {
     [apiBaseUrl, publicId, passcode],
   );
 
-  if (passcodeRequired && !document) {
+  if (passcodeRequired) {
     return (
       <Stack align="center" justify="center" style={{ minHeight: "100vh", padding: "1rem" }}>
         <Surface padding="md">
@@ -587,6 +621,7 @@ export function KioskPage() {
 
   return (
     <HomeslateGoogleRuntime displayId={publicId} apiBaseUrl={apiBaseUrl}>
+      <OfflineBanner online={online} loadFailed={loadFailed} showingSaved={showingSaved} />
       {saveError && (
         <Text as="span" size="sm" role="alert" style={KIOSK_SAVE_ERROR_STYLE}>
           Not saved: {saveError}
