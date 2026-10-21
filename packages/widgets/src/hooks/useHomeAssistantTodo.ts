@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 import { HomeAssistantHttpError, fetchTodoItems } from "../services/homeAssistant";
 import type { HomeAssistantTodoItem } from "../widgets/homeAssistantTodo";
 import { useEntities, useHomeAssistantService, type UseEntitiesResult } from "./useHomeAssistant";
@@ -69,14 +70,11 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!entityId) return;
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(TODO_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, entityId]);
+  useRefreshingPoll(
+    Boolean(entityId),
+    getNextPollDelay(TODO_POLL_INTERVAL_MS, consecutiveFailures),
+    () => fetchData(),
+  );
 
   const run = useCallback(
     async (

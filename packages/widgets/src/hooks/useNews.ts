@@ -18,6 +18,14 @@ interface UseNewsResult {
   refresh: () => void;
 }
 
+/** Cache JSON stores dates as strings. Widget code calls Date methods on `pubDate`. */
+export function reviveNewsItems(items: NewsItem[]): NewsItem[] {
+  return items.map((item) => ({
+    ...item,
+    pubDate: new Date(item.pubDate),
+  }));
+}
+
 export function useNews({
   feeds,
   maxItems = 10,
@@ -35,7 +43,7 @@ export function useNews({
   });
 
   return {
-    items: resource.data ?? [],
+    items: reviveNewsItems(resource.data ?? []),
     isLoading: resource.isLoading,
     isStale: resource.isStale,
     error: resource.error,

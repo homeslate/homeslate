@@ -87,6 +87,8 @@ export const referencePwaOptions = {
     navigateFallbackDenylist: [/^\/api\//],
     // Workbox copies each urlPattern with Function#toString. Keep the
     // bodies self-contained so the service worker does not call missing imports.
+    // The image matcher is duplicated from imageCachePolicy.ts.
+    // apps/reference/src/pwa.test.ts is what keeps the copies aligned.
     runtimeCaching: [
       {
         urlPattern: ({ url, request }: { url: URL; request: { method: string } }) => {
@@ -103,6 +105,16 @@ export const referencePwaOptions = {
         options: {
           cacheName: "homeslate-document-v1",
           expiration: { maxAgeSeconds: WEEK_SECONDS },
+          plugins: [
+            {
+              // The viewer PIN is a query param. Keep it out of the cache key.
+              cacheKeyWillBeUsed: async ({ request }: { request: Request }) => {
+                const url = new URL(request.url);
+                url.searchParams.delete("passcode");
+                return url.toString();
+              },
+            },
+          ],
         },
       },
       {
@@ -117,7 +129,7 @@ export const referencePwaOptions = {
             url.pathname.startsWith("/api/sports/")
           );
         },
-        handler: "StaleWhileRevalidate" as const,
+        handler: "NetworkFirst" as const,
         options: {
           cacheName: "homeslate-data-v1",
           expiration: { maxEntries: 200, maxAgeSeconds: WEEK_SECONDS },

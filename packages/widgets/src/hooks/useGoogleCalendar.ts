@@ -25,6 +25,7 @@ import {
   writeWidgetCache,
 } from "../services/widgetCache";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 
 interface UseGoogleCalendarOptions {
   // clientId is kept in the type for config backward-compatibility but is no
@@ -225,22 +226,11 @@ export function useGoogleCalendar({
     if (isAuthenticated && selectedCalendarIds.length > 0) void fetchEvents();
   }, [enabled, isAuthenticated, selectedCalendarIds, fetchEvents]);
 
-  useEffect(() => {
-    if (!enabled) return;
-    if (!isAuthenticated || selectedCalendarIds.length === 0) return;
-    const interval = setTimeout(
-      () => void fetchEvents(true),
-      getNextPollDelay(refreshInterval, consecutiveFailures),
-    );
-    return () => clearTimeout(interval);
-  }, [
-    enabled,
-    isAuthenticated,
-    selectedCalendarIds,
-    fetchEvents,
-    refreshInterval,
-    consecutiveFailures,
-  ]);
+  useRefreshingPoll(
+    enabled && isAuthenticated && selectedCalendarIds.length > 0,
+    getNextPollDelay(refreshInterval, consecutiveFailures),
+    () => fetchEvents(true),
+  );
 
   useEffect(() => {
     if (!enabled) {

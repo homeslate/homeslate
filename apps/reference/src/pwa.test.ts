@@ -58,6 +58,27 @@ describe("reference PWA", () => {
     }
   });
 
+  it("fetches widget data from the network before using a cached copy", () => {
+    const dataRule = referencePwaOptions.workbox.runtimeCaching.find(
+      (rule) => rule.options.cacheName === "homeslate-data-v1",
+    );
+    expect(dataRule?.handler).toBe("NetworkFirst");
+  });
+
+  it("keeps the viewer passcode out of the document cache key", async () => {
+    const documentRule = referencePwaOptions.workbox.runtimeCaching.find(
+      (rule) => rule.options.cacheName === "homeslate-document-v1",
+    );
+    const plugin = documentRule?.options.plugins?.[0];
+    expect(plugin?.cacheKeyWillBeUsed).toEqual(expect.any(Function));
+    const key = await plugin!.cacheKeyWillBeUsed!({
+      request: new Request("http://127.0.0.1/api/public/board?passcode=1234"),
+    });
+    expect(String(key)).not.toContain("passcode");
+    expect(String(key)).not.toContain("1234");
+    expect(String(key)).toContain("/api/public/board");
+  });
+
   it("is wired into the reference Vite config", () => {
     const config = readFileSync(
       fileURLToPath(new URL("../vite.config.ts", import.meta.url)),

@@ -11,6 +11,7 @@ import {
   type HomeAssistantWeatherForecast,
 } from "../widgets/homeAssistantWeather";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 import { CACHE_POLICIES, haWeatherKey } from "../services/cachePolicies";
 import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
 import { useHaResource } from "./useHaResource";
@@ -121,14 +122,11 @@ export function useHomeAssistantWeather(
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!entityId) return;
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(WEATHER_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, entityId, fetchData]);
+  useRefreshingPoll(
+    Boolean(entityId),
+    getNextPollDelay(WEATHER_POLL_INTERVAL_MS, consecutiveFailures),
+    () => fetchData(),
+  );
 
   return { data, isLoading, error, isStale, status, lastUpdated, refresh: fetchData };
 }

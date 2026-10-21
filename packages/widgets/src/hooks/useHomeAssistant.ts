@@ -7,6 +7,7 @@ import {
 } from "../services/homeAssistant";
 import type { HomeAssistantEntitySummary } from "../widgets/homeAssistant";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 import { CACHE_POLICIES, haEntityKey, haEntityListKey } from "../services/cachePolicies";
 import { packEntityList, unpackEntityList, type EntityCacheRecord } from "../services/haCache";
 import { useHaResource } from "./useHaResource";
@@ -165,11 +166,9 @@ export function useEntityList<T>(
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!cacheKey) return;
-    const timeout = setTimeout(fetchData, getNextPollDelay(pollIntervalMs, consecutiveFailures));
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, cacheKey, pollIntervalMs]);
+  useRefreshingPoll(Boolean(cacheKey), getNextPollDelay(pollIntervalMs, consecutiveFailures), () =>
+    fetchData(),
+  );
 
   return {
     entities,
@@ -288,11 +287,9 @@ export function useEntity<T>(entityId: string, options: UseEntityOptions): UseEn
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!entityId) return;
-    const timeout = setTimeout(fetchData, getNextPollDelay(pollIntervalMs, consecutiveFailures));
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, entityId, pollIntervalMs]);
+  useRefreshingPoll(Boolean(entityId), getNextPollDelay(pollIntervalMs, consecutiveFailures), () =>
+    fetchData(),
+  );
 
   const call = useCallback(
     async (service: string, data: Record<string, unknown>, optimistic?: (current: T) => T) => {

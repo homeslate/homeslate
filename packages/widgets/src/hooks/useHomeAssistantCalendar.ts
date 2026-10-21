@@ -5,6 +5,7 @@ import {
   fetchHomeAssistantCalendarEvents,
 } from "../services/homeAssistant";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 import { CACHE_POLICIES, haCalendarKey } from "../services/cachePolicies";
 import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
 import { useHaResource } from "./useHaResource";
@@ -85,14 +86,11 @@ export function useHomeAssistantCalendar(
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!entityId) return;
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(CALENDAR_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, entityId, fetchData]);
+  useRefreshingPoll(
+    Boolean(entityId),
+    getNextPollDelay(CALENDAR_POLL_INTERVAL_MS, consecutiveFailures),
+    () => fetchData(),
+  );
 
   return { events, isLoading, error, isStale, status, lastUpdated, refresh: fetchData };
 }

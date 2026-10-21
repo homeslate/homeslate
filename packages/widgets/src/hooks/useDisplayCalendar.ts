@@ -26,6 +26,7 @@ import {
   isFatalGoogleAuthFailure,
 } from "../widgets/googleCalendarError";
 import { getDisplayCalendarPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 
 export function displayCalendarUrl(
   kioskFetchBaseUrl: string,
@@ -244,18 +245,15 @@ export function useDisplayCalendar({
     fetchData();
   }, [displayId, fetchData]);
 
-  useEffect(() => {
-    if (!displayId || selectedCalendarIdsKey.length === 0) return;
-    const t = setTimeout(
-      fetchData,
-      getDisplayCalendarPollDelay(
-        REFRESH_INTERVAL_MS,
-        consecutiveFailures,
-        isFatalGoogleAuthFailure(authFailureReason),
-      ),
-    );
-    return () => clearTimeout(t);
-  }, [displayId, selectedCalendarIdsKey, fetchData, consecutiveFailures, authFailureReason]);
+  useRefreshingPoll(
+    Boolean(displayId) && selectedCalendarIdsKey.length > 0,
+    getDisplayCalendarPollDelay(
+      REFRESH_INTERVAL_MS,
+      consecutiveFailures,
+      isFatalGoogleAuthFailure(authFailureReason),
+    ),
+    () => fetchData(),
+  );
 
   if (!displayId) return EMPTY_RESULT;
 

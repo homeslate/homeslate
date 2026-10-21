@@ -499,9 +499,7 @@ export function KioskPage() {
   const [document, setDocument] = useState<DisplayDocument | null>(() =>
     publicId ? (loadLastDocument(publicId)?.document ?? null) : null,
   );
-  const [showingSaved, setShowingSaved] = useState(() =>
-    Boolean(publicId && loadLastDocument(publicId)),
-  );
+  const [showingSaved, setShowingSaved] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [failedHeartbeats, setFailedHeartbeats] = useState(0);
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);

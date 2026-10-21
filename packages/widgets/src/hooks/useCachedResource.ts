@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 import {
   readWidgetCache,
   writeWidgetCache,
@@ -218,14 +219,11 @@ export function useCachedResource<T>({
     };
   }, [activeKey, apply, maxBytes, policy, revalidateOnMount, store]);
 
-  useEffect(() => {
-    if (!activeKey || !pollMs) return;
-    const timeout = setTimeout(
-      () => void run(true),
-      getNextPollDelay(pollMs, state.consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [activeKey, pollMs, run, state.consecutiveFailures]);
+  useRefreshingPoll(
+    Boolean(activeKey && pollMs),
+    getNextPollDelay(pollMs ?? 0, state.consecutiveFailures),
+    () => run(true),
+  );
 
   const refresh = useCallback(() => {
     void run(true);

@@ -13,5 +13,12 @@ describe("isPublicHttpUrl", () => {
     expect(isPublicHttpUrl("http://user:pass@example.com/feed")).toBe(false);
     expect(isPublicHttpUrl("file:///etc/passwd")).toBe(false);
     expect(isPublicHttpUrl("http://[::1]/feed")).toBe(false);
+    expect(isPublicHttpUrl("http://2130706433/")).toBe(false);
+    expect(isPublicHttpUrl("http://0177.0.0.1/")).toBe(false);
+    expect(isPublicHttpUrl("http://127.1/")).toBe(false);
+    expect(isPublicHttpUrl("http://224.0.0.1/")).toBe(false);
+    expect(isPublicHttpUrl("http://[ff02::1]/")).toBe(false);
+    expect(isPublicHttpUrl("http://[::ffff:7f00:1]/")).toBe(false);
+    expect(isPublicHttpUrl("http://1.1.1.1/")).toBe(true);
   });
 });

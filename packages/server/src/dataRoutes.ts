@@ -5,8 +5,12 @@ import { UpstreamError, readPublicResource } from "./upstream";
 
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 
-function cache(freshSeconds: number, staleSeconds: number): string {
-  return freshCacheControl(freshSeconds, staleSeconds);
+function cache(
+  freshSeconds: number,
+  staleSeconds: number,
+  visibility: "public" | "private" = "public",
+): string {
+  return freshCacheControl(freshSeconds, staleSeconds, visibility);
 }
 
 function providerError(error: unknown): { body: { error: string }; status: 400 | 502 } {
@@ -165,7 +169,7 @@ export function registerDataRoutes(app: Hono, finnhubApiKey?: string): void {
       const result = await readPublicResource(feedUrl, {
         headers: { Accept: "application/rss+xml, application/xml, text/xml, */*" },
       });
-      c.header("Cache-Control", cache(300, 24 * 60 * 60));
+      c.header("Cache-Control", cache(300, 24 * 60 * 60, "private"));
       return c.body(result.body, 200, { "Content-Type": "text/plain; charset=utf-8" });
     } catch (error) {
       const failure = providerError(error);
@@ -179,7 +183,7 @@ export function registerDataRoutes(app: Hono, finnhubApiKey?: string): void {
       const result = await readPublicResource(icalUrl, {
         headers: { Accept: "text/calendar, text/plain, */*" },
       });
-      c.header("Cache-Control", cache(300, 24 * 60 * 60));
+      c.header("Cache-Control", cache(300, 24 * 60 * 60, "private"));
       return c.body(result.body, 200, { "Content-Type": "text/plain; charset=utf-8" });
     } catch (error) {
       const failure = providerError(error);
