@@ -6,12 +6,27 @@ import type {
   ParsedCalendarEvent,
   CalendarEventInput,
 } from "../services/googleCalendar";
-import { fetchDisplayCalendarCached } from "../services/displayCalendarCache";
+import {
+  fetchDisplayCalendarCached,
+  displayCalendarCacheAction,
+} from "../services/displayCalendarCache";
+import { CACHE_POLICIES, googleCalendarKey } from "../services/cachePolicies";
+import {
+  readWidgetCache,
+  WIDGET_CACHE_LARGE_MAX_BYTES,
+  writeWidgetCache,
+} from "../services/widgetCache";
+import {
+  fromStoredGoogleCalendar,
+  googleCalendarFreshness,
+  toStoredGoogleCalendar,
+} from "../store/calendarCacheStore";
 import {
   displayCalendarUserMessage,
   isFatalGoogleAuthFailure,
 } from "../widgets/googleCalendarError";
 import { getDisplayCalendarPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 
 export function displayCalendarUrl(
   kioskFetchBaseUrl: string,
@@ -42,6 +57,7 @@ interface UseDisplayCalendarResult {
   calendars: GoogleCalendar[];
   events: ParsedCalendarEvent[];
   lastUpdated: number | null;
+  isStale: boolean;
   refresh: () => void;
   addEvent: (calendarId: string, event: CalendarEventInput) => Promise<void>;
   editEvent: (calendarId: string, eventId: string, event: CalendarEventInput) => Promise<void>;
@@ -55,6 +71,7 @@ const EMPTY_RESULT: UseDisplayCalendarResult = {
   calendars: [],
   events: [],
   lastUpdated: null,
+  isStale: false,
   refresh: () => {},
   addEvent: async () => {},
   editEvent: async () => {},
@@ -88,14 +105,30 @@ export function useDisplayCalendar({
   daysBack = DISPLAY_CALENDAR_DAYS_BACK_DEFAULT,
 }: UseDisplayCalendarOptions): UseDisplayCalendarResult {
   const { kioskFetchBaseUrl } = useGoogleRuntime();
-  const [isLoading, setIsLoading] = useState(true);
+  const selectedCalendarIdsKey = selectedCalendarIds.join(",");
+  const widgetKey = googleCalendarKey(selectedCalendarIds, daysAhead, daysBack);
+  const persistedHit =
+    displayId && selectedCalendarIdsKey
+      ? readWidgetCache<ReturnType<typeof toStoredGoogleCalendar>>(
+          widgetKey,
+          CACHE_POLICIES.googleCalendar,
+        )
+      : null;
+  const persisted =
+    persistedHit && googleCalendarFreshness(persistedHit.savedAt) !== "expired"
+      ? { ...fromStoredGoogleCalendar(persistedHit.data), fetchedAt: persistedHit.savedAt }
+      : null;
+
+  const [isLoading, setIsLoading] = useState(!persisted);
+  const [isStale, setIsStale] = useState(
+    persisted ? googleCalendarFreshness(persisted.fetchedAt) === "stale" : false,
+  );
   const [error, setError] = useState<string | null>(null);
-  const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
-  const [events, setEvents] = useState<ParsedCalendarEvent[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [calendars, setCalendars] = useState<GoogleCalendar[]>(persisted?.calendars ?? []);
+  const [events, setEvents] = useState<ParsedCalendarEvent[]>(persisted?.events ?? []);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(persisted?.fetchedAt ?? null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
   const [authFailureReason, setAuthFailureReason] = useState<string | null>(null);
-  const selectedCalendarIdsKey = selectedCalendarIds.join(",");
 
   const fetchData = useCallback(async () => {
     if (!displayId || selectedCalendarIdsKey.length === 0) {
@@ -107,8 +140,24 @@ export function useDisplayCalendar({
       setIsLoading(false);
       return;
     }
-    setIsLoading(true);
-    setError(null);
+    const hit = readWidgetCache<ReturnType<typeof toStoredGoogleCalendar>>(
+      widgetKey,
+      CACHE_POLICIES.googleCalendar,
+    );
+    const snapshot =
+      hit && googleCalendarFreshness(hit.savedAt) !== "expired"
+        ? { ...fromStoredGoogleCalendar(hit.data), fetchedAt: hit.savedAt }
+        : null;
+    if (snapshot && googleCalendarFreshness(snapshot.fetchedAt) === "fresh") {
+      setCalendars(snapshot.calendars);
+      setEvents(snapshot.events);
+      setLastUpdated(snapshot.fetchedAt);
+      setIsStale(false);
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
+    if (!snapshot) setIsLoading(true);
     try {
       const url = displayCalendarUrl(kioskFetchBaseUrl, {
         displayId,
@@ -118,7 +167,7 @@ export function useDisplayCalendar({
       });
       console.info("[display-calendar] fetching", {
         displayId,
-        calendarCount: selectedCalendarIds.length,
+        calendarCount: selectedCalendarIdsKey.split(",").filter(Boolean).length,
         daysAhead,
         daysBack,
       });
@@ -154,7 +203,19 @@ export function useDisplayCalendar({
       }));
       setCalendars(calList);
       setEvents((data.events ?? []).map(parseEventFromServer));
-      setLastUpdated(Date.now());
+      const fetchedAtHeader = Number(res.headers.get("X-Homeslate-Calendar-Fetched-At"));
+      const savedAt = Number.isFinite(fetchedAtHeader) ? fetchedAtHeader : Date.now();
+      const fromCache = res.headers.get("X-Homeslate-Calendar-Cache") === "hit";
+      writeWidgetCache(
+        widgetKey,
+        toStoredGoogleCalendar(calList, (data.events ?? []).map(parseEventFromServer)),
+        {
+          now: savedAt,
+          maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+        },
+      );
+      setLastUpdated(savedAt);
+      setIsStale(fromCache && displayCalendarCacheAction(savedAt) === "stale");
       setAuthFailureReason(null);
       setConsecutiveFailures(0);
     } catch (err) {
@@ -164,11 +225,12 @@ export function useDisplayCalendar({
       });
       setAuthFailureReason(null);
       setError(err instanceof Error ? err.message : "Failed to load calendar");
+      setIsStale(true);
       setConsecutiveFailures((prev) => prev + 1);
     } finally {
       setIsLoading(false);
     }
-  }, [displayId, selectedCalendarIdsKey, daysAhead, daysBack, kioskFetchBaseUrl]);
+  }, [displayId, selectedCalendarIdsKey, daysAhead, daysBack, kioskFetchBaseUrl, widgetKey]);
 
   useEffect(() => {
     if (!displayId) {
@@ -183,18 +245,15 @@ export function useDisplayCalendar({
     fetchData();
   }, [displayId, fetchData]);
 
-  useEffect(() => {
-    if (!displayId || selectedCalendarIdsKey.length === 0) return;
-    const t = setTimeout(
-      fetchData,
-      getDisplayCalendarPollDelay(
-        REFRESH_INTERVAL_MS,
-        consecutiveFailures,
-        isFatalGoogleAuthFailure(authFailureReason),
-      ),
-    );
-    return () => clearTimeout(t);
-  }, [displayId, selectedCalendarIdsKey, fetchData, consecutiveFailures, authFailureReason]);
+  useRefreshingPoll(
+    Boolean(displayId) && selectedCalendarIdsKey.length > 0,
+    getDisplayCalendarPollDelay(
+      REFRESH_INTERVAL_MS,
+      consecutiveFailures,
+      isFatalGoogleAuthFailure(authFailureReason),
+    ),
+    () => fetchData(),
+  );
 
   if (!displayId) return EMPTY_RESULT;
 
@@ -205,6 +264,7 @@ export function useDisplayCalendar({
     calendars,
     events,
     lastUpdated,
+    isStale,
     refresh: fetchData,
     addEvent: async () => {}, // display-only: no write
     editEvent: async () => {},

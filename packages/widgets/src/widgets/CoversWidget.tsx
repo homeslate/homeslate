@@ -42,7 +42,7 @@ export function CoversWidget({ widget, isEditing }: WidgetProps<CoversConfig>) {
     transparentBackground = false,
   } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantCover>(ids, {
       fetchFailureCopy: COVERS_MISSING_CONFIG_COPY,
     });
@@ -269,6 +269,7 @@ export function CoversWidget({ widget, isEditing }: WidgetProps<CoversConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

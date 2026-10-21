@@ -96,6 +96,7 @@ const displayDocumentSchema = z.object({
     voiceEnabled: z.boolean().optional(),
     holidayEffectsEnabled: z.boolean().optional(),
     holidayPreviewId: holidayIdSchema.optional(),
+    wakeLockEnabled: z.boolean().optional(),
   }),
   alarms: z
     .array(

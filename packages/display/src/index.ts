@@ -11,6 +11,9 @@ export {
 export type { HolidayDefinition, HolidayId, HolidayStyleVariant } from "./holidays";
 export { createViewRotationClock } from "./viewRotationClock";
 export type { ViewRotationSync } from "./viewRotationClock";
+export { useWakeLock, wakeLockEnabled } from "./useWakeLock";
+export { useFullscreen } from "./useFullscreen";
+export { FullscreenButton } from "./FullscreenButton";
 export { AlarmRuntime } from "./alarms/AlarmRuntime";
 export {
   coerceAlarm,

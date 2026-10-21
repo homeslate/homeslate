@@ -107,6 +107,9 @@ export const colorModeToggle = styles.class("display-colorModeToggle", {
   top: "12px",
   right: "12px",
   zIndex: "20",
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
   opacity: "0",
   transition: "opacity 0.2s ease",
   "&:focus-within": {

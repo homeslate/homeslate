@@ -45,7 +45,7 @@ function PresenceAvatar({ name, picture }: { name: string; picture: string | nul
 export function PresenceWidget({ widget, isEditing }: WidgetProps<PresenceConfig>) {
   const { entityIds = [], showZones = true, transparentBackground = false } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantPresence>(ids, {
       fetchFailureCopy: PRESENCE_MISSING_CONFIG_COPY,
     });
@@ -128,6 +128,7 @@ export function PresenceWidget({ widget, isEditing }: WidgetProps<PresenceConfig
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

@@ -145,6 +145,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
     error: localError,
     refresh: refreshLocal,
     lastUpdated: localLastUpdated,
+    isStale: localIsStale,
   } = useWeather({
     latitude: useHa ? null : latitude,
     longitude: useHa ? null : longitude,
@@ -158,6 +159,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
   const error = useHa ? remote.error : localError;
   const refresh = useHa ? remote.refresh : refreshLocal;
   const lastUpdated = useHa ? remote.lastUpdated : localLastUpdated;
+  const isStale = useHa ? remote.isStale : localIsStale;
   const status = useHa ? remote.status : null;
 
   const unitSystem = weather?.units ?? units;
@@ -281,6 +283,7 @@ export function WeatherWidget({ widget }: WidgetProps<WeatherConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
           align={textAlign}

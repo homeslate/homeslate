@@ -39,6 +39,7 @@ export function FanWidget({ widget, isEditing }: WidgetProps<FanConfig>) {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -246,6 +247,7 @@ export function FanWidget({ widget, isEditing }: WidgetProps<FanConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

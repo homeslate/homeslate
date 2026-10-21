@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { CACHE_POLICIES, sportsKey } from "../services/cachePolicies";
 import { fetchScoreboard, type SportGame, type SportsTeam } from "../services/sports";
-import { getNextPollDelay } from "./polling";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useCachedResource } from "./useCachedResource";
 
 interface UseScoresOptions {
   leagueId: string;
@@ -38,6 +40,7 @@ interface UseScoresResult {
   isLoading: boolean;
   isLoadingMore: boolean;
   error: string | null;
+  isStale: boolean;
   lastUpdated: number | null;
   refresh: () => void;
   loadMore: () => Promise<void>;
@@ -59,93 +62,92 @@ function filterAndSortGames(fetchedGames: SportGame[], favoriteTeamIds: string[]
 export function useScores({
   leagueId,
   favoriteTeamIds = [],
-  refreshInterval = 2 * 60 * 1000, // 2 minutes
+  refreshInterval = CACHE_POLICIES.sports.freshMs,
 }: UseScoresOptions): UseScoresResult {
-  const [games, setGames] = useState<SportGame[]>([]);
-  const [allTeams, setAllTeams] = useState<SportsTeam[]>([]);
-  const [leagueLogo, setLeagueLogo] = useState<string | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
-  const [oldestFetchedDate, setOldestFetchedDate] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    if (!leagueId) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
+  const cacheKey = leagueId ? sportsKey(leagueId) : null;
+  const resource = useCachedResource<{
+    games: SportGame[];
+    teams: SportsTeam[];
+    leagueLogo?: string;
+    date?: string;
+  }>({
+    key: cacheKey,
+    freshMs: CACHE_POLICIES.sports.freshMs,
+    maxStaleMs: CACHE_POLICIES.sports.maxStaleMs,
+    pollMs: refreshInterval,
+    maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+    fetcher: async () => {
       const result = await fetchScoreboard(leagueId);
-      const { games: fetchedGames, teams, leagueLogo: logo, date: responseDate } = result;
-      setLeagueLogo(logo);
-      setOldestFetchedDate(responseDate ?? getTodayYYYYMMDD());
+      return {
+        games: result.games,
+        teams: result.teams,
+        leagueLogo: result.leagueLogo,
+        date: result.date,
+      };
+    },
+  });
+  const [olderGames, setOlderGames] = useState<SportGame[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [oldestFetchedDate, setOldestFetchedDate] = useState<string | null>(
+    resource.data?.date ?? null,
+  );
+  const [seenSavedAt, setSeenSavedAt] = useState(resource.lastUpdated);
+  if (seenSavedAt !== resource.lastUpdated) {
+    setSeenSavedAt(resource.lastUpdated);
+    setOlderGames([]);
+    setOldestFetchedDate(resource.data?.date ?? null);
+  }
 
-      const sorted = filterAndSortGames(fetchedGames, favoriteTeamIds);
-      setGames(sorted);
-      setAllTeams(teams);
-      setLastUpdated(Date.now());
-      setConsecutiveFailures(0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch scores");
-      setConsecutiveFailures((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
+  const games = useMemo(() => {
+    const byId = new Map<string, SportGame>();
+    for (const game of resource.data?.games ?? []) byId.set(game.id, game);
+    for (const game of olderGames) {
+      if (!byId.has(game.id)) byId.set(game.id, game);
     }
-  }, [leagueId, favoriteTeamIds]);
+    return filterAndSortGames([...byId.values()], favoriteTeamIds);
+  }, [favoriteTeamIds, olderGames, resource.data?.games]);
 
   const loadMore = useCallback(async () => {
-    if (!leagueId || isLoadingMore || isLoading) return;
-    const baseDate = oldestFetchedDate ?? getTodayYYYYMMDD();
+    if (!leagueId || isLoadingMore || resource.isLoading) return;
+    const baseDate = oldestFetchedDate ?? resource.data?.date ?? getTodayYYYYMMDD();
     const previousDay = getPreviousDay(baseDate);
 
     setIsLoadingMore(true);
     try {
       const result = await fetchScoreboard(leagueId, { dates: previousDay });
-      const { games: fetchedGames } = result;
       setOldestFetchedDate(previousDay);
-
-      const sortedNew = filterAndSortGames(fetchedGames, favoriteTeamIds);
-      setGames((prev) => {
-        const byId = new Map(prev.map((g) => [g.id, g]));
-        for (const g of sortedNew) {
-          if (!byId.has(g.id)) byId.set(g.id, g);
+      const sortedNew = filterAndSortGames(result.games, favoriteTeamIds);
+      setOlderGames((previous) => {
+        const byId = new Map(previous.map((game) => [game.id, game]));
+        for (const game of sortedNew) {
+          if (!byId.has(game.id)) byId.set(game.id, game);
         }
-        const merged = Array.from(byId.values()).sort((a, b) => {
-          const order = { in: 0, pre: 1, post: 2 };
-          if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-        return merged;
+        return [...byId.values()];
       });
     } catch {
       // Silent fail for load-more; user can retry by scrolling again
     } finally {
       setIsLoadingMore(false);
     }
-  }, [leagueId, oldestFetchedDate, favoriteTeamIds, isLoadingMore, isLoading]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (!leagueId) return;
-    const interval = setTimeout(fetchData, getNextPollDelay(refreshInterval, consecutiveFailures));
-    return () => clearTimeout(interval);
-  }, [fetchData, refreshInterval, leagueId, consecutiveFailures]);
+  }, [
+    favoriteTeamIds,
+    isLoadingMore,
+    leagueId,
+    oldestFetchedDate,
+    resource.data?.date,
+    resource.isLoading,
+  ]);
 
   return {
     games,
-    allTeams,
-    leagueLogo,
-    isLoading,
+    allTeams: resource.data?.teams ?? [],
+    leagueLogo: resource.data?.leagueLogo,
+    isLoading: resource.isLoading,
     isLoadingMore,
-    error,
-    lastUpdated,
-    refresh: fetchData,
+    error: resource.error,
+    isStale: resource.isStale,
+    lastUpdated: resource.lastUpdated,
+    refresh: resource.refresh,
     loadMore,
   };
 }

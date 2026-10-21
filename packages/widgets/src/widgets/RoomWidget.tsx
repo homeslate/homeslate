@@ -41,7 +41,7 @@ function roomIcon(row: EntityTileDescriptor): ComponentType<{ size?: number | st
 export function RoomWidget({ widget, isEditing }: WidgetProps<RoomConfig>) {
   const { name = "", entityIds = [], transparentBackground = false } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } = useEntityList<
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } = useEntityList<
     Record<string, unknown>
   >(ids, {
     fetchFailureCopy: ROOM_MISSING_CONFIG_COPY,
@@ -299,6 +299,7 @@ export function RoomWidget({ widget, isEditing }: WidgetProps<RoomConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

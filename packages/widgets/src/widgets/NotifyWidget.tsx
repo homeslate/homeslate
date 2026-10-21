@@ -58,6 +58,7 @@ export function NotifyWidget({ widget, isEditing }: WidgetProps<NotifyConfig>) {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
   } = useEntity<HomeAssistantEntitySummary>(targetId, {
@@ -229,6 +230,7 @@ export function NotifyWidget({ widget, isEditing }: WidgetProps<NotifyConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

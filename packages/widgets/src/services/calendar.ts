@@ -15,8 +15,7 @@ export interface CalendarEvent {
   color?: string;
 }
 
-// CORS proxy for fetching iCal feeds from browser
-const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+// iCal feeds are fetched by the Homeslate server so the browser stays same-origin.
 
 /**
  * Parse an iCal/ICS feed and extract events
@@ -29,9 +28,7 @@ export async function fetchCalendarEvents(
     return [];
   }
 
-  const proxyUrl = `${CORS_PROXY}${encodeURIComponent(icalUrl)}`;
-
-  const response = await fetch(proxyUrl);
+  const response = await fetch(`/api/calendar/ical?url=${encodeURIComponent(icalUrl)}`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch calendar: ${response.statusText}`);
@@ -177,25 +174,11 @@ function unescapeICalText(text: string): string {
     .replace(/\\\\/g, "\\");
 }
 
-// Cache for calendar data
-const calendarCache = new Map<string, { data: CalendarEvent[]; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 export async function fetchCalendarEventsCached(
   icalUrl: string,
   daysAhead: number = 30,
 ): Promise<CalendarEvent[]> {
-  const cacheKey = `${icalUrl}:${daysAhead}`;
-  const cached = calendarCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  const data = await fetchCalendarEvents(icalUrl, daysAhead);
-  calendarCache.set(cacheKey, { data, timestamp: Date.now() });
-
-  return data;
+  return fetchCalendarEvents(icalUrl, daysAhead);
 }
 
 /**

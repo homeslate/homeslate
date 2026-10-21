@@ -27,3 +27,7 @@ export {
   setDisplayPasscode,
 } from "./api";
 export type { DisplayRecord, DisplaySummary, KioskDocumentResult } from "./api";
+export { loadLastDocument, saveLastDocument, clearLastDocument } from "./lastDocument";
+export { OfflineBanner, offlineBannerMessage } from "./OfflineBanner";
+export { useOnlineStatus } from "./useOnlineStatus";
+export { useKioskWatchdog, kioskWatchdogDecision } from "./useKioskWatchdog";

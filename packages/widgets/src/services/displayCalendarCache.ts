@@ -1,5 +1,19 @@
 /** How long a cached display-calendar response is served without hitting the network. */
-export const DISPLAY_CALENDAR_CLIENT_TTL_MS = 15 * 60 * 1000;
+export const DISPLAY_CALENDAR_CLIENT_TTL_MS = 5 * 60 * 1000;
+/** Drop entries older than this instead of showing them. */
+export const DISPLAY_CALENDAR_MAX_STALE_MS = 24 * 60 * 60 * 1000;
+
+export type DisplayCalendarCacheAction = "fresh" | "stale" | "expired";
+
+export function displayCalendarCacheAction(
+  fetchedAt: number,
+  nowMs = Date.now(),
+): DisplayCalendarCacheAction {
+  const age = nowMs - fetchedAt;
+  if (age >= DISPLAY_CALENDAR_MAX_STALE_MS) return "expired";
+  if (age < DISPLAY_CALENDAR_CLIENT_TTL_MS) return "fresh";
+  return "stale";
+}
 
 const DB_NAME = "homeslate-display-calendar-v1";
 const STORE_NAME = "responses";
@@ -71,14 +85,20 @@ async function writeEntry(entry: DisplayCalendarCacheEntry): Promise<void> {
 }
 
 export function isDisplayCalendarCacheFresh(fetchedAt: number, nowMs = Date.now()): boolean {
-  return nowMs - fetchedAt < DISPLAY_CALENDAR_CLIENT_TTL_MS;
+  return displayCalendarCacheAction(fetchedAt, nowMs) === "fresh";
 }
 
-function jsonResponse(body: string, status: number, fromCache: boolean): Response {
+function jsonResponse(
+  body: string,
+  status: number,
+  fetchedAt: number,
+  fromCache: boolean,
+): Response {
   return new Response(body, {
     status,
     headers: {
       "Content-Type": "application/json",
+      "X-Homeslate-Calendar-Fetched-At": String(fetchedAt),
       ...(fromCache ? { "X-Homeslate-Calendar-Cache": "hit" } : {}),
     },
   });
@@ -95,7 +115,7 @@ async function fetchAndStore(url: string, fetchImpl: typeof fetch): Promise<Resp
       fetchedAt: Date.now(),
     });
   }
-  return jsonResponse(body, res.status, false);
+  return jsonResponse(body, res.status, Date.now(), false);
 }
 
 function scheduleRevalidate(url: string, fetchImpl: typeof fetch) {
@@ -116,23 +136,23 @@ export async function fetchDisplayCalendarCached(
   }
 
   const cached = await readEntry(url);
+  const action = cached ? displayCalendarCacheAction(cached.fetchedAt) : "expired";
 
-  if (cached && isDisplayCalendarCacheFresh(cached.fetchedAt)) {
-    return jsonResponse(cached.body, cached.status, true);
+  if (cached && action === "fresh") {
+    return jsonResponse(cached.body, cached.status, cached.fetchedAt, true);
   }
 
-  if (cached) {
+  if (cached && action === "stale") {
     scheduleRevalidate(url, fetchImpl);
-    return jsonResponse(cached.body, cached.status, true);
+    return jsonResponse(cached.body, cached.status, cached.fetchedAt, true);
   }
 
   try {
     return await fetchAndStore(url, fetchImpl);
   } catch (err) {
-    const fallback = await readEntry(url);
-    if (fallback) {
+    if (cached && action === "stale") {
       console.warn("[display-calendar-cache] network failed; using stale cache", err);
-      return jsonResponse(fallback.body, fallback.status, true);
+      return jsonResponse(cached.body, cached.status, cached.fetchedAt, true);
     }
     throw err;
   }

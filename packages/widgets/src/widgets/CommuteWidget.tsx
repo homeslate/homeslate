@@ -48,7 +48,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
   const routes = widget.config.routes ?? EMPTY_ROUTES;
   const units = widget.config.units ?? "imperial";
   const transparentBackground = widget.config.transparentBackground;
-  const { results, isLoading, lastUpdated, refresh } = useCommute(routes, units);
+  const { results, isLoading, isStale, lastUpdated, refresh } = useCommute(routes, units);
   const resultList = [...results.values()];
   const hasMissingKey = resultList.some(({ status }) => status === 501);
   const hasEstimate = resultList.some(({ estimate }) => estimate);
@@ -141,6 +141,7 @@ export function CommuteWidget({ widget }: WidgetProps<CommuteConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={hasMissingKey ? null : fetchError}
           isLoading={isLoading}
         />

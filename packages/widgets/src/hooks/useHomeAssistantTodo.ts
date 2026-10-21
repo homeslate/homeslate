@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 import { HomeAssistantHttpError, fetchTodoItems } from "../services/homeAssistant";
 import type { HomeAssistantTodoItem } from "../widgets/homeAssistantTodo";
 import { useEntities, useHomeAssistantService, type UseEntitiesResult } from "./useHomeAssistant";
+import { CACHE_POLICIES, haTodoKey } from "../services/cachePolicies";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useHaResource } from "./useHaResource";
 
 const TODO_POLL_INTERVAL_MS = 30 * 1000;
 
@@ -16,6 +20,7 @@ export type UseHomeAssistantTodoResult = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   pending: boolean;
   refresh: () => void;
   addItem: (summary: string) => Promise<void>;
@@ -24,55 +29,52 @@ export type UseHomeAssistantTodoResult = {
 };
 
 export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResult {
-  const [items, setItems] = useState<HomeAssistantTodoItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const cacheKey = entityId ? haTodoKey(entityId) : null;
+  const { data, setData, isLoading, isStale, error, setError, lastUpdated, beginLoad, commit } =
+    useHaResource<HomeAssistantTodoItem[]>(
+      cacheKey,
+      CACHE_POLICIES.haTodo,
+      WIDGET_CACHE_LARGE_MAX_BYTES,
+    );
   const [controlError, setControlError] = useState<string | null>(null);
   const [status, setStatus] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
   const [pending, setPending] = useState(false);
   const callService = useHomeAssistantService("Failed to update list");
+  const items = data ?? [];
 
   const fetchData = useCallback(async () => {
-    if (!entityId) {
-      setItems([]);
-      setError(null);
+    if (!entityId || !cacheKey) {
+      commit({ type: "clear" });
       setStatus(null);
-      setLastUpdated(null);
       setConsecutiveFailures(0);
       return;
     }
 
-    setIsLoading(true);
+    beginLoad();
     try {
       const next = await fetchTodoItems(entityId);
-      setItems(next);
+      commit({ type: "success", data: next, now: Date.now() });
       setError(null);
       setStatus(200);
-      setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load list");
+      commit({ type: "failure" });
       if (err instanceof HomeAssistantHttpError) setStatus(err.status);
       setConsecutiveFailures((value) => value + 1);
-    } finally {
-      setIsLoading(false);
     }
-  }, [entityId]);
+  }, [beginLoad, cacheKey, commit, entityId, setError]);
 
   useEffect(() => {
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!entityId) return;
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(TODO_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, fetchData, entityId]);
+  useRefreshingPoll(
+    Boolean(entityId),
+    getNextPollDelay(TODO_POLL_INTERVAL_MS, consecutiveFailures),
+    () => fetchData(),
+  );
 
   const run = useCallback(
     async (
@@ -83,7 +85,7 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
       if (!entityId) return;
       setPending(true);
       setControlError(null);
-      if (optimistic) setItems(optimistic);
+      if (optimistic) setData((current) => optimistic(current ?? []));
       try {
         await callService("todo", service, entityId, data);
       } catch (err) {
@@ -93,7 +95,7 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
         setPending(false);
       }
     },
-    [callService, entityId, fetchData],
+    [callService, entityId, fetchData, setData],
   );
 
   const addItem = useCallback((summary: string) => run("add_item", { item: summary }), [run]);
@@ -117,6 +119,7 @@ export function useHomeAssistantTodo(entityId: string): UseHomeAssistantTodoResu
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh: fetchData,
     addItem,

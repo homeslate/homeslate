@@ -88,5 +88,8 @@ export {
   DISPLAY_OWNER_SIGN_IN_MESSAGE,
 } from "./widgets/googleCalendarError";
 export { displayCalendarUrl } from "./hooks/useDisplayCalendar";
+export { useCachedResource } from "./hooks/useCachedResource";
+export { readWidgetCache, writeWidgetCache, clearWidgetCache } from "./services/widgetCache";
+export type { CacheStore, WidgetCacheHit, WidgetCachePolicy } from "./services/widgetCache";
 export { UnknownWidget } from "./UnknownWidget";
 export { OverlayPortalContext, useOverlayPortalContainer } from "./overlayPortal";

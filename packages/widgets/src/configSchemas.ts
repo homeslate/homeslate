@@ -106,7 +106,6 @@ export const newsConfigSchema = z.object({
 
 export const stocksConfigSchema = z.object({
   symbols: z.array(z.string()).optional(),
-  apiKey: z.string().optional(),
   showChange: z.boolean().optional(),
   showDayRange: z.boolean().optional(),
   transparentBackground: z.boolean().optional(),

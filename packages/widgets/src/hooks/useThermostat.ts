@@ -14,6 +14,7 @@ export type UseThermostatResult = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   pending: boolean;
   refresh: () => void;
   setTarget: (temperature: number) => Promise<void>;
@@ -36,6 +37,7 @@ export function useThermostat(entityId: string): UseThermostatResult {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -99,6 +101,7 @@ export function useThermostat(entityId: string): UseThermostatResult {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     setTarget,

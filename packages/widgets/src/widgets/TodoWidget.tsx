@@ -241,6 +241,7 @@ function HomeAssistantTodoWidget({ widget }: WidgetProps<TodoConfig>) {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     addItem,
@@ -337,6 +338,7 @@ function HomeAssistantTodoWidget({ widget }: WidgetProps<TodoConfig>) {
             <WidgetDataStatus
               widgetId={widget.id}
               lastUpdated={lastUpdated}
+              isStale={isStale}
               error={error}
               isLoading={isLoading}
             />

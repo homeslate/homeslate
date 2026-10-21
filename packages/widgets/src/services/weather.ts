@@ -99,13 +99,13 @@ export function getWeatherIcon(code: number): string {
 export async function searchLocations(query: string): Promise<GeocodingResult[]> {
   if (!query || query.length < 2) return [];
 
-  const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
-  url.searchParams.set("name", query);
-  url.searchParams.set("count", "5");
-  url.searchParams.set("language", "en");
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url.toString());
+  const params = new URLSearchParams({
+    name: query,
+    count: "5",
+    language: "en",
+    format: "json",
+  });
+  const response = await fetch(`/api/weather/geocode?${params}`);
 
   if (!response.ok) {
     throw new Error(`Geocoding failed: ${response.statusText}`);
@@ -132,52 +132,12 @@ export async function fetchWeather(
   units: "imperial" | "metric" = "imperial",
   locationInfo?: { name: string; country: string; admin1?: string },
 ): Promise<WeatherData> {
-  const url = new URL("https://api.open-meteo.com/v1/forecast");
-
-  // Set coordinates
-  url.searchParams.set("latitude", latitude.toString());
-  url.searchParams.set("longitude", longitude.toString());
-
-  // Current weather parameters
-  url.searchParams.set(
-    "current",
-    [
-      "temperature_2m",
-      "apparent_temperature",
-      "relative_humidity_2m",
-      "weather_code",
-      "wind_speed_10m",
-      "is_day",
-    ].join(","),
-  );
-
-  // Daily forecast parameters
-  url.searchParams.set(
-    "daily",
-    [
-      "weather_code",
-      "temperature_2m_max",
-      "temperature_2m_min",
-      "precipitation_probability_max",
-    ].join(","),
-  );
-
-  // Hourly forecast (temperature + weather icon)
-  url.searchParams.set("hourly", ["temperature_2m", "weather_code", "is_day"].join(","));
-
-  // Units
-  if (units === "imperial") {
-    url.searchParams.set("temperature_unit", "fahrenheit");
-    url.searchParams.set("wind_speed_unit", "mph");
-  }
-
-  // Timezone
-  url.searchParams.set("timezone", "auto");
-
-  // Forecast days
-  url.searchParams.set("forecast_days", "7");
-
-  const response = await fetch(url.toString());
+  const params = new URLSearchParams({
+    latitude: latitude.toString(),
+    longitude: longitude.toString(),
+    units,
+  });
+  const response = await fetch(`/api/weather/forecast?${params}`);
 
   if (!response.ok) {
     throw new Error(`Weather fetch failed: ${response.statusText}`);
@@ -225,20 +185,15 @@ export async function fetchAirQuality(
   latitude: number,
   longitude: number,
 ): Promise<AirQualityData> {
-  const url = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
-  url.searchParams.set("latitude", latitude.toString());
-  url.searchParams.set("longitude", longitude.toString());
-  url.searchParams.set("current", "us_aqi");
-
-  const response = await fetch(url.toString());
+  const params = new URLSearchParams({
+    latitude: latitude.toString(),
+    longitude: longitude.toString(),
+  });
+  const response = await fetch(`/api/weather/air?${params}`);
   if (!response.ok) throw new Error(`Air quality fetch failed: ${response.statusText}`);
   const data = await response.json();
   return { usAqi: data.current?.us_aqi ?? 0 };
 }
-
-// Simple in-memory cache for weather data
-const weatherCache = new Map<string, { data: WeatherData; timestamp: number }>();
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 export async function fetchWeatherCached(
   latitude: number,
@@ -246,15 +201,5 @@ export async function fetchWeatherCached(
   units: "imperial" | "metric" = "imperial",
   locationInfo?: { name: string; country: string; admin1?: string },
 ): Promise<WeatherData> {
-  const cacheKey = `${latitude.toFixed(2)},${longitude.toFixed(2)},${units}`;
-  const cached = weatherCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  const data = await fetchWeather(latitude, longitude, units, locationInfo);
-  weatherCache.set(cacheKey, { data, timestamp: Date.now() });
-
-  return data;
+  return fetchWeather(latitude, longitude, units, locationInfo);
 }

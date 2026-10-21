@@ -162,6 +162,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
     calendars,
     events,
     lastUpdated,
+    isStale,
     refresh,
     addEvent,
     editEvent,
@@ -386,6 +387,7 @@ export function GoogleCalendarWidget({ widget }: WidgetProps<GoogleCalendarConfi
           <WidgetDataStatus
             widgetId={widget.id}
             lastUpdated={lastUpdated}
+            isStale={isStale}
             error={error}
             isLoading={isLoading}
           />

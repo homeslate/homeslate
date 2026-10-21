@@ -34,6 +34,8 @@ import type { AlarmDefinition } from "./alarms/types";
 import { coerceAlarms } from "./alarms/schedule";
 import { HolidayEffects } from "./HolidayEffects";
 import { createViewRotationClock } from "./viewRotationClock";
+import { FullscreenButton } from "./FullscreenButton";
+import { useWakeLock, wakeLockEnabled } from "./useWakeLock";
 import * as classes from "./Display.styles";
 
 const SWIPE_THRESHOLD = 60;
@@ -69,6 +71,7 @@ export function Display(props: {
   documentRef.current = document;
 
   const alarms = useMemo(() => coerceAlarms(document.alarms), [document.alarms]);
+  useWakeLock(!isPreview && wakeLockEnabled(document.settings));
 
   const effectiveColorMode: ColorMode = localColorMode ?? colorMode ?? document.colorMode ?? "dark";
   const themeDocument = useMemo(
@@ -370,6 +373,7 @@ export function Display(props: {
                   </>
                 )}
                 <div className={classes.colorModeToggle}>
+                  <FullscreenButton hidden={isPreview} className={classes.colorModeBtn} />
                   <SimpleTooltip
                     content={
                       effectiveColorMode === "dark" ? "Switch to light mode" : "Switch to dark mode"

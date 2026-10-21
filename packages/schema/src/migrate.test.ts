@@ -198,6 +198,63 @@ describe("migrateDisplayDocument", () => {
     expect(doc.name).toBe("Kitchen");
   });
 
+  it("preserves an explicit wake lock setting and leaves the default unset", () => {
+    const disabled = migrateDisplayDocument({
+      schemaVersion: 1,
+      name: "Board",
+      views: [],
+      activeViewId: null,
+      rotation: { enabled: false, intervalMs: 15000 },
+      themes: [],
+      activeThemeId: null,
+      settings: { wakeLockEnabled: false },
+    });
+    expect(disabled.settings.wakeLockEnabled).toBe(false);
+
+    const omitted = migrateDisplayDocument({
+      schemaVersion: 1,
+      name: "Board",
+      views: [],
+      activeViewId: null,
+      rotation: { enabled: false, intervalMs: 15000 },
+      themes: [],
+      activeThemeId: null,
+      settings: {},
+    });
+    expect(omitted.settings.wakeLockEnabled).toBeUndefined();
+  });
+
+  it("drops a Finnhub key stored on a stocks widget", () => {
+    const document = migrateDisplayDocument({
+      schemaVersion: 1,
+      name: "Board",
+      views: [
+        {
+          id: "view",
+          name: "Main",
+          columns: 12,
+          rowHeight: 80,
+          widgets: [
+            {
+              id: "stocks",
+              type: "stocks",
+              title: "Stocks",
+              config: { symbols: ["AAPL"], apiKey: "secret-token" },
+              layout: { x: 0, y: 0, w: 3, h: 2 },
+            },
+          ],
+        },
+      ],
+      activeViewId: "view",
+      rotation: { enabled: false, intervalMs: 15000 },
+      themes: [],
+      activeThemeId: null,
+      settings: {},
+    });
+    expect(document.views[0]?.widgets[0]?.config).toEqual({ symbols: ["AAPL"] });
+    expect(JSON.stringify(document)).not.toContain("secret-token");
+  });
+
   it("throws on non-object input", () => {
     expect(() => migrateDisplayDocument(null)).toThrow(/plain object/);
     expect(() => migrateDisplayDocument([])).toThrow(/plain object/);

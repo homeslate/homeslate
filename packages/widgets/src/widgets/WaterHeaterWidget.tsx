@@ -31,6 +31,7 @@ export function WaterHeaterWidget({ widget, isEditing }: WidgetProps<WaterHeater
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -226,6 +227,7 @@ export function WaterHeaterWidget({ widget, isEditing }: WidgetProps<WaterHeater
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

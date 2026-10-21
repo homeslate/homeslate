@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { fetchWeatherCached, type WeatherData } from "../services/weather";
 import { sliceHourlyFromNow } from "../services/hourlyForecast";
-import { getNextPollDelay } from "./polling";
+import { CACHE_POLICIES, weatherKey } from "../services/cachePolicies";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useCachedResource } from "./useCachedResource";
 
 interface UseWeatherOptions {
   latitude: number | null;
@@ -14,6 +16,7 @@ interface UseWeatherOptions {
 interface UseWeatherResult {
   data: WeatherData | null;
   isLoading: boolean;
+  isStale: boolean;
   error: string | null;
   lastUpdated: number | null;
   refresh: () => void;
@@ -46,79 +49,48 @@ export function useWeather({
   longitude,
   units,
   locationInfo,
-  refreshInterval = 10 * 60 * 1000, // 10 minutes default
+  refreshInterval = CACHE_POLICIES.weather.freshMs,
 }: UseWeatherOptions): UseWeatherResult {
-  const [rawData, setRawData] = useState<WeatherData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [consecutiveFailures, setConsecutiveFailures] = useState(0);
+  const cacheKey =
+    latitude === null || longitude === null ? null : weatherKey(latitude, longitude, units);
+  const resource = useCachedResource<WeatherData>({
+    key: cacheKey,
+    freshMs: CACHE_POLICIES.weather.freshMs,
+    maxStaleMs: CACHE_POLICIES.weather.maxStaleMs,
+    pollMs: refreshInterval,
+    maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+    fetcher: () => fetchWeatherCached(latitude as number, longitude as number, units, locationInfo),
+  });
   const [now, setNow] = useState(() => new Date());
-
-  const fetchData = useCallback(async () => {
-    if (latitude === null || longitude === null) {
-      setRawData(null);
-      setError(null);
-      setLastUpdated(null);
-      setConsecutiveFailures(0);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const weatherData = await fetchWeatherCached(latitude, longitude, units, locationInfo);
-      setRawData(weatherData);
-      setLastUpdated(Date.now());
-      setConsecutiveFailures(0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch weather");
-      setConsecutiveFailures((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [latitude, longitude, units, locationInfo]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Auto-refresh
-  useEffect(() => {
-    if (latitude === null || longitude === null) return;
-
-    const interval = setTimeout(fetchData, getNextPollDelay(refreshInterval, consecutiveFailures));
-    return () => clearTimeout(interval);
-  }, [fetchData, refreshInterval, latitude, longitude, consecutiveFailures]);
 
   // Re-slice hourly forecast at each new hour in the widget location's timezone
   useEffect(() => {
-    if (rawData === null) return;
+    if (resource.data === null) return;
 
     let timeoutId: ReturnType<typeof setTimeout>;
+    const utcOffsetSeconds = resource.data.utcOffsetSeconds;
 
     const scheduleNextHour = () => {
       const current = new Date();
       setNow(current);
-      timeoutId = setTimeout(
-        scheduleNextHour,
-        msUntilNextLocationHour(current, rawData.utcOffsetSeconds),
-      );
+      timeoutId = setTimeout(scheduleNextHour, msUntilNextLocationHour(current, utcOffsetSeconds));
     };
 
     scheduleNextHour();
     return () => clearTimeout(timeoutId);
-  }, [rawData]);
+  }, [resource.data]);
 
-  const data = useMemo(() => (rawData ? withHourlySlice(rawData, now) : null), [rawData, now]);
+  const data = useMemo(
+    () => (resource.data ? withHourlySlice(resource.data, now) : null),
+    [resource.data, now],
+  );
 
   return {
     data,
-    isLoading,
-    error,
-    lastUpdated,
-    refresh: fetchData,
+    isLoading: resource.isLoading,
+    isStale: resource.isStale,
+    error: resource.error,
+    lastUpdated: resource.lastUpdated,
+    refresh: resource.refresh,
   };
 }

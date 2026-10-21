@@ -157,6 +157,7 @@ function HomeAssistantGroceryList({
     controlError,
     status,
     lastUpdated,
+    isStale,
     addItem,
     setCompleted,
     removeItem,
@@ -288,7 +289,7 @@ function HomeAssistantGroceryList({
         ))}
       {!isEditing && (
         <Text size="xs" tone="secondary" style={{ textAlign: "center" }}>
-          {lastUpdated ? "Synced with Home Assistant" : ""}
+          {lastUpdated ? (isStale ? "Showing saved list" : "Synced with Home Assistant") : ""}
         </Text>
       )}
     </div>

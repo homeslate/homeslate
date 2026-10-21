@@ -231,6 +231,8 @@ docker compose down -v
 - **Commute widget.** Add `OPENROUTESERVICE_API_KEY` to `.env` and
   rebuild. The free tier at openrouteservice.org is enough for a
   homelab.
+- **Stocks widget.** Add `FINNHUB_API_KEY` to `.env` and rebuild. The key
+  stays in the API process.
 - **Home Assistant widgets.** Add `HOMEASSISTANT_BASE_URL` and
   `HOMEASSISTANT_TOKEN` to `.env` and rebuild. The token comes from your
   Home Assistant profile (Security → Long-lived access tokens). The URL

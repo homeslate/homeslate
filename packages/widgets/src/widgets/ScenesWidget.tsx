@@ -67,7 +67,7 @@ export function ScenesWidget({ widget, isEditing }: WidgetProps<ScenesConfig>) {
   const [controlError, setControlError] = useState<string | null>(null);
   const callService = useHomeAssistantService(SCENES_MISSING_CONFIG_COPY);
   const entityIds = items.map((item) => item.entityId).filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<HomeAssistantEntitySummary>(entityIds, {
       fetchFailureCopy: SCENES_MISSING_CONFIG_COPY,
     });
@@ -157,6 +157,7 @@ export function ScenesWidget({ widget, isEditing }: WidgetProps<ScenesConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

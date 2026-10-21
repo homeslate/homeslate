@@ -5,6 +5,10 @@ import {
   fetchHomeAssistantCalendarEvents,
 } from "../services/homeAssistant";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
+import { CACHE_POLICIES, haCalendarKey } from "../services/cachePolicies";
+import { WIDGET_CACHE_LARGE_MAX_BYTES } from "../services/widgetCache";
+import { useHaResource } from "./useHaResource";
 
 const CALENDAR_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -15,6 +19,7 @@ export type UseHomeAssistantCalendarResult = {
   /** HTTP status of the last fetch; `501` means Home Assistant is unconfigured. */
   status: number | null;
   lastUpdated: number | null;
+  isStale: boolean;
   refresh: () => void;
 };
 
@@ -27,28 +32,35 @@ export function useHomeAssistantCalendar(
   daysAhead: number,
   fetchFailureCopy: string,
 ): UseHomeAssistantCalendarResult {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const cacheKey = entityId ? haCalendarKey(entityId, daysAhead) : null;
+  const { data, isLoading, isStale, error, setError, lastUpdated, beginLoad, commit } =
+    useHaResource<CalendarEvent[]>(
+      cacheKey,
+      CACHE_POLICIES.haCalendar,
+      WIDGET_CACHE_LARGE_MAX_BYTES,
+    );
   const [status, setStatus] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
+  const events = (data ?? []).map((event) => ({
+    ...event,
+    start: new Date(event.start),
+    end: new Date(event.end),
+  }));
 
   const fetchData = useCallback(async () => {
-    if (!entityId) {
-      setEvents([]);
-      setError(null);
+    if (!entityId || !cacheKey) {
+      commit({ type: "clear" });
       setStatus(null);
-      setLastUpdated(null);
       setConsecutiveFailures(0);
       return;
     }
 
-    setIsLoading(true);
+    beginLoad();
     try {
       const next = await fetchHomeAssistantCalendarEvents(entityId, daysAhead, fetchFailureCopy);
-      setEvents(
-        next.map((event) => ({
+      commit({
+        type: "success",
+        data: next.map((event) => ({
           id: event.id,
           title: event.title,
           description: event.description,
@@ -57,32 +69,28 @@ export function useHomeAssistantCalendar(
           end: new Date(event.end),
           allDay: event.allDay,
         })),
-      );
+        now: Date.now(),
+      });
       setError(null);
       setStatus(200);
-      setLastUpdated(Date.now());
       setConsecutiveFailures(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : fetchFailureCopy);
+      commit({ type: "failure" });
       if (err instanceof HomeAssistantHttpError) setStatus(err.status);
       setConsecutiveFailures((value) => value + 1);
-    } finally {
-      setIsLoading(false);
     }
-  }, [daysAhead, entityId, fetchFailureCopy]);
+  }, [beginLoad, cacheKey, commit, daysAhead, entityId, fetchFailureCopy, setError]);
 
   useEffect(() => {
     void fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    if (!entityId) return;
-    const timeout = setTimeout(
-      fetchData,
-      getNextPollDelay(CALENDAR_POLL_INTERVAL_MS, consecutiveFailures),
-    );
-    return () => clearTimeout(timeout);
-  }, [consecutiveFailures, entityId, fetchData]);
+  useRefreshingPoll(
+    Boolean(entityId),
+    getNextPollDelay(CALENDAR_POLL_INTERVAL_MS, consecutiveFailures),
+    () => fetchData(),
+  );
 
-  return { events, isLoading, error, status, lastUpdated, refresh: fetchData };
+  return { events, isLoading, error, isStale, status, lastUpdated, refresh: fetchData };
 }

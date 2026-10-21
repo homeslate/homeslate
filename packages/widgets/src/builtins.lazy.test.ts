@@ -18,13 +18,16 @@ describe("widget lazy exports", () => {
     const loads = lazyLoads();
     expect(loads.length).toBeGreaterThan(40);
 
-    const failures: string[] = [];
-    for (const load of loads) {
-      const module = (await import(`./widgets/${load.file}.tsx`)) as Record<string, unknown>;
-      if (typeof module[load.exportName] !== "function") {
-        failures.push(`${load.file}.${load.exportName}`);
-      }
-    }
+    const failures = (
+      await Promise.all(
+        loads.map(async (load) => {
+          const module = (await import(`./widgets/${load.file}.tsx`)) as Record<string, unknown>;
+          return typeof module[load.exportName] === "function"
+            ? null
+            : `${load.file}.${load.exportName}`;
+        }),
+      )
+    ).filter((failure) => failure != null);
     expect(failures).toEqual([]);
   });
 });

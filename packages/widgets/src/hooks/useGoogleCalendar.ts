@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { DISPLAY_CALENDAR_DAYS_BACK_DEFAULT } from "@homeslate/google";
 import { useGoogleRuntime } from "../googleRuntime";
 import {
@@ -11,8 +11,21 @@ import {
   type ParsedCalendarEvent,
   type CalendarEventInput,
 } from "../services/googleCalendar";
-import { useCalendarCacheStore, calendarCacheKey } from "../store/calendarCacheStore";
+import {
+  useCalendarCacheStore,
+  calendarCacheKey,
+  fromStoredGoogleCalendar,
+  googleCalendarFreshness,
+  toStoredGoogleCalendar,
+} from "../store/calendarCacheStore";
+import { CACHE_POLICIES, googleCalendarKey } from "../services/cachePolicies";
+import {
+  readWidgetCache,
+  WIDGET_CACHE_LARGE_MAX_BYTES,
+  writeWidgetCache,
+} from "../services/widgetCache";
 import { getNextPollDelay } from "./polling";
+import { useRefreshingPoll } from "./useRefreshingPoll";
 
 interface UseGoogleCalendarOptions {
   // clientId is kept in the type for config backward-compatibility but is no
@@ -32,6 +45,7 @@ interface UseGoogleCalendarResult {
   calendars: GoogleCalendar[];
   events: ParsedCalendarEvent[];
   lastUpdated: number | null;
+  isStale: boolean;
   refresh: () => void;
   addEvent: (calendarId: string, event: CalendarEventInput) => Promise<void>;
   editEvent: (calendarId: string, eventId: string, event: CalendarEventInput) => Promise<void>;
@@ -50,15 +64,33 @@ export function useGoogleCalendar({
   const { accessToken, isAuthenticated, refreshAccessToken } = useGoogleRuntime();
   const { getEntry, setEntry } = useCalendarCacheStore();
   const cacheKey = calendarCacheKey(selectedCalendarIds, daysAhead, daysBack);
+  const widgetKey = googleCalendarKey(selectedCalendarIds, daysAhead, daysBack);
+  const memory = getEntry(cacheKey);
+  const persistedHit = memory
+    ? null
+    : readWidgetCache<ReturnType<typeof toStoredGoogleCalendar>>(
+        widgetKey,
+        CACHE_POLICIES.googleCalendar,
+      );
+  const persisted = persistedHit
+    ? { ...fromStoredGoogleCalendar(persistedHit.data), fetchedAt: persistedHit.savedAt }
+    : null;
+  const seeded =
+    (memory ?? persisted) && googleCalendarFreshness((memory ?? persisted)!.fetchedAt) !== "expired"
+      ? (memory ?? persisted)
+      : null;
 
-  // Seed local state from cache immediately so there's no loading flash on remount.
-  const cached = getEntry(cacheKey);
-  const [isLoading, setIsLoading] = useState(enabled && !cached);
+  const [isLoading, setIsLoading] = useState(enabled && !seeded);
+  const [isStale, setIsStale] = useState(
+    seeded ? googleCalendarFreshness(seeded.fetchedAt) === "stale" : false,
+  );
   const [error, setError] = useState<string | null>(null);
-  const [calendars, setCalendars] = useState<GoogleCalendar[]>(cached?.calendars ?? []);
-  const [events, setEvents] = useState<ParsedCalendarEvent[]>(cached?.events ?? []);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(cached?.fetchedAt ?? null);
+  const [calendars, setCalendars] = useState<GoogleCalendar[]>(seeded?.calendars ?? []);
+  const [events, setEvents] = useState<ParsedCalendarEvent[]>(seeded?.events ?? []);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(seeded?.fetchedAt ?? null);
   const [consecutiveFailures, setConsecutiveFailures] = useState(0);
+  const eventCount = useRef(events.length);
+  eventCount.current = events.length;
 
   const fetchCalendars = useCallback(async () => {
     if (!enabled) return;
@@ -101,16 +133,34 @@ export function useGoogleCalendar({
       }
       if (!force) {
         const existing = getEntry(cacheKey);
-        if (existing && Date.now() - existing.fetchedAt < refreshInterval) {
-          setCalendars(existing.calendars);
-          setEvents(existing.events);
-          setLastUpdated(existing.fetchedAt);
+        const persistedExisting = existing
+          ? null
+          : readWidgetCache<ReturnType<typeof toStoredGoogleCalendar>>(
+              widgetKey,
+              CACHE_POLICIES.googleCalendar,
+            );
+        const snapshot = existing
+          ? existing
+          : persistedExisting
+            ? {
+                ...fromStoredGoogleCalendar(persistedExisting.data),
+                fetchedAt: persistedExisting.savedAt,
+              }
+            : null;
+        if (snapshot && googleCalendarFreshness(snapshot.fetchedAt) === "fresh") {
+          setCalendars(snapshot.calendars);
+          setEvents(snapshot.events);
+          setLastUpdated(snapshot.fetchedAt);
+          setIsStale(false);
           setIsLoading(false);
+          setError(null);
           return;
         }
+        if (snapshot && googleCalendarFreshness(snapshot.fetchedAt) === "stale") {
+          setIsStale(true);
+        }
       }
-      setIsLoading(true);
-      setError(null);
+      setIsLoading((current) => current && eventCount.current === 0);
       const doFetch = async (token: string) => {
         const [calendarList, eventList] = await Promise.all([
           fetchCalendarList(token),
@@ -120,7 +170,13 @@ export function useGoogleCalendar({
         setEvents(eventList);
         const fetchedAt = Date.now();
         setEntry(cacheKey, { calendars: calendarList, events: eventList, fetchedAt });
+        writeWidgetCache(widgetKey, toStoredGoogleCalendar(calendarList, eventList), {
+          now: fetchedAt,
+          maxBytes: WIDGET_CACHE_LARGE_MAX_BYTES,
+        });
         setLastUpdated(fetchedAt);
+        setIsStale(false);
+        setError(null);
         setConsecutiveFailures(0);
       };
       try {
@@ -139,6 +195,7 @@ export function useGoogleCalendar({
           }
         }
         setError(err instanceof Error ? err.message : "Failed to fetch events");
+        setIsStale(true);
         setConsecutiveFailures((prev) => prev + 1);
       } finally {
         setIsLoading(false);
@@ -151,7 +208,7 @@ export function useGoogleCalendar({
       daysAhead,
       daysBack,
       cacheKey,
-      refreshInterval,
+      widgetKey,
       getEntry,
       setEntry,
       refreshAccessToken,
@@ -169,22 +226,11 @@ export function useGoogleCalendar({
     if (isAuthenticated && selectedCalendarIds.length > 0) void fetchEvents();
   }, [enabled, isAuthenticated, selectedCalendarIds, fetchEvents]);
 
-  useEffect(() => {
-    if (!enabled) return;
-    if (!isAuthenticated || selectedCalendarIds.length === 0) return;
-    const interval = setTimeout(
-      () => void fetchEvents(true),
-      getNextPollDelay(refreshInterval, consecutiveFailures),
-    );
-    return () => clearTimeout(interval);
-  }, [
-    enabled,
-    isAuthenticated,
-    selectedCalendarIds,
-    fetchEvents,
-    refreshInterval,
-    consecutiveFailures,
-  ]);
+  useRefreshingPoll(
+    enabled && isAuthenticated && selectedCalendarIds.length > 0,
+    getNextPollDelay(refreshInterval, consecutiveFailures),
+    () => fetchEvents(true),
+  );
 
   useEffect(() => {
     if (!enabled) {
@@ -219,7 +265,7 @@ export function useGoogleCalendar({
   const addEvent = useCallback(
     async (calendarId: string, event: CalendarEventInput) => {
       await withTokenRetry((token) => createCalendarEvent(token, calendarId, event));
-      void fetchEvents();
+      void fetchEvents(true);
     },
     [withTokenRetry, fetchEvents],
   );
@@ -227,7 +273,7 @@ export function useGoogleCalendar({
   const editEvent = useCallback(
     async (calendarId: string, eventId: string, event: CalendarEventInput) => {
       await withTokenRetry((token) => updateCalendarEvent(token, calendarId, eventId, event));
-      void fetchEvents();
+      void fetchEvents(true);
     },
     [withTokenRetry, fetchEvents],
   );
@@ -235,7 +281,7 @@ export function useGoogleCalendar({
   const removeEvent = useCallback(
     async (calendarId: string, eventId: string) => {
       await withTokenRetry((token) => deleteCalendarEvent(token, calendarId, eventId));
-      void fetchEvents();
+      void fetchEvents(true);
     },
     [withTokenRetry, fetchEvents],
   );
@@ -247,6 +293,7 @@ export function useGoogleCalendar({
     calendars,
     events,
     lastUpdated,
+    isStale,
     refresh,
     addEvent,
     editEvent,

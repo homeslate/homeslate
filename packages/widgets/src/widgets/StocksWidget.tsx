@@ -1,15 +1,5 @@
 import { useState } from "react";
-import {
-  Text,
-  Stack,
-  Spinner,
-  Button,
-  Surface,
-  TextField,
-  PasswordInput,
-  Link,
-  HStack,
-} from "@var-ui/react";
+import { Text, Stack, Spinner, Button, Surface, TextField, HStack } from "@var-ui/react";
 import { IconChartLine, IconRefresh } from "@tabler/icons-react";
 import type { WidgetProps, WidgetConfig } from "../types";
 import { useStocks } from "../hooks/useStocks";
@@ -19,7 +9,6 @@ import * as classes from "./StocksWidget.styles";
 
 export interface StocksConfig extends WidgetConfig {
   symbols: string[];
-  apiKey: string;
   showChange: boolean;
   showDayRange: boolean;
   transparentBackground: boolean;
@@ -75,33 +64,12 @@ function StockRow({
 }
 
 export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
-  const { symbols, apiKey, showChange, showDayRange, transparentBackground } = widget.config;
+  const { symbols, showChange, showDayRange, transparentBackground } = widget.config;
 
-  const { quotes, isLoading, errors, refresh, lastUpdated } = useStocks({
+  const { quotes, isLoading, isStale, errors, refresh, lastUpdated } = useStocks({
     symbols,
-    apiKey,
   });
   const hasAnyError = errors.size > 0;
-
-  // No API key configured
-  if (!apiKey) {
-    return (
-      <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
-        <div className={classes.empty}>
-          <IconChartLine size={48} className={classes.emptyIcon} />
-          <Text size="lg" weight="medium">
-            API Key Required
-          </Text>
-          <Text size="sm" tone="secondary" style={{ textAlign: "center" }}>
-            Get a free API key from{" "}
-            <Link href="https://finnhub.io" target="_blank" rel="noopener">
-              finnhub.io
-            </Link>
-          </Text>
-        </div>
-      </div>
-    );
-  }
 
   // No symbols configured
   if (symbols.length === 0) {
@@ -151,6 +119,7 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
       <WidgetDataStatus
         widgetId={widget.id}
         lastUpdated={lastUpdated}
+        isStale={isStale}
         error={hasAnyError ? "stale" : null}
         isLoading={isLoading}
       />
@@ -210,7 +179,7 @@ export function StocksWidget({ widget }: WidgetProps<StocksConfig>) {
 }
 
 export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<StocksConfig>) {
-  const { symbols, apiKey, showChange, showDayRange } = widget.config;
+  const { symbols, showChange, showDayRange } = widget.config;
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<{ symbol: string; name: string }[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -234,12 +203,11 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
         s.name.toLowerCase().includes(query.toLowerCase()),
     );
 
-    // If we have an API key, also search Finnhub
-    if (apiKey && query.length >= 2) {
+    if (query.length >= 2) {
       setIsSearching(true);
       try {
         const { searchSymbols } = await import("../services/stocks");
-        const results = await searchSymbols(query, apiKey);
+        const results = await searchSymbols(query);
         // Combine local and API results, deduping
         const combined = [...localMatches];
         results.forEach((r) => {
@@ -273,20 +241,6 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
 
   return (
     <Stack gap="md">
-      <PasswordInput
-        label="Finnhub API Key"
-        placeholder="Enter your API key"
-        description="Get a free key at finnhub.io"
-        value={apiKey}
-        onChange={(value) => onConfigChange({ apiKey: value })}
-      />
-      <Text size="xs" tone="secondary">
-        Get a free key at{" "}
-        <Link href="https://finnhub.io" target="_blank">
-          finnhub.io
-        </Link>
-      </Text>
-
       <div>
         <Text size="sm" weight="medium">
           Search Stocks
@@ -297,11 +251,6 @@ export function StocksWidgetSettings({ widget, onConfigChange }: WidgetProps<Sto
           onChange={(value) => handleSearch(value)}
         />
         {isSearching && <Spinner size="sm" />}
-        {!apiKey && (
-          <Text size="sm" tone="secondary">
-            Add API key to search all stocks
-          </Text>
-        )}
 
         {searchResults.length > 0 && (
           <Surface className={classes.searchResults} padding="sm">

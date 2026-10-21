@@ -41,6 +41,7 @@ export function VacuumWidget({ widget, isEditing }: WidgetProps<VacuumConfig>) {
     controlError,
     status,
     lastUpdated,
+    isStale,
     pending,
     refresh,
     call,
@@ -259,6 +260,7 @@ export function VacuumWidget({ widget, isEditing }: WidgetProps<VacuumConfig>) {
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

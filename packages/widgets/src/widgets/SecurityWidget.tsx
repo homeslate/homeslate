@@ -31,6 +31,7 @@ import {
   type HomeAssistantAlarm,
 } from "./homeAssistantAlarm";
 import * as classes from "./SecurityWidget.styles";
+import { securityHighRiskLocked } from "./securityControls";
 
 export interface SecurityConfig extends WidgetConfig {
   entityIds: string[];
@@ -60,9 +61,10 @@ function confirmAction(message: string): boolean {
 export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig>) {
   const { entityIds = [], transparentBackground = false } = widget.config;
   const ids = entityIds.filter(Boolean);
-  const { entities, isLoading, error, status, lastUpdated, refresh } =
+  const { entities, isLoading, error, status, lastUpdated, isStale, refresh } =
     useEntityList<SecurityEntity>(ids, { fetchFailureCopy: SECURITY_MISSING_CONFIG_COPY });
   const callService = useHomeAssistantService(SECURITY_MISSING_CONFIG_COPY);
+  const highRiskLocked = securityHighRiskLocked(lastUpdated);
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
@@ -141,6 +143,22 @@ export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig
 
   return (
     <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
+      {highRiskLocked && (
+        <div className={classes.errorBox}>
+          <Text size="sm" tone="secondary">
+            Refresh to unlock or disarm
+          </Text>
+          <Button
+            appearance="subtle"
+            size="sm"
+            onPress={() => void refresh()}
+            isDisabled={isLoading}
+          >
+            <IconRefresh size={14} />
+            Refresh
+          </Button>
+        </div>
+      )}
       {(error || controlError) && (
         <div className={classes.errorBox}>
           <Text size="sm" tone="danger">
@@ -205,7 +223,7 @@ export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig
                       appearance="subtle"
                       size="sm"
                       onPress={() => unlock(entity)}
-                      isDisabled={!entity.available || pending}
+                      isDisabled={!entity.available || pending || highRiskLocked}
                     >
                       Unlock
                     </Button>
@@ -224,7 +242,7 @@ export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig
                       appearance="subtle"
                       size="sm"
                       onPress={() => open(entity)}
-                      isDisabled={!entity.available || pending}
+                      isDisabled={!entity.available || pending || highRiskLocked}
                     >
                       Open
                     </Button>
@@ -250,7 +268,9 @@ export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig
                     appearance="subtle"
                     size="sm"
                     onPress={() => disarm(entity)}
-                    isDisabled={!entity.available || pending || entity.state === "disarmed"}
+                    isDisabled={
+                      !entity.available || pending || entity.state === "disarmed" || highRiskLocked
+                    }
                   >
                     Disarm
                   </Button>
@@ -265,6 +285,7 @@ export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />

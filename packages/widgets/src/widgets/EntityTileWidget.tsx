@@ -36,6 +36,7 @@ import {
   describeEntityTile,
 } from "./homeAssistantTile";
 import * as classes from "./EntityTileWidget.styles";
+import { securityHighRiskLocked } from "./securityControls";
 
 export interface EntityTileConfig extends WidgetConfig {
   entityId: string;
@@ -96,12 +97,22 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
     transparentBackground = false,
   } = widget.config;
   const domain = entityId.includes(".") ? entityId.slice(0, entityId.indexOf(".")) : "";
-  const { entity, isLoading, error, controlError, status, lastUpdated, pending, refresh, call } =
-    useEntity<Record<string, unknown>>(entityId, {
-      domain,
-      fetchFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
-      callFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
-    });
+  const {
+    entity,
+    isLoading,
+    error,
+    controlError,
+    status,
+    lastUpdated,
+    isStale,
+    pending,
+    refresh,
+    call,
+  } = useEntity<Record<string, unknown>>(entityId, {
+    domain,
+    fetchFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
+    callFailureCopy: ENTITY_TILE_MISSING_CONFIG_COPY,
+  });
   const [brightnessDraft, setBrightnessDraft] = useState<number | null>(null);
   const [positionDraft, setPositionDraft] = useState<number | null>(null);
   const containerClass = `${classes.container} ${transparentBackground ? classes.transparent : ""}`;
@@ -160,6 +171,8 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
   const Icon = tileIcon(domain);
   const displayName = label.trim() || descriptor.name;
   const canControl = showControls && descriptor.available;
+  const highRiskLocked = securityHighRiskLocked(lastUpdated);
+  const unlockLocked = descriptor.isLocked === true && highRiskLocked;
   const brightness = brightnessDraft ?? Math.round(descriptor.brightnessPct ?? 100);
   const position = positionDraft ?? Math.round(descriptor.position ?? 0);
 
@@ -202,7 +215,7 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
   };
 
   const toggleLock = () => {
-    if (!canControl) return;
+    if (!canControl || unlockLocked) return;
     if (
       descriptor.isLocked &&
       typeof window !== "undefined" &&
@@ -363,11 +376,16 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
 
           {descriptor.control === "lock" && (
             <div className={classes.actions}>
+              {unlockLocked && (
+                <Text size="xs" tone="secondary">
+                  Refresh to unlock
+                </Text>
+              )}
               <Button
                 appearance="subtle"
                 size="sm"
                 onPress={toggleLock}
-                isDisabled={!canControl || pending}
+                isDisabled={!canControl || pending || unlockLocked}
               >
                 {descriptor.isLocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
                 {descriptor.isLocked ? "Unlock" : "Lock"}
@@ -381,6 +399,7 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
         <WidgetDataStatus
           widgetId={widget.id}
           lastUpdated={lastUpdated}
+          isStale={isStale}
           error={error}
           isLoading={isLoading}
         />
