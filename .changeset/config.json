@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
   "baseBranch": "main",
   "access": "public",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": ["@changesets/changelog-github", { "repo": "phthalo-dev/homeslate" }],
   "commit": false,
   "ignore": ["homeslate-reference"],
   "fixed": [],

@@ -8,6 +8,7 @@ onlyBuiltDependencies:
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@0.2.6
   vite-plus: 0.2.6
+  typescript: ^6.0.0
 overrides:
   vite: "catalog:"
   docs>vite: "npm:vite@^6.4.1"
