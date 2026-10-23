@@ -3,6 +3,6 @@ command = "pnpm --filter docs build"
 publish = "docs/dist"
 
 [build.environment]
-NODE_VERSION = "22"
+NODE_VERSION = "24"
 PNPM_VERSION = "10.11.1"
 ASTRO_TELEMETRY_DISABLED = "1"

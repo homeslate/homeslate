@@ -1,7 +1,6 @@
-# Mirror the CI job (.github/workflows/ci.yml) so failures surface before a push.
-# `vp install` is skipped: dependencies are already installed in a local checkout.
-# Tests run once (`vp test run`) instead of watch mode.
-vp check
-vp run build
-vp run docs#check
-vp test run
+# CI already ran this on the PR; release pushes tags and must not re-run it per tag.
+if [ -n "$CI" ]; then
+  exit 0
+fi
+# Same command CI runs. `vp install` is skipped: dependencies are already installed locally.
+vp run ci

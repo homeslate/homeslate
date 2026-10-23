@@ -1,20 +1,111 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Only supersede PR runs. A newer push to main must never cancel a run that is
+  # about to release.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  test:
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: voidzero-dev/setup-vp@v1.19.0
+      - uses: actions/checkout@v6
+
+      - uses: voidzero-dev/setup-vp@v1
         with:
-          node-version: "22"
+          node-version-file: .nvmrc
           cache: true
-      - run: vp install
-      - run: vp check
-      - run: vp run build
-      - run: vp run docs#check
-      - run: vp test
+
+      - run: vp run ci
+
+      # `vp run ci` builds every package. Hand the dist to the release job so
+      # publishing does not compile again.
+      - name: Pack package dist artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          for dir in packages/*; do
+            if [ ! -d "$dir/dist" ]; then
+              echo "Missing dist for $dir"
+              exit 1
+            fi
+          done
+          tar -czf package-dist.tar.gz packages/*/dist
+
+      - name: Upload package dist artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-dist
+          path: package-dist.tar.gz
+          retention-days: 1
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: homeslate-release
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      # A GitHub App token (not GITHUB_TOKEN) so the version PR and the tags the
+      # release pushes trigger workflows.
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      # Do not set registry-url on setup-vp: it writes a placeholder _authToken
+      # line that blocks npm Trusted Publishing (OIDC).
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: .nvmrc
+          cache: true
+
+      # Trusted Publishing needs npm >= 11.5.1. Do not use npm@latest: npm 12
+      # rejects --git-checks, which pnpm forwards when changeset publish runs.
+      - name: Use npm compatible with pnpm publish
+        run: npm install -g 'npm@^11.5.1'
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-dist
+
+      - name: Restore package dist artifacts
+        run: |
+          tar -xzf package-dist.tar.gz
+          rm package-dist.tar.gz
+          for dir in packages/*; do
+            if [ ! -d "$dir/dist" ]; then
+              echo "Missing restored dist for $dir"
+              exit 1
+            fi
+          done
+
+      - uses: changesets/action@v1
+        with:
+          publish: vp exec changeset publish
+          version: vp exec changeset version
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

@@ -75,4 +75,13 @@ export default defineConfig({
       "react/only-export-components": "off",
     },
   },
+  run: {
+    tasks: {
+      // The one command CI and the pre-push hook both run.
+      ci: {
+        cache: false,
+        command: ["vp check", "vp run build", "vp run docs#check", "vp test run"],
+      },
+    },
+  },
 });
