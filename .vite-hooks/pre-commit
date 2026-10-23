@@ -1,2 +1,6 @@
+# Release commits version bumps and changelogs; hooks are for local work.
+if [ -n "$CI" ]; then
+  exit 0
+fi
 vp check
 vp staged
