@@ -127,7 +127,7 @@ packaged into a runtime image by `docker build`. The `bin/homeslate-build`
 script does both.
 
 ```sh
-git clone https://github.com/homeslate/homeslate.git
+git clone https://github.com/phthalo-dev/homeslate.git
 cd homeslate
 cp .env.example .env
 # Open .env and fill in:

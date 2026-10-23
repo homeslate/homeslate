@@ -38,4 +38,4 @@ includes it in the `DisplayRecord` it returns. Hash and verify the PIN with
 
 - [`@homeslate/schema`](https://www.npmjs.com/package/@homeslate/schema) — document types and validation
 - [`@homeslate/google`](https://www.npmjs.com/package/@homeslate/google) — `TokenStore` / `GoogleBindingStore` interfaces
-- [Reference app](https://github.com/homeslate/homeslate/tree/main/apps/reference)
+- [Reference app](https://github.com/phthalo-dev/homeslate/tree/main/apps/reference)

@@ -135,7 +135,7 @@ points the reference app at it. Use `pnpm dev:mock-ha` to run only the mock. See
 
 ## Host styles
 
-Import `@homeslate/widgets/styles` from the TypeStyles extract entry, after VarUI, before `@homeslate/display/styles` and `@homeslate/editor/styles`. The editor and display READMEs have the provider tree; the [reference host contract](https://github.com/homeslate/homeslate/blob/main/apps/reference/README.md) has the full list.
+Import `@homeslate/widgets/styles` from the TypeStyles extract entry, after VarUI, before `@homeslate/display/styles` and `@homeslate/editor/styles`. The editor and display READMEs have the provider tree; the [reference host contract](https://github.com/phthalo-dev/homeslate/blob/main/apps/reference/README.md) has the full list.
 
 ## See also
 

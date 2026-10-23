@@ -56,7 +56,7 @@ import "@homeslate/display/styles";
 // also import @homeslate/editor/styles if you mount Editor
 ```
 
-On `@var-ui/core@0.1.0` the published `styles` file is empty; import `@var-ui/core/register-default-theme`, `@var-ui/core/base-styles`, and the other core style subpaths instead (as the [reference app](https://github.com/homeslate/homeslate/blob/main/apps/reference/typestyles-entry.ts) does). Full eight-step contract: [reference README](https://github.com/homeslate/homeslate/blob/main/apps/reference/README.md).
+On `@var-ui/core@0.1.0` the published `styles` file is empty; import `@var-ui/core/register-default-theme`, `@var-ui/core/base-styles`, and the other core style subpaths instead (as the [reference app](https://github.com/phthalo-dev/homeslate/blob/main/apps/reference/typestyles-entry.ts) does). Full eight-step contract: [reference README](https://github.com/phthalo-dev/homeslate/blob/main/apps/reference/README.md).
 
 ## See also
 
