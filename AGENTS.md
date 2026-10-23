@@ -8,9 +8,10 @@ Run from the repository root:
 
 ```bash
 vp install          # install workspace deps
-vp run ci           # build + check + docs check + tests (what CI runs)
-vp check            # format, lint, type checks
-vp test             # tests (watch); `vp test run` runs once
+pnpm verify         # vp run ci: build + check + docs check + tests (what CI runs)
+pnpm test           # tests, once (vp test run)
+vp test             # tests in watch mode
+vp check            # format, lint
 pnpm changeset      # add a changeset for a published package change
 ```
 
@@ -30,7 +31,7 @@ All three repos (`typestyles`, `var-ui`, `homeslate`) use the same pipeline. Eve
 
 ### Things that bite
 
-- Git hooks live in `.vite-hooks/` (`vp check` and `vp staged` on commit, `vp run ci` on push). They exit early when `CI` is set; the release job commits and pushes tags, and must not re-run them.
+- Git hooks live in `.vite-hooks/` (a main-branch guard and `vp staged` on commit, `vp run ci` on push). They exit early when `CI` is set; the release job commits and pushes tags, and must not re-run them.
 - Generated `CHANGELOG.md` files are excluded from formatting; changesets does not format them.
 - Do not set `registry-url` on `setup-vp`: it writes a placeholder auth token that blocks OIDC. The release job also installs `npm@^11.5.1` (trusted publishing needs it; npm 12 rejects flags pnpm forwards).
 - Secrets: `APP_CLIENT_ID` and `APP_PRIVATE_KEY` (GitHub App) are org secrets.

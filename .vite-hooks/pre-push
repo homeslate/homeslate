@@ -2,5 +2,6 @@
 if [ -n "$CI" ]; then
   exit 0
 fi
+
 # Same command CI runs. `vp install` is skipped: dependencies are already installed locally.
 vp run ci
