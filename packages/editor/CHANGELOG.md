@@ -1,5 +1,28 @@
 # @homeslate/editor
 
+## 1.0.2
+
+### Patch Changes
+
+- a7f67a8: Point the repository metadata at the phthalo-dev GitHub organization.
+- Updated dependencies [f016429]
+- Updated dependencies [6d33084]
+- Updated dependencies [8b0fe7a]
+- Updated dependencies [6a7c289]
+- Updated dependencies [7924794]
+- Updated dependencies [43e2d43]
+- Updated dependencies [24dd8a8]
+- Updated dependencies [d7ce792]
+- Updated dependencies [38cbc67]
+- Updated dependencies [8b0fe7a]
+- Updated dependencies [ccd45bc]
+- Updated dependencies [a7f67a8]
+- Updated dependencies [b16106e]
+- Updated dependencies [6ebdf88]
+  - @homeslate/display@1.1.0
+  - @homeslate/widgets@1.2.0
+  - @homeslate/schema@1.1.0
+
 ## 1.0.1
 
 ### Patch Changes

@@ -1,0 +1,59 @@
+# @homeslate/relay
+
+## 0.1.0
+
+### Minor Changes
+
+- 8b0fe7a: Reach a home Home Assistant from a hosted homeslate API. `@homeslate/server`'s
+  `/api/homeassistant/*` routes now sit behind a `HomeAssistantTransport`, so a
+  host can inject one instead of `{ baseUrl, token }`; a new
+  `GET /api/homeassistant/status` reports whether the transport is configured and
+  connected, and transport failures surface as `503` (agent offline) / `504`
+  (timeout). `@homeslate/agent` is a LAN process that dials out to the cloud and
+  serves the allowlisted climate methods, keeping the Home Assistant token at home.
+  `@homeslate/relay` is the runtime-agnostic cloud side — agent presence plus
+  request correlation — with a Node WebSocket binding at `@homeslate/relay/node`.
+  `@homeslate/widgets` learns to render relay "agent offline" / timeout states and
+  exports the agent copy plus a `homeAssistantStatusUrl()` helper from
+  `@homeslate/widgets/server`.
+- 6a7c289: Replace the per-domain Home Assistant transport with one generic, allowlisted
+  entity + service rail, driven by a single domain registry.
+  
+  - **`@homeslate/widgets/server`** — a new domain registry is the source of truth
+    for entity-id shape, allowed services, allowed data keys, and optional state
+    mapping (`registerDomainSpec`, `isKnownDomain`, `entityDomain`,
+    `isValidEntityId`, `isAllowedService`, `buildServicePayload`, `mapEntity`). A
+    generic `HomeAssistantEntity` projection (`mapHomeAssistantEntity`) covers
+    domains that have no dedicated mapper. `@homeslate/widgets` gains generic
+    client helpers (`fetchEntities`, `fetchEntity`, `callHomeAssistantService`) and
+    hooks (`useEntities`, `useEntity`, `useHomeAssistantService`); the Thermostat
+    and To-Do widgets migrate onto them with no behavior change.
+  - **`@homeslate/server`** — `HomeAssistantTransport` collapses to three generic
+    methods: `listEntities(domain)`, `getEntity(entityId)`, and
+    `callService(domain, service, entityId, data, options?)`. The
+    `/api/homeassistant/*` routes validate against the registry, so a new domain
+    needs a registry entry, not a new route. `HomeAssistantTodoTransport` and
+    `hasTodoSupport` are removed (to-do now rides the generic rail).
+  - **`@homeslate/agent` / `@homeslate/relay`** — the agent protocol is now **v2**:
+    `entities.list` / `entity.get` / `service.call`, with the agent advertising its
+    supported domains in its `hello`. The relay transport implements the same
+    three methods and re-validates every call before forwarding it to the socket.
+
+### Patch Changes
+
+- a7f67a8: Point the repository metadata at the phthalo-dev GitHub organization.
+- Updated dependencies [f016429]
+- Updated dependencies [6d33084]
+- Updated dependencies [8b0fe7a]
+- Updated dependencies [6a7c289]
+- Updated dependencies [7924794]
+- Updated dependencies [43e2d43]
+- Updated dependencies [24dd8a8]
+- Updated dependencies [d7ce792]
+- Updated dependencies [38cbc67]
+- Updated dependencies [8b0fe7a]
+- Updated dependencies [ccd45bc]
+- Updated dependencies [a7f67a8]
+- Updated dependencies [b16106e]
+  - @homeslate/server@0.3.0
+  - @homeslate/widgets@1.2.0
