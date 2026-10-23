@@ -38,4 +38,4 @@ For every built-in widget, import `@homeslate/widgets/schemas` once (Node-safe) 
 ## See also
 
 - [`@homeslate/widgets`](https://www.npmjs.com/package/@homeslate/widgets) — built-in config schemas and the widget registry
-- [Reference app](https://github.com/homeslate/homeslate/tree/main/apps/reference)
+- [Reference app](https://github.com/phthalo-dev/homeslate/tree/main/apps/reference)

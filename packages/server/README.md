@@ -82,4 +82,4 @@ await startHomeslateServer({ dataDir: "/data", hostname: "0.0.0.0" });
 Keep the host-side port mapping on loopback (`-p 127.0.0.1:8787:8787`) so the
 API stays off the LAN except through your proxy.
 
-See the [self-hosting guide](https://github.com/homeslate/homeslate/blob/main/docs/content/docs/self-hosting.mdx).
+See the [self-hosting guide](https://github.com/phthalo-dev/homeslate/blob/main/docs/content/docs/self-hosting.mdx).

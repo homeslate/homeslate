@@ -13,7 +13,7 @@ export type WeatherAlertsResponse = {
   coverage: "us" | "unavailable";
 };
 
-export const NWS_USER_AGENT = "Homeslate/0.1 (https://github.com/homeslate/homeslate)";
+export const NWS_USER_AGENT = "Homeslate/0.1 (https://github.com/phthalo-dev/homeslate)";
 
 export const WEATHER_ALERTS_COVERAGE_COPY = "Alerts are available for US locations.";
 export const WEATHER_ALERTS_EMPTY_COPY = "No active alerts";

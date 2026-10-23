@@ -26,7 +26,7 @@ const calendars = await google.listCalendars(accountId);
 
 `createGoogleClient` throws if credentials are empty. Token refresh failures surface as `GoogleAuthError` (`missing_tokens`, `invalid_grant`, `token_revoked`, `refresh_failed`); narrow with `isGoogleAuthError`.
 
-The host owns OAuth URLs and cookies. See the [reference server](https://github.com/homeslate/homeslate/blob/main/apps/reference/src/server/app.ts).
+The host owns OAuth URLs and cookies. See the [reference server](https://github.com/phthalo-dev/homeslate/blob/main/apps/reference/src/server/app.ts).
 
 ## Also exported
 

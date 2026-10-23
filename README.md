@@ -7,7 +7,7 @@ Documentation: run `vp run docs:dev` (or `pnpm docs:dev`) and open the URL Astro
 ## Clone
 
 ```bash
-git clone https://github.com/homeslate/homeslate.git
+git clone https://github.com/phthalo-dev/homeslate.git
 cd homeslate
 vp install
 ```
@@ -55,4 +55,4 @@ Prefer to build your own host app instead of cloning the repo? Depend on `@homes
 
 ## Hosted product
 
-The managed hosted app (Netlify + Neon) lives in the private [homeslate-hosted](https://github.com/homeslate/homeslate-hosted) repository.
+The managed hosted app (Netlify + Neon) lives in the private [homeslate-hosted](https://github.com/phthalo-dev/homeslate-hosted) repository.

@@ -12,7 +12,7 @@ There are two supported ways to run homeslate on your own machine:
   clone, and your customizations live in your repo.
 - **Run the reference container.** Clone the repo and run the
   [reference app](/docs/reference) in Docker. That path is fully walked through
-  in [`CONTAINER.md`](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
+  in [`CONTAINER.md`](https://github.com/phthalo-dev/homeslate/blob/main/CONTAINER.md).
 
 Pick the packages path when you want to customize widgets, theme, routes, or
 storage and still receive upstream fixes by bumping versions.
@@ -43,7 +43,7 @@ passcode** before the kiosk renders.
 - A reverse proxy (this guide uses [Caddy](https://caddyserver.com/)) and, for a
   LAN hostname, a DNS record pointing at your VM.
 - Optional: a Google Cloud OAuth client for calendar widgets. See
-  [CONTAINER.md step 1](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
+  [CONTAINER.md step 1](https://github.com/phthalo-dev/homeslate/blob/main/CONTAINER.md).
 
 ## 1. Create the app
 
@@ -366,7 +366,7 @@ Create an OAuth client (Application type: **Web application**) with the exact
 redirect URI `http://homeslate.lan/api/google/callback` and the
 `calendar.readonly` scope, then add your Gmail address as a test user. The full
 walkthrough is in
-[CONTAINER.md step 1](https://github.com/homeslate/homeslate/blob/main/CONTAINER.md).
+[CONTAINER.md step 1](https://github.com/phthalo-dev/homeslate/blob/main/CONTAINER.md).
 Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then click a calendar widget's
 sign-in placeholder.
 

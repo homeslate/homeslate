@@ -58,4 +58,4 @@ never returned; the owner-facing record only carries `passcodeEnabled`.
 `getPublicDocument`, `publicDocumentUrl`, and `setDisplayPasscode` are exported
 for hosts that build their own data layer.
 
-See the [self-hosting guide](https://github.com/homeslate/homeslate/blob/main/docs/content/docs/self-hosting.mdx).
+See the [self-hosting guide](https://github.com/phthalo-dev/homeslate/blob/main/docs/content/docs/self-hosting.mdx).
