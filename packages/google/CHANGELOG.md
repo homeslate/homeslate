@@ -1,5 +1,11 @@
 # @homeslate/google
 
+## 0.1.3
+
+### Patch Changes
+
+- a7f67a8: Point the repository metadata at the phthalo-dev GitHub organization.
+
 ## 0.1.2
 
 ### Patch Changes

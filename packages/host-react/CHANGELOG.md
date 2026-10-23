@@ -1,5 +1,78 @@
 # @homeslate/host-react
 
+## 0.2.0
+
+### Minor Changes
+
+- f016429: Isolate widget and route crashes, and add the display copy and starter-layout tools.
+  
+  - **`@homeslate/display`** — a widget error boundary keeps one crash from blanking
+    the board. Displays and views can be duplicated or exported as JSON, and new
+    boards can start from Family Hub, Kitchen, Home Control, or Photo Frame.
+  - **`@homeslate/host-react`** — kiosk and editor routes show a reload fallback
+    instead of a white screen. The display list can import, duplicate, and start
+    from a template without overwriting an existing display.
+  - **`@homeslate/server`** — the Home Assistant image proxy also allows person
+    images (`/api/image/…`) and `www` assets (`/local/…`).
+  - **`@homeslate/widgets`** — presence avatars load through that proxy and fall
+    back to initials when the picture is missing or fails.
+- 6d33084: Keep a kiosk usable when the network drops, and show when the data on screen is stale.
+  
+  - **`@homeslate/widgets`** — remote widget data is cached and revalidated in the background. Stale reads stay on screen, and unlock/disarm waits for a fresh security state. Weather, news, sports, calendars, and stocks are loaded through the Homeslate server.
+  - **`@homeslate/server`** — those reads are proxied by the API. Stock quotes use `FINNHUB_API_KEY` on the server instead of a key stored in the display.
+  - **`@homeslate/host-react`** — the kiosk paints the last saved display, shows an offline banner, and reloads itself if it gets stuck while online.
+  - **`@homeslate/display`** — the kiosk can keep the screen awake and offer a fullscreen button.
+  - **`@homeslate/schema`** — displays can turn the wake lock off with `settings.wakeLockEnabled`. A saved Finnhub key is removed from stocks widgets.
+- b16106e: Add multi-view display management and an optional viewer passcode.
+  
+  - **`@homeslate/host-react`** — `EditorPage` is now a display management surface
+    (Views / Settings / Theme tabs) and a new `ViewEditorPage` renders the per-view
+    canvas editor. `DisplaySettingsPanel` covers auto-rotate, sticky notes, alarms,
+    voice commands, holiday effects, and the viewer passcode; `ViewsPanel` adds,
+    renames, reorders, hides, and deletes views. `KioskPage` prompts for the PIN
+    when the display is locked. Also exports `useDisplayDocument` and the API
+    helpers (`getPublicDocument`, `publicDocumentUrl`, `patchJson`,
+    `setDisplayPasscode`).
+  - **`@homeslate/display/canvas`** — adds `addView`, `removeView`, `moveView`, and
+    `setActiveView` document helpers.
+  - **`@homeslate/adapters`** — display stores gain `getPasscodeHash` /
+    `setPasscode`; `SqliteDisplayStore` keeps the hash in a new `passcode_hash`
+    column (migrated with `ALTER TABLE`) and never returns it on a `DisplayRecord`.
+  - **`@homeslate/server`** — display responses expose `passcodeEnabled` instead of
+    the hash, adds `PATCH /api/displays/:id` to set or clear a 4-digit passcode,
+    gates `GET` / `PUT /api/public/:publicId` with `401 { passcodeRequired: true }`,
+    and exports `hashPasscode` / `verifyPasscode` / `isValidPin`.
+- 6ebdf88: Add preset views and inline display rename.
+  
+  - **`@homeslate/display/canvas`** — new `PRESET_VIEW_NAMES`, `createPresetView`,
+    `missingPresetViews`, and `addPresetViews` helpers that build the
+    Morning / Evening / Weekend starter views from the registered widget defaults.
+  - **`@homeslate/host-react`** — `ViewsPanel` gains an **Add preset views** button
+    (skipping any presets already present), and the management header renames the
+    display inline, saved through the same debounced document `PUT`.
+
+### Patch Changes
+
+- a7f67a8: Point the repository metadata at the phthalo-dev GitHub organization.
+- Updated dependencies [f016429]
+- Updated dependencies [6d33084]
+- Updated dependencies [8b0fe7a]
+- Updated dependencies [6a7c289]
+- Updated dependencies [7924794]
+- Updated dependencies [43e2d43]
+- Updated dependencies [24dd8a8]
+- Updated dependencies [d7ce792]
+- Updated dependencies [38cbc67]
+- Updated dependencies [8b0fe7a]
+- Updated dependencies [ccd45bc]
+- Updated dependencies [a7f67a8]
+- Updated dependencies [b16106e]
+- Updated dependencies [6ebdf88]
+  - @homeslate/display@1.1.0
+  - @homeslate/widgets@1.2.0
+  - @homeslate/schema@1.1.0
+  - @homeslate/editor@1.0.2
+
 ## 0.1.1
 
 ### Patch Changes
