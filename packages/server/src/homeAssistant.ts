@@ -27,11 +27,11 @@ export type HomeAssistantClientOptions = {
 
 /** Thrown when Home Assistant responds with a non-OK status. */
 export class HomeAssistantError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
     this.name = "HomeAssistantError";
   }
 }
@@ -42,11 +42,13 @@ export class HomeAssistantError extends Error {
  * offline) and `504` (timeout) without the routes knowing what a relay is.
  */
 export class HomeAssistantTransportError extends Error {
-  constructor(
-    readonly status: number,
-    readonly userMessage: string,
-  ) {
+  readonly status: number;
+  readonly userMessage: string;
+
+  constructor(status: number, userMessage: string) {
     super(userMessage);
+    this.status = status;
+    this.userMessage = userMessage;
     this.name = "HomeAssistantTransportError";
   }
 }

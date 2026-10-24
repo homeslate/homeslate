@@ -18,7 +18,10 @@ class FakeWebSocket {
   sent: string[] = [];
   closed = false;
 
-  constructor(readonly url: string) {
+  readonly url: string;
+
+  constructor(url: string) {
+    this.url = url;
     FakeWebSocket.instances.push(this);
   }
 
@@ -164,7 +167,7 @@ describe("homeslate agent", () => {
     const calls: Array<{ method: string; returnResponse?: boolean }> = [];
     const { agent, ws } = setup(
       stubClient({
-        async callService(domain, service, entityId, data, options) {
+        async callService(domain, service, entityId, _data, options) {
           calls.push({
             method: `${domain}/${service}/${entityId}`,
             returnResponse: options?.returnResponse,

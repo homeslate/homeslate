@@ -18,11 +18,11 @@ import {
 
 /** Thrown when a Home Assistant route responds with a non-OK status. */
 export class HomeAssistantHttpError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
     this.name = "HomeAssistantHttpError";
   }
 }

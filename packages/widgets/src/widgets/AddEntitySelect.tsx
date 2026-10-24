@@ -88,9 +88,13 @@ export function SelectedEntityRow({
         <Text size="sm" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
           {entityId}
         </Text>
-        <IconButton aria-label={`Remove ${entityId}`} size="sm" onPress={onRemove}>
-          <IconX size={14} />
-        </IconButton>
+        <IconButton
+          name="close"
+          icon={<IconX size={14} />}
+          aria-label={`Remove ${entityId}`}
+          size="sm"
+          onPress={onRemove}
+        />
       </HStack>
       {children}
     </Stack>
