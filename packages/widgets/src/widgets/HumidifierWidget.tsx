@@ -14,6 +14,7 @@ import {
   type HomeAssistantHumidifier,
 } from "./homeAssistantHumidifier";
 import * as classes from "./ClimateAuxWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface HumidifierConfig extends WidgetConfig {
   entityId: string;
@@ -82,9 +83,7 @@ export function HumidifierWidget({ widget, isEditing }: WidgetProps<HumidifierCo
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch humidifier"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch humidifier"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -199,9 +198,7 @@ export function HumidifierWidget({ widget, isEditing }: WidgetProps<HumidifierCo
 
       {(controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -260,11 +257,7 @@ export function HumidifierWidgetSettings({
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <HStack gap="sm" align="center" justify="between">
         <Text size="sm">Show mode picker</Text>

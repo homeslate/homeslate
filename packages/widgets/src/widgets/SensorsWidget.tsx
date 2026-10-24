@@ -21,6 +21,7 @@ import {
   type HomeAssistantSensor,
 } from "./homeAssistantSensor";
 import * as classes from "./SensorsWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface SensorItem {
   entityId: string;
@@ -90,9 +91,7 @@ export function SensorsWidget({ widget, isEditing }: WidgetProps<SensorsConfig>)
     <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {error && !lastUpdated && (
         <div className={classes.errorBox}>
-          <Text size="sm" tone="danger">
-            {error}
-          </Text>
+          <ErrorText size="sm">{error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry

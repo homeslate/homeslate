@@ -29,6 +29,7 @@ import {
   type NotifyMode,
 } from "./homeAssistantNotify";
 import * as classes from "./NotifyWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface NotifyConfig extends WidgetConfig {
   mode: NotifyMode;
@@ -147,9 +148,7 @@ export function NotifyWidget({ widget, isEditing }: WidgetProps<NotifyConfig>) {
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? NOTIFY_TARGET_MISSING_COPY}
-          </Text>
+          <ErrorText size="sm">{error ?? NOTIFY_TARGET_MISSING_COPY}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -214,9 +213,7 @@ export function NotifyWidget({ widget, isEditing }: WidgetProps<NotifyConfig>) {
 
       {(sendError || controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {sendError ?? controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{sendError ?? controlError ?? error}</ErrorText>
           {error && (
             <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
               <IconRefresh size={14} />
@@ -319,11 +316,7 @@ export function NotifyWidgetSettings({ widget, onConfigChange }: WidgetProps<Not
         </>
       )}
 
-      {notify.error && notify.status !== 501 && (
-        <Text size="xs" tone="danger">
-          {notify.error}
-        </Text>
-      )}
+      {notify.error && notify.status !== 501 && <ErrorText size="xs">{notify.error}</ErrorText>}
 
       {mode === "notify" && (
         <TextField

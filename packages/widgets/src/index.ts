@@ -1,5 +1,6 @@
 import "./builtins"; // side-effect: register built-ins
 export const WIDGETS_PACKAGE_NAME = "@homeslate/widgets";
+export { ErrorText } from "./ErrorText";
 export { registerWidget, getWidgetByType, getWidgetTypes, clearWidgetRegistry } from "./registry";
 export type {
   WidgetConfig,

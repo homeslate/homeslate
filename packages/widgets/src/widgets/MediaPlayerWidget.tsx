@@ -32,6 +32,7 @@ import {
   type HomeAssistantMediaPlayer,
 } from "./homeAssistantMediaPlayer";
 import * as classes from "./MediaPlayerWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface MediaPlayerConfig extends WidgetConfig {
   entityId: string;
@@ -105,9 +106,7 @@ export function MediaPlayerWidget({ widget, isEditing }: WidgetProps<MediaPlayer
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch media player"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch media player"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -323,11 +322,7 @@ export function MediaPlayerWidget({ widget, isEditing }: WidgetProps<MediaPlayer
         />
       )}
 
-      {controlError && (
-        <Text size="xs" tone="danger">
-          {controlError}
-        </Text>
-      )}
+      {controlError && <ErrorText size="xs">{controlError}</ErrorText>}
 
       {!isEditing && (
         <WidgetDataStatus
@@ -385,11 +380,7 @@ export function MediaPlayerWidgetSettings({
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <HStack gap="sm" align="center" justify="between">
         <Text size="sm">Show volume</Text>

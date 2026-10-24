@@ -15,6 +15,7 @@ import {
   type HomeAssistantWaterHeater,
 } from "./homeAssistantWaterHeater";
 import * as classes from "./ClimateAuxWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface WaterHeaterConfig extends WidgetConfig {
   entityId: string;
@@ -81,9 +82,7 @@ export function WaterHeaterWidget({ widget, isEditing }: WidgetProps<WaterHeater
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch water heater"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch water heater"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -213,9 +212,7 @@ export function WaterHeaterWidget({ widget, isEditing }: WidgetProps<WaterHeater
 
       {(controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -274,11 +271,7 @@ export function WaterHeaterWidgetSettings({
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <HStack gap="sm" align="center" justify="between">
         <Text size="sm">Show operation mode picker</Text>

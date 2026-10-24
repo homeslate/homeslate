@@ -17,6 +17,7 @@ import {
   type HomeAssistantFan,
 } from "./homeAssistantFan";
 import * as classes from "./FanWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface FanConfig extends WidgetConfig {
   entityId: string;
@@ -90,9 +91,7 @@ export function FanWidget({ widget, isEditing }: WidgetProps<FanConfig>) {
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch fan"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch fan"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -233,9 +232,7 @@ export function FanWidget({ widget, isEditing }: WidgetProps<FanConfig>) {
 
       {(controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -296,11 +293,7 @@ export function FanWidgetSettings({ widget, onConfigChange }: WidgetProps<FanCon
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <HStack gap="sm" align="center" justify="between">
         <Text size="sm">Show preset picker</Text>

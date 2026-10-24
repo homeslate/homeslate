@@ -23,6 +23,7 @@ import {
   type HomeStatusTone,
 } from "./homeStatus";
 import * as classes from "./HomeStatusWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface HomeStatusConfig extends WidgetConfig {
   entityIds: string[];
@@ -107,9 +108,7 @@ export function HomeStatusWidget({ widget, isEditing }: WidgetProps<HomeStatusCo
     <div className={containerClass}>
       {(error || rows.length === 0) && (
         <div className={classes.errorBox}>
-          <Text size="sm" tone="danger">
-            {error ?? "No status to show yet."}
-          </Text>
+          <ErrorText size="sm">{error ?? "No status to show yet."}</ErrorText>
           {error && (
             <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
               <IconRefresh size={14} />

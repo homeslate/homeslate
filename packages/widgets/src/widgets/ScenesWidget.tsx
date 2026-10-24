@@ -24,6 +24,7 @@ import {
   type SceneItem,
 } from "./homeAssistantScene";
 import * as classes from "./ScenesWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface ScenesConfig extends WidgetConfig {
   items: SceneItem[];
@@ -119,9 +120,7 @@ export function ScenesWidget({ widget, isEditing }: WidgetProps<ScenesConfig>) {
     <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {(error || controlError) && (
         <div className={classes.errorBox}>
-          <Text size="sm" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="sm">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
