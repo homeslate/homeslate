@@ -3,7 +3,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { createHomeslateServer } from "./createHomeslateServer";
-import { HomeAssistantTransportError, type HomeAssistantTransport } from "./homeAssistant";
+import {
+  HomeAssistantTransportError,
+  type HomeAssistantStatusProvider,
+  type HomeAssistantTransport,
+} from "./homeAssistant";
 
 const originalFetch = globalThis.fetch;
 
@@ -408,20 +412,19 @@ describe("/api/homeassistant", () => {
       haReachable: true,
     });
 
-    const relay = await app({
-      transport: {
-        async listEntities() {
-          return [];
-        },
-        async getEntity() {
-          return null;
-        },
-        async callService() {},
-        async status() {
-          return { connected: false, haReachable: false };
-        },
+    const relayTransport: HomeAssistantTransport & HomeAssistantStatusProvider = {
+      async listEntities() {
+        return [];
       },
-    });
+      async getEntity() {
+        return null;
+      },
+      async callService() {},
+      async status() {
+        return { connected: false, haReachable: false };
+      },
+    };
+    const relay = await app({ transport: relayTransport });
     expect(await (await relay.request("/api/homeassistant/status")).json()).toEqual({
       configured: true,
       transport: "relay",

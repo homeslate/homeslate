@@ -15,6 +15,7 @@ import {
   normalizeEnergyKwh,
 } from "./energy";
 import * as classes from "./EnergyWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface EnergyConfig extends WidgetConfig {
   powerEntityId: string;
@@ -114,9 +115,7 @@ export function EnergyWidget({ widget, isEditing }: WidgetProps<EnergyConfig>) {
 
       {error && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {error}
-          </Text>
+          <ErrorText size="xs">{error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -192,11 +191,7 @@ export function EnergyWidgetSettings({ widget, onConfigChange }: WidgetProps<Ene
         </>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <NumberInput
         label="Cost rate ($ per kWh)"

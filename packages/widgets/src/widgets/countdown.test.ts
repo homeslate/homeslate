@@ -11,7 +11,7 @@ describe("countdownRemaining", () => {
 
   it("returns past after the target", () => {
     const result = countdownRemaining(new Date("2026-09-12T12:00:00"), "2026-09-11", true);
-    expect(result.kind).toBe("past");
+    if (result.kind !== "past") throw new Error(`expected "past", got "${result.kind}"`);
     expect(result.dateLabel).toMatch(/Sep/);
   });
 
@@ -21,14 +21,14 @@ describe("countdownRemaining", () => {
       "2026-09-14T16:15:00",
       false,
     );
-    expect(result.kind).toBe("remaining");
+    if (result.kind !== "remaining") throw new Error(`expected "remaining", got "${result.kind}"`);
     expect(result.parts).toEqual({ days: 3, hours: 4, minutes: 15, seconds: 0 });
   });
 
   it("treats an all-day target as the start of that local date", () => {
     const result = countdownRemaining(new Date("2026-09-11T12:00:00"), "2026-09-12", true);
-    expect(result.kind).toBe("remaining");
-    expect(result.parts?.days).toBe(0);
-    expect(result.parts?.hours).toBe(12);
+    if (result.kind !== "remaining") throw new Error(`expected "remaining", got "${result.kind}"`);
+    expect(result.parts.days).toBe(0);
+    expect(result.parts.hours).toBe(12);
   });
 });

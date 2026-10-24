@@ -8,6 +8,7 @@ import { useHomeAssistantTodo, useTodoEntities } from "../hooks/useHomeAssistant
 import { useOverlayPortalContainer } from "../overlayPortal";
 import { clearCheckedGroceryItems, visibleGroceryItems, type GroceryItem } from "./grocery";
 import * as classes from "./listWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface GroceryConfig extends WidgetConfig {
   items: GroceryItem[];
@@ -212,9 +213,7 @@ function HomeAssistantGroceryList({
     <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {(error || controlError) && (
         <HStack justify="between" align="center" gap="sm">
-          <Text size="sm" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="sm">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry

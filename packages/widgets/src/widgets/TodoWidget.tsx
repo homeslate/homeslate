@@ -355,7 +355,10 @@ export function TodoWidget(props: WidgetProps<TodoConfig>) {
   return <LocalTodoWidget {...props} />;
 }
 
-function HomeAssistantTodoSettings({ widget, onConfigChange }: WidgetProps<TodoConfig>) {
+function HomeAssistantTodoSettings({
+  widget,
+  onConfigChange,
+}: Pick<WidgetProps<TodoConfig>, "widget" | "onConfigChange">) {
   const portalContainer = useOverlayPortalContainer();
   const { entityId = "" } = widget.config;
   const { entities, isLoading, error, status, refresh } = useTodoEntities();

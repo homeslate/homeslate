@@ -17,6 +17,7 @@ import {
   historyRange,
 } from "./homeAssistantHistory";
 import * as classes from "./HistoryWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface HistoryConfig extends WidgetConfig {
   entityId: string;
@@ -85,9 +86,7 @@ export function HistoryWidget({ widget, isEditing }: WidgetProps<HistoryConfig>)
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch sensor"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch sensor"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -142,9 +141,7 @@ export function HistoryWidget({ widget, isEditing }: WidgetProps<HistoryConfig>)
 
       {(history.error || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {history.error ?? error}
-          </Text>
+          <ErrorText size="xs">{history.error ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={retry} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -204,11 +201,7 @@ export function HistoryWidgetSettings({ widget, onConfigChange }: WidgetProps<Hi
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <NumberInput
         label={`Window in hours (max ${HISTORY_HOURS_MAX})`}

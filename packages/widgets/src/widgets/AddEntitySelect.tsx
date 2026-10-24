@@ -3,6 +3,7 @@ import { IconRefresh, IconX } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { useEntitiesAcross } from "../hooks/useHomeAssistant";
 import { useOverlayPortalContainer } from "../overlayPortal";
+import { ErrorText } from "../ErrorText";
 
 export interface AddEntitySelectProps {
   /** Allowlisted domains to list. */
@@ -63,11 +64,7 @@ export function AddEntitySelect({
           {error ?? "Home Assistant is not configured."}
         </Text>
       )}
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
     </Stack>
   );
 }
@@ -88,9 +85,13 @@ export function SelectedEntityRow({
         <Text size="sm" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
           {entityId}
         </Text>
-        <IconButton aria-label={`Remove ${entityId}`} size="sm" onPress={onRemove}>
-          <IconX size={14} />
-        </IconButton>
+        <IconButton
+          name="close"
+          icon={<IconX size={14} />}
+          aria-label={`Remove ${entityId}`}
+          size="sm"
+          onPress={onRemove}
+        />
       </HStack>
       {children}
     </Stack>

@@ -17,6 +17,7 @@ import { AddEntitySelect, SelectedEntityRow } from "./AddEntitySelect";
 import type { EntityTileDescriptor } from "./homeAssistantTile";
 import { ROOM_EMPTY_COPY, ROOM_MISSING_CONFIG_COPY, summarizeRoom } from "./room";
 import * as classes from "./RoomWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface RoomConfig extends WidgetConfig {
   name: string;
@@ -200,9 +201,7 @@ export function RoomWidget({ widget, isEditing }: WidgetProps<RoomConfig>) {
 
       {(error || controlError) && (
         <div className={classes.errorBox}>
-          <Text size="sm" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="sm">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
