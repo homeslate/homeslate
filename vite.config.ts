@@ -101,7 +101,8 @@ export default defineConfig({
       // The one command CI and the pre-push hook both run.
       ci: {
         cache: false,
-        command: ["vp check", "vp run build", "vp run docs#check", "vp test run"],
+        // Build first: the type check resolves workspace packages through their built declarations.
+        command: ["vp run build", "vp check", "vp run docs#check", "vp test run"],
       },
     },
   },
