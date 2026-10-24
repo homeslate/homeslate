@@ -67,12 +67,28 @@ export default defineConfig({
         specifier: "vite-plus/oxlint-plugin",
       },
     ],
+    options: {
+      // typeCheck reports TypeScript errors across the repo, like var-ui. It requires typeAware.
+      typeAware: true,
+      typeCheck: true,
+    },
     env: {
       builtin: true,
       browser: true,
     },
     rules: {
       "vite-plus/prefer-vite-plus-imports": "error",
+      // Type-aware rules that were never enforced here. Off to keep the check readable; turn on
+      // one at a time and fix as you go (about 330 findings in total when this was added).
+      "typescript/no-useless-default-assignment": "off",
+      "typescript/no-base-to-string": "off",
+      "typescript/await-thenable": "off",
+      "typescript/no-redundant-type-constituents": "off",
+      "typescript/no-misused-spread": "off",
+      "react/set-state-in-effect": "off",
+      "react/refs": "off",
+      "react/purity": "off",
+      "react/preserve-manual-memoization": "off",
       "typescript/no-explicit-any": "error",
       "typescript/no-namespace": "error",
       "react/rules-of-hooks": "error",

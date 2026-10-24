@@ -37,6 +37,7 @@ import {
 } from "./homeAssistantTile";
 import * as classes from "./EntityTileWidget.styles";
 import { securityHighRiskLocked } from "./securityControls";
+import { ErrorText } from "../ErrorText";
 
 export interface EntityTileConfig extends WidgetConfig {
   entityId: string;
@@ -155,9 +156,7 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch entity"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch entity"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -253,9 +252,7 @@ export function EntityTileWidget({ widget, isEditing }: WidgetProps<EntityTileCo
 
       {(controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -451,11 +448,7 @@ export function EntityTileWidgetSettings({
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <TextField
         label="Label override"

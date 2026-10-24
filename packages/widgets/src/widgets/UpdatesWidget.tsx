@@ -16,6 +16,7 @@ import {
   type HomeAssistantUpdate,
 } from "./homeAssistantUpdate";
 import * as classes from "./UpdatesWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface UpdatesConfig extends WidgetConfig {
   entityIds: string[];
@@ -107,9 +108,7 @@ export function UpdatesWidget({ widget, isEditing }: WidgetProps<UpdatesConfig>)
     <div className={containerClass}>
       {(error || controlError) && (
         <div className={classes.errorBox}>
-          <Text size="sm" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="sm">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry

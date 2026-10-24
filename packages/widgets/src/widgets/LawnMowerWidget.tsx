@@ -18,6 +18,7 @@ import {
   type HomeAssistantLawnMower,
 } from "./homeAssistantLawnMower";
 import * as classes from "./LawnMowerWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface LawnMowerConfig extends WidgetConfig {
   entityId: string;
@@ -90,9 +91,7 @@ export function LawnMowerWidget({ widget, isEditing }: WidgetProps<LawnMowerConf
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch lawn mower"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch lawn mower"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -161,9 +160,7 @@ export function LawnMowerWidget({ widget, isEditing }: WidgetProps<LawnMowerConf
 
       {(controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -219,11 +216,7 @@ export function LawnMowerWidgetSettings({ widget, onConfigChange }: WidgetProps<
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <HStack gap="sm" align="center" justify="between">
         <Text size="sm">Transparent background</Text>

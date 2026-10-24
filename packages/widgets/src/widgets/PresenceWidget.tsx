@@ -13,6 +13,7 @@ import {
 } from "./homeAssistantPresence";
 import { presenceAvatarPresentation } from "./presenceImage";
 import * as classes from "./PresenceWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface PresenceConfig extends WidgetConfig {
   entityIds: string[];
@@ -79,9 +80,7 @@ export function PresenceWidget({ widget, isEditing }: WidgetProps<PresenceConfig
     <div className={`${classes.container} ${transparentBackground ? classes.transparent : ""}`}>
       {error && !lastUpdated && (
         <HStack gap="sm" align="center" justify="between">
-          <Text size="sm" tone="danger">
-            {error}
-          </Text>
+          <ErrorText size="sm">{error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry

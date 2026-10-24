@@ -32,6 +32,7 @@ import {
 } from "./homeAssistantAlarm";
 import * as classes from "./SecurityWidget.styles";
 import { securityHighRiskLocked } from "./securityControls";
+import { ErrorText } from "../ErrorText";
 
 export interface SecurityConfig extends WidgetConfig {
   entityIds: string[];
@@ -161,9 +162,7 @@ export function SecurityWidget({ widget, isEditing }: WidgetProps<SecurityConfig
       )}
       {(error || controlError) && (
         <div className={classes.errorBox}>
-          <Text size="sm" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="sm">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry

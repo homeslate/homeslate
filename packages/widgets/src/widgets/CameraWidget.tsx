@@ -15,6 +15,7 @@ import {
   type HomeAssistantCamera,
 } from "./homeAssistantCamera";
 import * as classes from "./CameraWidget.styles";
+import { ErrorText } from "../ErrorText";
 
 export interface CameraConfig extends WidgetConfig {
   entityId: string;
@@ -98,9 +99,7 @@ export function CameraWidget({ widget, isEditing }: WidgetProps<CameraConfig>) {
     return (
       <div className={containerClass}>
         <div className={classes.empty}>
-          <Text size="sm" tone="danger">
-            {error ?? "Failed to fetch camera"}
-          </Text>
+          <ErrorText size="sm">{error ?? "Failed to fetch camera"}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -178,9 +177,7 @@ export function CameraWidget({ widget, isEditing }: WidgetProps<CameraConfig>) {
 
       {(controlError || error) && (
         <div className={classes.errorBox}>
-          <Text size="xs" tone="danger">
-            {controlError ?? error}
-          </Text>
+          <ErrorText size="xs">{controlError ?? error}</ErrorText>
           <Button appearance="subtle" size="sm" onPress={refresh} isDisabled={isLoading}>
             <IconRefresh size={14} />
             Retry
@@ -241,11 +238,7 @@ export function CameraWidgetSettings({ widget, onConfigChange }: WidgetProps<Cam
         </HStack>
       )}
 
-      {error && status !== 501 && (
-        <Text size="xs" tone="danger">
-          {error}
-        </Text>
-      )}
+      {error && status !== 501 && <ErrorText size="xs">{error}</ErrorText>}
 
       <NumberInput
         label="Refresh seconds (0 = manual)"
