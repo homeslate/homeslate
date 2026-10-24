@@ -9,6 +9,9 @@ import {
 } from "@var-ui/core";
 import type { ColorMode, ThemeDocument } from "@homeslate/schema";
 
+/** What `createDesignTheme` returns for our token documents (extend values are user-defined). */
+export type DisplayTheme = DesignTheme<Record<string, ExtendTokenValues>>;
+
 export function displayThemeName(docId: string): string {
   return `homeslate-${docId}`;
 }
@@ -20,7 +23,7 @@ export function previewDisplayThemeName(docId: string): string {
 export function createDisplayTheme(
   doc: ThemeDocument,
   name = displayThemeName(doc.id),
-): DesignTheme {
+): DisplayTheme {
   return createDesignTheme({
     name,
     tokens: doc.tokens as DesignThemeTokenValues | undefined,
@@ -48,7 +51,7 @@ export function createInactivePreviewThemeDispose(previewId: string): () => void
   };
 }
 
-export function useCompiledDisplayTheme(doc: ThemeDocument): DesignTheme {
+export function useCompiledDisplayTheme(doc: ThemeDocument): DisplayTheme {
   const tokensKey = JSON.stringify(doc.tokens ?? null);
   const colorModeKey = JSON.stringify(doc.colorMode ?? null);
   const extendKey = JSON.stringify(doc.extend ?? null);

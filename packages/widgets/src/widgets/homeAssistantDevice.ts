@@ -24,7 +24,7 @@ export const DEVICES_MISSING_CONFIG_COPY =
   "Set HOMEASSISTANT_BASE_URL and HOMEASSISTANT_TOKEN on the server.";
 
 /** The allowlisted on/off service for a device. */
-export function deviceService(domain: DeviceDomain, on: boolean): string {
+export function deviceService(_domain: DeviceDomain, on: boolean): string {
   return on ? "turn_on" : "turn_off";
 }
 

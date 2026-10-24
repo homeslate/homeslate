@@ -27,6 +27,8 @@ export function mapFanEntity(raw: unknown): HomeAssistantFan | null {
 
   return {
     ...base,
+    // The guard above narrows `base.domain`, but TypeScript does not carry that through the spread.
+    domain: "fan",
     presetMode: stringOrNull(attributes.preset_mode),
     presetModes: stringList(attributes.preset_modes),
     oscillating: typeof attributes.oscillating === "boolean" ? attributes.oscillating : null,

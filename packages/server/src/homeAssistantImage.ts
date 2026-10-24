@@ -12,11 +12,11 @@ export type HomeAssistantImage = {
 
 /** A route-level image proxy failure with an HTTP status. */
 export class HomeAssistantImageError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
     this.name = "HomeAssistantImageError";
   }
 }

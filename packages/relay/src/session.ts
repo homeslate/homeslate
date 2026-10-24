@@ -70,6 +70,9 @@ export function createRelaySession(options: RelaySessionOptions): RelaySession {
   let heartbeat: ReturnType<typeof setInterval> | null = null;
   let missed = 0;
 
+  // A function call, so TypeScript does not narrow `current` across an await (close() can run meanwhile).
+  const isClosed = (): boolean => current === "closed";
+
   function send(message: AgentMessage): void {
     if (current === "closed") return;
     try {
@@ -127,7 +130,7 @@ export function createRelaySession(options: RelaySessionOptions): RelaySession {
           options.socket.close(CLOSE_UNAUTHORIZED, "unauthorized");
           return;
         }
-        if (current === "closed") return;
+        if (isClosed()) return;
         handle = {
           accountId: authorized.binding.accountId,
           agentId: authorized.binding.agentId,

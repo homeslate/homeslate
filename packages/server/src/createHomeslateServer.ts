@@ -41,6 +41,7 @@ import {
   type WeatherAlertsResponse,
 } from "@homeslate/widgets/server";
 import { Hono, type Context } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { freshCacheControl } from "./cacheControl";
 import { registerDataRoutes } from "./dataRoutes";
@@ -214,7 +215,7 @@ export function createHomeslateServer(opts: HomeslateServerOptions): Hono {
       });
     } catch (error) {
       if (error instanceof HomeAssistantImageError) {
-        return c.json({ error: error.message }, error.status);
+        return c.json({ error: error.message }, error.status as ContentfulStatusCode);
       }
       const { status, error: message } = homeAssistantRouteError(error);
       return c.json({ error: message }, status);
@@ -592,9 +593,10 @@ function homeAssistantMissingConfigCopy(domain: string): string {
  * carry their own status (relay `503` offline / `504` timeout); anything else
  * is the generic upstream failure.
  */
-function homeAssistantRouteError(error: unknown): { status: number; error: string } {
+function homeAssistantRouteError(error: unknown): { status: ContentfulStatusCode; error: string } {
   if (error instanceof HomeAssistantTransportError) {
-    return { status: error.status, error: error.userMessage };
+    // Transport errors carry real HTTP error statuses (503, 504, ...).
+    return { status: error.status as ContentfulStatusCode, error: error.userMessage };
   }
   if (error instanceof HomeAssistantError && error.status === 400) {
     return { status: 400, error: "Invalid service data" };
